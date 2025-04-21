@@ -46,7 +46,7 @@ const MessageItem = styled(Paper, {
   color: isUser
     ? theme.palette.primary.contrastText
     : theme.palette.text.primary,
-  borderRadius: theme.spacing(2),
+  borderRadius: theme.spacing(3),
   "&.form": {
     maxWidth: "100%",
     width: "100%",
@@ -236,6 +236,13 @@ const ChatInterface: React.FC = () => {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e as any);
+    }
+  };
+
   return (
     <Container maxWidth={false} sx={{ height: "100vh", py: 2, px: 4 }}>
       <AppBar
@@ -355,6 +362,7 @@ const ChatInterface: React.FC = () => {
               size="small"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
               disabled={isLoading}
               placeholder="Type your message..."
               multiline
