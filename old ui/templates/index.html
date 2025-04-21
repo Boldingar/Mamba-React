@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyword Research Assistant | Mamba SEO</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='mamba.webp') }}">
+</head>
+<body>
+    <!-- Main container uses flexbox for side-by-side layout -->
+    <div class="main-container">
+
+        <!-- Left Column: Chat and Form -->
+        <div class="left-column">
+            <header class="main-header">
+                <img src="{{ url_for('static', filename='logo.svg') }}" alt="Logo" class="logo">
+                 <h1>Lily - Senior SEO Engineer</h1>
+            </header>
+
+            <!-- Chat Area -->
+            <div class="chat-container">
+                <div id="chat-box" class="chat-box">
+                    <!-- Messages will be appended here -->
+                    <div class="message agent-message">Welcome! I am Lily from Mamba, how can I help you today?</div>
+                </div>
+                <div class="chat-input-area">
+                     <textarea id="user-input" placeholder="Type your message..."></textarea>
+                     <button id="send-button">Send</button>
+                </div>
+                 <div id="agent-status" class="agent-status"></div>
+            </div>
+
+            <!-- Form Area (Initially Hidden) -->
+            <div id="info-form-container" class="info-form-container" style="display: none;">
+                <form id="info-form">
+                    <h2>Please provide the following business details:</h2>
+                    <table>
+                        <tr>
+                            <td><label for="company_name">Company Name:</label></td>
+                            <td><input type="text" id="company_name" name="company_name" required></td>
+                        </tr>
+                        <tr>
+                            <td><label for="website">Website:</label></td>
+                            <td><input type="url" id="website" name="website"></td>
+                        </tr>
+                        <tr>
+                            <td><label for="niche">Niche:</label></td>
+                            <td><input type="text" id="niche" name="niche"></td>
+                        </tr>
+                         <tr>
+                            <td><label for="location">Location:</label></td>
+                            <td>
+                                <select id="location" name="location" required>
+                                    <option value="" disabled selected>-- Select Location --</option>
+                                    {% for location in locations %}
+                                        <option value="{{ location }}">{{ location }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><strong>Products/Services:</strong></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div id="products-services-container">
+                                    <!-- Initial Product/Service row structure (JS will add more like this) -->
+                                    <div class="product-service-row">
+                                        <input type="text" name="product_service_name_1" placeholder="Product/Service Name" required class="product-name">
+                                        <input type="url" name="product_service_url_1" placeholder="Optional URL" class="product-url">
+                                        <textarea name="product_service_description_1" placeholder="Product/Service Description" rows="2" class="product-description"></textarea>
+                                        <textarea name="product_service_persona_1" placeholder="Target Persona (Roles, Pains, Goals)" rows="2" class="product-persona"></textarea>
+                                        <label>Priority:</label>
+                                        <input type="range" name="product_service_priority_1" min="1" max="10" value="5" oninput="this.nextElementSibling.textContent = this.value" class="product-priority">
+                                        <span class="priority-value">5</span>
+                                        <button type="button" class="remove-product-service">Remove</button>
+                                    </div>
+                                </div>
+                                <button type="button" id="add-product-service">+ Add Product/Service</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label for="target_personas">Target Personas (roles, pain points, goals):</label></td>
+                            <td><textarea id="target_personas" name="target_personas" rows="4"></textarea></td>
+                        </tr>
+                         <tr>
+                            <td><label for="market_geo">Market/Geo Targeting:</label></td>
+                            <td>
+                                <select id="market_geo" name="market_geo" required>
+                                    <option value="" disabled selected>-- Select Market/Geo --</option>
+                                    {% for location in locations %}
+                                        <option value="{{ location }}">{{ location }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label for="value_props">Unique Value Propositions:</label></td>
+                            <td><textarea id="value_props" name="value_props" rows="3"></textarea></td>
+                        </tr>
+                    </table>
+                    <br>
+                    <button type="submit">Submit Information</button>
+                </form>
+            </div>
+             <div id="form-submission-message-area"></div>
+        </div> <!-- End Left Column -->
+
+        <!-- Right Column: CSV Display Area -->
+        <div class="right-column" id="csv-display-area" style="display: none;">
+             <h2>Generated Data</h2>
+             <button id="download-csv-btn" style="display: none;">Download CSV</button>
+             <div class="csv-table-container">
+                 <table id="csv-table">
+                     <!-- CSV data will be populated here by JS -->
+                     <thead></thead>
+                     <tbody></tbody>
+                 </table>
+             </div>
+             <!-- Pagination Controls -->
+             <div id="pagination-controls" class="pagination-controls" style="display: none;">
+                 <button id="prev-page-btn">&laquo; Previous</button>
+                 <span id="page-info">Page 1 of 1</span>
+                 <button id="next-page-btn">Next &raquo;</button>
+             </div>
+        </div> <!-- End Right Column -->
+
+    </div> <!-- End Main Container -->
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html> 

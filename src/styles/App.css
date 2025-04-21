@@ -1,0 +1,24 @@
+:root {
+  --accent-color: #daff45;
+  --background-color: #1a1a1a;
+  --text-color: #f0f0f0;
+  --container-bg: #262626;
+  --input-bg: #f8f8f8;
+  --input-text: #000000;
+  --border-color: #444444;
+  --button-text-color: #000000;
+}
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: #f8f9fa;
+  display: flex;
+  justify-content: center;
+}
+
+.app {
+  width: 100%;
+  max-width: 1600px;
+}

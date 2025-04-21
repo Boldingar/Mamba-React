@@ -1,0 +1,882 @@
+/* static/style.css */
+:root {
+    --accent-color: #daff45;
+    --background-color: #1a1a1a; /* Dark gray instead of pure black */
+    --text-color: #f0f0f0; /* Off-white */
+    --container-bg: #262626; /* Slightly lighter dark gray */
+    --input-bg: #f8f8f8; /* Keep inputs light for contrast */
+    --input-text: #000000;
+    --border-color: #444444;
+    --button-text-color: #000000;
+}
+
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+    display: flex; /* Use flexbox for centering the main content */
+    justify-content: center;
+}
+
+.main-container {
+    display: flex;
+    width: 100%; /* Stretch full width */
+    max-width: 1600px; /* Max width for very large screens */
+    gap: 20px; /* Space between columns */
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+.left-column {
+    flex: 3; /* Chat/Form takes up more space (e.g., 3 parts) */
+    display: flex;
+    flex-direction: column;
+    /* Max height might be needed if content overflows */
+}
+
+.right-column {
+    flex: 2; /* CSV display takes up less space (e.g., 2 parts) */
+    border-left: 1px solid #dee2e6;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent content from breaking layout */
+}
+
+.right-column h2 {
+    margin-top: 0;
+    color: #343a40;
+    font-size: 1.2em;
+}
+
+#download-csv-btn {
+    margin-bottom: 15px;
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    align-self: flex-start; /* Align button to the left */
+}
+
+#download-csv-btn:hover {
+    background-color: #0056b3;
+}
+
+.csv-table-container {
+    flex-grow: 1; /* Allows the container to fill available space */
+    overflow: auto; /* Add scrollbars if table is too big */
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+#csv-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+
+#csv-table th, #csv-table td {
+    border: 1px solid #dee2e6;
+    padding: 8px 10px;
+    text-align: left;
+    white-space: nowrap; /* Prevent line breaks in cells initially */
+    color: #212529; /* <<< ADD: Ensure cell text is dark */
+}
+
+#csv-table th {
+    background-color: #e9ecef;
+    position: sticky;
+    top: 0; /* Make header sticky */
+    z-index: 1;
+}
+
+#csv-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+/* --- Pagination Controls --- */
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 5px; /* Add some padding */
+    margin-top: 10px; /* Space above controls */
+    border-top: 1px solid #dee2e6; /* Separator */
+}
+
+.pagination-controls button {
+    padding: 5px 10px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.pagination-controls button:hover {
+    background-color: #5a6268;
+}
+
+.pagination-controls button:disabled {
+    background-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+#page-info {
+    font-size: 0.9em;
+    color: #495057;
+}
+
+/* Adjustments for existing chat elements */
+.chat-container {
+    flex-grow: 1; /* Allows chat to fill space in left column */
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    overflow: hidden; /* Manage overflow within the chat container */
+    margin-bottom: 20px; /* Space before form if visible */
+}
+
+.chat-box {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 15px;
+    background-color: #ffffff;
+}
+
+.chat-input-area {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+}
+
+.main-header {
+    /* Existing header styles are fine */
+    margin-bottom: 20px;
+}
+
+.info-form-container {
+    background-color: #ffffff; /* Light background for the form */
+    padding: 25px 30px; /* Increase padding */
+    border-radius: 8px; /* Match main container */
+    border: 1px solid #e9ecef; /* Lighter border */
+    margin-top: auto; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Subtle shadow */
+}
+
+.info-form-container h2 {
+    color: #212529; /* Dark text color */
+    text-align: left; /* Align header left */
+    margin-bottom: 25px; /* More space below header */
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+/* Target table elements specifically inside the form */
+.info-form-container table {
+    border-collapse: separate; /* Use separate for spacing */
+    border-spacing: 0 10px; /* Add vertical spacing between rows */
+}
+
+.info-form-container td {
+    border-bottom: none; /* Remove default bottom border */
+    padding: 5px 0; /* Adjust padding */
+    color: #495057; /* Standard dark grey text for labels */
+}
+
+.info-form-container td:first-child {
+    width: 25%; /* Adjust label width */
+    font-weight: 500; /* Slightly bolder labels */
+    padding-right: 15px; /* Space between label and input */
+    text-align: right;
+    vertical-align: middle; /* Align label vertically */
+    color: #212529; /* <<< CHANGE: Set label color to darker grey/black */
+}
+
+/* Explicitly set color for strong elements (like Products/Services label) */
+.info-form-container td strong {
+    color: #212529; /* Ensure strong text is also dark */
+}
+
+/* Target inputs/textareas specifically inside the form */
+.info-form-container input[type="text"],
+.info-form-container input[type="url"],
+.info-form-container textarea,
+.info-form-container select /* Add select styling */
+{
+    background-color: #ffffff; /* White background */
+    color: #212529; /* Dark text */
+    border: 1px solid #ced4da; /* Standard light grey border */
+    padding: 10px 12px; /* Adjust padding */
+    border-radius: 4px;
+    font-size: 1em;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.info-form-container input[type="text"]:focus,
+.info-form-container input[type="url"]:focus,
+.info-form-container textarea:focus,
+.info-form-container select:focus
+{
+    border-color: #80bdff; /* Light blue focus border */
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Light blue focus glow */
+}
+
+.info-form-container select {
+    /* Add specific styling for select if needed, e.g., appearance */
+    -webkit-appearance: none; /* Remove default OS styling */
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); /* Basic dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    padding-right: 2.5rem; /* Make space for arrow */
+}
+
+.info-form-container textarea {
+    min-height: 80px;
+}
+
+/* Styling for Product/Service rows inside form */
+.info-form-container #products-services-container {
+    margin-top: 15px;
+    border-top: 1px solid #e9ecef;
+    padding-top: 15px;
+}
+
+.info-form-container .product-service-row {
+   /* display: flex; - Already flex */
+    align-items: flex-start; /* Align items top */
+    gap: 10px; /* Space between elements in a row */
+    margin-bottom: 15px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    background-color: #f8f9fa; /* Slight background for distinction */
+}
+
+.info-form-container .product-service-row > * {
+    margin: 0; /* Reset default margins */
+}
+
+.info-form-container .product-service-row input[type="text"],
+.info-form-container .product-service-row input[type="url"] {
+    flex: 1 1 180px; /* Allow grow/shrink, base width */
+}
+
+.info-form-container .product-service-row textarea {
+    flex: 1 1 200px; /* Allow grow/shrink, base width */
+    min-height: 60px;
+}
+
+.info-form-container .product-service-row label {
+    color: #495057;
+    font-size: 0.9em;
+    margin: 0 5px 0 10px; /* Adjust spacing */
+    white-space: nowrap;
+    align-self: center; /* Center label with slider */
+}
+
+.info-form-container .product-service-row input[type="range"] {
+   /* Reset custom slider appearance if needed, or adjust */
+    align-self: center;
+    height: 8px;
+    background: #dee2e6;
+}
+
+.info-form-container .product-service-row input[type="range"]::-webkit-slider-thumb {
+     background: #007bff; /* Blue thumb */
+     width: 16px;
+     height: 16px;
+}
+
+.info-form-container .product-service-row input[type="range"]::-moz-range-thumb {
+     background: #007bff; /* Blue thumb */
+     width: 16px;
+     height: 16px;
+}
+
+.info-form-container .priority-value {
+    color: #007bff; /* Blue value */
+    min-width: 25px;
+    font-weight: 600;
+    align-self: center;
+}
+
+.info-form-container .remove-product-service {
+    background-color: #dc3545; /* Red delete button */
+    color: white;
+    padding: 6px 10px;
+    font-size: 0.9em;
+    align-self: center;
+    height: fit-content;
+}
+
+.info-form-container .remove-product-service:hover {
+    background-color: #c82333;
+}
+
+/* Style buttons within the form specifically */
+.info-form-container #add-product-service {
+    background-color: #28a745; /* Green add button */
+    color: white;
+    display: inline-block;
+    font-weight: 500;
+    padding: 8px 15px;
+    margin-top: 10px; /* Space above add button */
+    margin-left: 0;
+}
+
+.info-form-container #add-product-service:hover {
+    background-color: #218838;
+    filter: none;
+}
+
+.info-form-container button[type="submit"] {
+    background-color: #007bff; /* Blue submit button */
+    color: white;
+    font-weight: 600;
+    padding: 12px 25px;
+    font-size: 1.05em;
+    margin-top: 30px; /* More space above submit */
+    /* display: block; margin-left: auto; margin-right: auto; - Keep centered */
+}
+
+.info-form-container button[type="submit"]:hover {
+    background-color: #0056b3;
+    filter: none;
+}
+
+/* --- End Form Styling --- */
+
+/* Make sure container class is removed or adapted if no longer used */
+/* .container { ... } */
+
+/* ------- Existing CSS below this line -------- */
+.logo {
+    height: 35px; /* Adjust as needed */
+    margin-right: 15px;
+}
+
+h1 {
+    color: #212529; /* <<< CHANGE: Set explicit dark color for header */
+    text-align: center;
+    padding: 0; /* Remove padding */
+    margin: 0;
+    font-size: 1.4em; /* Adjust size */
+    border-bottom: none; /* Remove border */
+    background-color: transparent; /* Remove background */
+    flex-grow: 1; /* Allow h1 to take space if needed */
+    text-align: left; /* Align text left */
+}
+
+.message {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border-radius: 15px;
+    max-width: 80%;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+.user-message {
+    background-color: #404040; /* Darker gray for user */
+    color: var(--text-color);
+    margin-left: auto;
+    border-bottom-right-radius: 5px;
+}
+
+.agent-message {
+    background-color: var(--accent-color); /* Use accent color */
+    color: var(--button-text-color); /* Use dark text on accent */
+    margin-right: auto;
+    border-bottom-left-radius: 5px;
+}
+
+.system-message {
+    background-color: #444; /* Darker background for system */
+    color: #bbb; /* Lighter text for system */
+    font-style: italic;
+    text-align: center;
+    font-size: 0.9em;
+    max-width: 100%;
+    border-radius: 5px;
+}
+
+.chat-input-area textarea {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    resize: none; /* Disable textarea resize */
+    font-family: inherit;
+    font-size: 1em;
+    min-height: 40px; /* Min height */
+    max-height: 100px; /* Max height before scroll */
+    overflow-y: auto;
+    margin-right: 10px;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+}
+
+.chat-input-area textarea:focus {
+     outline: none;
+     border-color: var(--accent-color);
+     box-shadow: 0 0 0 2px rgba(218, 255, 69, 0.3); /* Accent glow */
+}
+
+.chat-input-area button {
+    padding: 0 20px; /* Adjust padding */
+    background-color: var(--accent-color); /* Accent button */
+    color: var(--button-text-color);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    margin-top: 0; /* Reset margin */
+    height: auto; /* Allow button height to adjust */
+}
+
+.chat-input-area button:hover {
+    filter: brightness(90%);
+}
+
+.chat-input-area button:disabled {
+    background-color: #555;
+    color: #999;
+    cursor: not-allowed;
+    filter: none;
+}
+
+.agent-status {
+    font-size: 0.9em;
+    color: #999; /* Lighter gray status */
+    text-align: center;
+    padding: 5px 0;
+    height: 1.5em; /* Reserve space to prevent layout shift */
+    line-height: 1.5em;
+    display: block; /* Always visible but text changes */
+}
+
+.info-form-container h2 {
+    color: var(--text-color);
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+td {
+    padding: 8px 4px; /* Adjust padding */
+    vertical-align: top;
+    border-bottom: 1px solid var(--border-color); /* Darker lines */
+}
+
+td:first-child {
+    width: 30%;
+    font-weight: normal; /* Remove bold */
+    color: var(--text-color);
+}
+
+input[type="text"],
+input[type="url"],
+textarea {
+    width: 100%; /* Use full width within td */
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    font-size: 0.95em;
+}
+
+input[type="text"]:focus,
+input[type="url"]:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(218, 255, 69, 0.3); /* Accent glow */
+}
+
+textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+/* Style for slider labels and values */
+.product-service-row label {
+    margin-left: 10px;
+    margin-right: 5px;
+    font-size: 0.9em;
+    color: var(--text-color);
+}
+
+/* Custom slider appearance */
+input[type="range"] {
+    width: 120px; /* Adjust slider width */
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 5px;
+    background: #555;
+    border-radius: 5px;
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none; /* Remove default border in Firefox */
+}
+
+.priority-value {
+    font-weight: bold;
+    color: var(--accent-color);
+    min-width: 20px;
+    text-align: right;
+    display: inline-block;
+    margin-left: 8px;
+}
+
+.product-service-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 5px 0;
+}
+
+.product-service-row input[type="text"] {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.product-service-row button {
+    padding: 3px 8px;
+    background-color: #555555;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8em;
+    margin-left: 10px;
+    margin-top: 0;
+}
+
+.product-service-row button:hover {
+    background-color: #c82333; /* Keep red for delete */
+}
+
+/* General button styles within the form */
+#info-form button {
+    padding: 10px 20px;
+    background-color: var(--accent-color);
+    color: var(--button-text-color);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    font-weight: bold;
+    display: block; /* Center submit button */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#info-form button:hover {
+    filter: brightness(90%);
+}
+
+#info-form button[type="button"] {
+    background-color: #555;
+    color: var(--text-color);
+    display: inline-block; /* Align add button */
+    margin-left: 0;
+    margin-right: 0;
+    font-weight: normal;
+    padding: 6px 12px;
+}
+
+#info-form button[type="button"]:hover {
+    background-color: #666666;
+    filter: none;
+}
+
+/* --- Message Area Styles --- */
+#form-submission-message-area, .message-area /* Shared styles */ {
+    padding: 10px;
+    margin: 10px 15px; /* Match container padding */
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+.message-success {
+    background-color: var(--accent-color); /* Use accent for success */
+    color: var(--button-text-color);
+    border: 1px solid var(--accent-color);
+}
+
+.message-error {
+    background-color: #f8d7da;
+    color: #721c24; /* Keep error colors for clarity */
+    border: 1px solid #f5c6cb;
+}
+
+/* --- Add Placeholder Styling --- */
+.info-form-container input::placeholder,
+.info-form-container textarea::placeholder {
+    color: #6c757d; /* Standard bootstrap placeholder grey */
+    opacity: 1; /* Override browser defaults */
+}
+
+/* Add similar rules for other vendor prefixes if needed */
+.info-form-container input::-webkit-input-placeholder,
+.info-form-container textarea::-webkit-input-placeholder {
+    color: #6c757d;
+    opacity: 1;
+}
+
+.info-form-container input::-moz-placeholder,
+.info-form-container textarea::-moz-placeholder {
+    color: #6c757d;
+    opacity: 1;
+}
+
+.info-form-container input:-ms-input-placeholder,
+.info-form-container textarea:-ms-input-placeholder {
+    color: #6c757d;
+    opacity: 1;
+}
+
+.info-form-container input::-ms-input-placeholder,
+.info-form-container textarea::-ms-input-placeholder {
+    color: #6c757d;
+    opacity: 1;
+}
+/* --- End Placeholder Styling --- */
+
+/* --- Styling for Info Form Container --- */
+.info-form-container {
+    background-color: #ffffff; /* Light background for the form */
+    padding: 25px 30px; /* Increase padding */
+    border-radius: 8px; /* Match main container */
+    border: 1px solid #e9ecef; /* Lighter border */
+    margin-top: auto; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Subtle shadow */
+}
+
+.info-form-container h2 {
+    color: #212529; /* Dark text color */
+    text-align: left; /* Align header left */
+    margin-bottom: 25px; /* More space below header */
+    font-size: 1.3em;
+    font-weight: 600;
+}
+
+/* Target table elements specifically inside the form */
+.info-form-container table {
+    border-collapse: separate; /* Use separate for spacing */
+    border-spacing: 0 10px; /* Add vertical spacing between rows */
+}
+
+.info-form-container td {
+    border-bottom: none; /* Remove default bottom border */
+    padding: 5px 0; /* Adjust padding */
+    color: #495057; /* Standard dark grey text for labels */
+}
+
+.info-form-container td:first-child {
+    width: 25%; /* Adjust label width */
+    font-weight: 500; /* Slightly bolder labels */
+    padding-right: 15px; /* Space between label and input */
+    text-align: right;
+    vertical-align: middle; /* Align label vertically */
+    color: #212529; /* <<< CHANGE: Set label color to darker grey/black */
+}
+
+/* Explicitly set color for strong elements (like Products/Services label) */
+.info-form-container td strong {
+    color: #212529; /* Ensure strong text is also dark */
+}
+
+/* Target inputs/textareas specifically inside the form */
+.info-form-container input[type="text"],
+.info-form-container input[type="url"],
+.info-form-container textarea,
+.info-form-container select /* Add select styling */
+{
+    background-color: #ffffff; /* White background */
+    color: #212529; /* Dark text */
+    border: 1px solid #ced4da; /* Standard light grey border */
+    padding: 10px 12px; /* Adjust padding */
+    border-radius: 4px;
+    font-size: 1em;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.info-form-container input[type="text"]:focus,
+.info-form-container input[type="url"]:focus,
+.info-form-container textarea:focus,
+.info-form-container select:focus
+{
+    border-color: #80bdff; /* Light blue focus border */
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Light blue focus glow */
+}
+
+.info-form-container select {
+    /* Add specific styling for select if needed, e.g., appearance */
+    -webkit-appearance: none; /* Remove default OS styling */
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); /* Basic dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    padding-right: 2.5rem; /* Make space for arrow */
+}
+
+.info-form-container textarea {
+    min-height: 80px;
+}
+
+/* Styling for Product/Service rows inside form */
+.info-form-container #products-services-container {
+    margin-top: 15px;
+    border-top: 1px solid #e9ecef;
+    padding-top: 15px;
+}
+
+.info-form-container .product-service-row {
+   /* display: flex; - Already flex */
+    align-items: flex-start; /* Align items top */
+    gap: 10px; /* Space between elements in a row */
+    margin-bottom: 15px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    background-color: #f8f9fa; /* Slight background for distinction */
+}
+
+.info-form-container .product-service-row > * {
+    margin: 0; /* Reset default margins */
+}
+
+.info-form-container .product-service-row input[type="text"],
+.info-form-container .product-service-row input[type="url"] {
+    flex: 1 1 180px; /* Allow grow/shrink, base width */
+}
+
+.info-form-container .product-service-row textarea {
+    flex: 1 1 200px; /* Allow grow/shrink, base width */
+    min-height: 60px;
+}
+
+.info-form-container .product-service-row label {
+    color: #495057;
+    font-size: 0.9em;
+    margin: 0 5px 0 10px; /* Adjust spacing */
+    white-space: nowrap;
+    align-self: center; /* Center label with slider */
+}
+
+.info-form-container .product-service-row input[type="range"] {
+   /* Reset custom slider appearance if needed, or adjust */
+    align-self: center;
+    height: 8px;
+    background: #dee2e6;
+}
+
+.info-form-container .product-service-row input[type="range"]::-webkit-slider-thumb {
+     background: #007bff; /* Blue thumb */
+     width: 16px;
+     height: 16px;
+}
+
+.info-form-container .product-service-row input[type="range"]::-moz-range-thumb {
+     background: #007bff; /* Blue thumb */
+     width: 16px;
+     height: 16px;
+}
+
+.info-form-container .priority-value {
+    color: #007bff; /* Blue value */
+    min-width: 25px;
+    font-weight: 600;
+    align-self: center;
+}
+
+.info-form-container .remove-product-service {
+    background-color: #dc3545; /* Red delete button */
+    color: white;
+    padding: 6px 10px;
+    font-size: 0.9em;
+    align-self: center;
+    height: fit-content;
+}
+
+.info-form-container .remove-product-service:hover {
+    background-color: #c82333;
+}
+
+/* Style buttons within the form specifically */
+.info-form-container #add-product-service {
+    background-color: #28a745; /* Green add button */
+    color: white;
+    display: inline-block;
+    font-weight: 500;
+    padding: 8px 15px;
+    margin-top: 10px; /* Space above add button */
+    margin-left: 0;
+}
+
+.info-form-container #add-product-service:hover {
+    background-color: #218838;
+    filter: none;
+}
+
+.info-form-container button[type="submit"] {
+    background-color: #007bff; /* Blue submit button */
+    color: white;
+    font-weight: 600;
+    padding: 12px 25px;
+    font-size: 1.05em;
+    margin-top: 30px; /* More space above submit */
+    /* display: block; margin-left: auto; margin-right: auto; - Keep centered */
+}
+
+.info-form-container button[type="submit"]:hover {
+    background-color: #0056b3;
+    filter: none;
+} 
