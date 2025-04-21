@@ -119,7 +119,12 @@ const DataPanel: React.FC<DataPanelProps> = ({
       }}
     >
       <Box
-        sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}
+        sx={{
+          p: 3,
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+        }}
       >
         <Box
           sx={{
@@ -159,32 +164,32 @@ const DataPanel: React.FC<DataPanelProps> = ({
               </Select>
             </FormControl>
           </Box>
-          <Box sx={{ display: "flex", gap: 1 }}>
-            <Tooltip title="Download filtered data as CSV">
-              <IconButton
-                onClick={handleDownload}
-                disabled={filteredData.length === 0}
-                sx={{
-                  bgcolor: "primary.main",
-                  color: "white",
-                  "&:hover": {
-                    bgcolor: "primary.dark",
-                  },
-                  "&.Mui-disabled": {
-                    bgcolor: "action.disabledBackground",
-                  },
-                }}
-              >
-                <DownloadIcon />
-              </IconButton>
-            </Tooltip>
-            <IconButton onClick={onClose} size="small">
-              <CloseIcon />
-            </IconButton>
-          </Box>
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
         </Box>
 
-        <BusinessDataTable data={data} onDataFilter={setFilteredData} />
+        <Box sx={{ flex: 1, overflow: "auto" }}>
+          <BusinessDataTable data={data} onDataFilter={setFilteredData} />
+        </Box>
+
+        <Box sx={{ mt: 2, borderTop: 1, borderColor: "divider", pt: 2 }}>
+          <Button
+            halfWi
+            variant="contained"
+            onClick={handleDownload}
+            disabled={filteredData.length === 0}
+            startIcon={<DownloadIcon />}
+            sx={{
+              height: 48,
+              "&.Mui-disabled": {
+                bgcolor: "action.disabledBackground",
+              },
+            }}
+          >
+            Download Data as CSV
+          </Button>
+        </Box>
       </Box>
     </Drawer>
   );
