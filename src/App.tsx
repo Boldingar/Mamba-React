@@ -8,9 +8,17 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { theme } from "./theme";
 import ChatInterface from "./components/ChatInterface";
 import DataPanel from "./components/DataPanel";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import CloseIcon from "@mui/icons-material/Close";
 import DescriptionIcon from "@mui/icons-material/Description";
 
@@ -57,6 +65,15 @@ function App() {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check for existing auth token on mount
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   // Load sample CSV files on component mount (for testing)
   useEffect(() => {
@@ -242,117 +259,136 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box
-        sx={{
-          height: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden", // Prevent main container from scrolling
-          position: "fixed", // Fix the container
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          // Remove ScrollbarStyle from main container
-        }}
-      >
-        <Box
-          sx={{
-            flex: 1,
-            position: "relative",
-            overflow: "hidden", // Ensure chat container doesn't cause page scroll
-            "& > *": ScrollbarStyle, // Apply ScrollbarStyle only to chat content
-          }}
-        >
-          <ChatInterface />
-        </Box>
+      <Router>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />
+            }
+          />
+          <Route
+            path="/"
+            element={
+              isAuthenticated ? (
+                <Box
+                  sx={{
+                    height: "100vh",
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      flex: 1,
+                      position: "relative",
+                      overflow: "hidden", // Ensure chat container doesn't cause page scroll
+                      "& > *": ScrollbarStyle, // Apply ScrollbarStyle only to chat content
+                    }}
+                  >
+                    <ChatInterface />
+                  </Box>
 
-        {/* Icon button */}
-        {datasets.length > 0 && (
-          <Tooltip title="View CSV Data" placement="left">
-            <IconButton
-              onClick={() => setIsPanelOpen(true)}
-              sx={{
-                position: "fixed",
-                width: 56,
-                height: 56,
-                top: 20,
-                right: 20,
-                zIndex: 1200,
-                bgcolor: "background.paper",
-                boxShadow: 2,
-                "&:hover": {
-                  bgcolor: "background.paper",
-                  opacity: 0.8,
-                },
-              }}
-            >
-              <DescriptionIcon />
-            </IconButton>
-          </Tooltip>
-        )}
+                  {/* Icon button */}
+                  {datasets.length > 0 && (
+                    <Tooltip title="View CSV Data" placement="left">
+                      <IconButton
+                        onClick={() => setIsPanelOpen(true)}
+                        sx={{
+                          position: "fixed",
+                          width: 56,
+                          height: 56,
+                          top: 20,
+                          right: 20,
+                          zIndex: 1200,
+                          bgcolor: "background.paper",
+                          boxShadow: 2,
+                          "&:hover": {
+                            bgcolor: "background.paper",
+                            opacity: 0.8,
+                          },
+                        }}
+                      >
+                        <DescriptionIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
 
-        {/* Error message box */}
-        {error && (
-          <Box
-            sx={{
-              position: "fixed",
-              top: 80,
-              right: 20,
-              zIndex: 1200,
-              bgcolor: "error.main",
-              color: "white",
-              p: 2,
-              borderRadius: 1,
-              maxWidth: "300px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 1,
-              ...ScrollbarStyle,
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-              }}
-            >
-              <Typography
-                variant="body2"
-                component="pre"
-                sx={{ whiteSpace: "pre-wrap", flex: 1 }}
-              >
-                {error}
-              </Typography>
-              <IconButton
-                size="small"
-                onClick={() => setError(null)}
-                sx={{
-                  color: "white",
-                  p: 0.5,
-                  ml: 1,
-                  "&:hover": {
-                    bgcolor: "rgba(255, 255, 255, 0.1)",
-                  },
-                }}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          </Box>
-        )}
+                  {/* Error message box */}
+                  {error && (
+                    <Box
+                      sx={{
+                        position: "fixed",
+                        top: 80,
+                        right: 20,
+                        zIndex: 1200,
+                        bgcolor: "error.main",
+                        color: "white",
+                        p: 2,
+                        borderRadius: 1,
+                        maxWidth: "300px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1,
+                        ...ScrollbarStyle,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <Typography
+                          variant="body2"
+                          component="pre"
+                          sx={{ whiteSpace: "pre-wrap", flex: 1 }}
+                        >
+                          {error}
+                        </Typography>
+                        <IconButton
+                          size="small"
+                          onClick={() => setError(null)}
+                          sx={{
+                            color: "white",
+                            p: 0.5,
+                            ml: 1,
+                            "&:hover": {
+                              bgcolor: "rgba(255, 255, 255, 0.1)",
+                            },
+                          }}
+                        >
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </Box>
+                  )}
 
-        {/* Data Panel */}
-        <DataPanel
-          open={isPanelOpen}
-          onClose={() => setIsPanelOpen(false)}
-          datasets={datasets}
-          selectedDatasetId={selectedDatasetId}
-          onDatasetSelect={handleDatasetSelect}
-          data={selectedDataset?.data || []}
-        />
-      </Box>
+                  {/* Data Panel */}
+                  <DataPanel
+                    open={isPanelOpen}
+                    onClose={() => setIsPanelOpen(false)}
+                    datasets={datasets}
+                    selectedDatasetId={selectedDatasetId}
+                    onDatasetSelect={handleDatasetSelect}
+                    data={selectedDataset?.data || []}
+                  />
+                </Box>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+        </Routes>
+      </Router>
     </ThemeProvider>
   );
 }
