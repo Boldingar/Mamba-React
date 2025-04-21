@@ -378,11 +378,32 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
           <TableHead>
             <TableRow>
               {headers.map((header) => (
-                <TableCell key={header.id}>
+                <TableCell
+                  key={header.id}
+                  align="center"
+                  sx={{
+                    "& .MuiTableSortLabel-root": {
+                      width: "100%",
+                      justifyContent: "center",
+                    },
+                    "& .MuiTableSortLabel-icon": {
+                      position: "absolute",
+                      right: 0,
+                    },
+                    position: "relative",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                  }}
+                >
                   <TableSortLabel
                     active={orderBy === header.id}
                     direction={orderBy === header.id ? order : "asc"}
                     onClick={() => handleRequestSort(header.id)}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      paddingRight: "16px", // Space for sort icon
+                    }}
                   >
                     {header.label}
                   </TableSortLabel>
@@ -394,7 +415,9 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
             {displayData.map((row, index) => (
               <TableRow key={index}>
                 {headers.map((header) => (
-                  <TableCell key={header.id}>{row[header.id]}</TableCell>
+                  <TableCell key={header.id} align="center">
+                    {row[header.id]}
+                  </TableCell>
                 ))}
               </TableRow>
             ))}
