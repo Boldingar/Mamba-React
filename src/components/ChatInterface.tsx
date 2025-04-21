@@ -252,8 +252,16 @@ const ChatInterface: React.FC = () => {
         sx={{ mb: 2 }}
       >
         <Toolbar>
-          <Avatar src="/logo.svg" sx={{ mr: 2 }} />
-          <Typography variant="h6">Mamba AI Assistant</Typography>
+          <Avatar
+            src="src\assets\MambaLogo.svg"
+            sx={{
+              mr: 3,
+              width: 230,
+              height: 50,
+            }}
+            variant="square"
+          />
+          <Typography variant="h6" sx={{fontWeight: "bold"}}>Lily - Senior SEO Engineer</Typography>
           {agentProcessing && (
             <Typography
               variant="caption"
@@ -263,6 +271,7 @@ const ChatInterface: React.FC = () => {
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
+                fontWeight: "bold",
               }}
             >
               <Box
@@ -291,6 +300,29 @@ const ChatInterface: React.FC = () => {
       >
         <ChatContainer elevation={3}>
           <MessageList>
+            {messages.length === 0 && (
+              <Box
+                sx={{
+                  color: "white",
+                  textAlign: "center",
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                }}
+              >
+                <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                  Welcome! I am Lily from Mamba.
+                </Typography>
+                <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                  How can I help you today ?
+                </Typography>
+              </Box>
+            )}
             {messages.map((message) => (
               <MessageItem
                 key={message.id}
