@@ -173,15 +173,24 @@ const DataPanel: React.FC<DataPanelProps> = ({
           <BusinessDataTable data={data} onDataFilter={setFilteredData} />
         </Box>
 
-        <Box sx={{ mt: 2, borderTop: 1, borderColor: "divider", pt: 2 }}>
+        <Box
+          sx={{
+            mt: 2,
+            borderTop: 1,
+            borderColor: "divider",
+            pt: 2,
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
           <Button
-            halfWi
             variant="contained"
             onClick={handleDownload}
             disabled={filteredData.length === 0}
             startIcon={<DownloadIcon />}
             sx={{
               height: 48,
+              width: 250,
               "&.Mui-disabled": {
                 bgcolor: "action.disabledBackground",
               },
