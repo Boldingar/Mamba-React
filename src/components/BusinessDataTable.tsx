@@ -204,6 +204,11 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
     applyAllFilters(searchTerm, updatedConditions);
   };
 
+  const handleClearAllFilters = () => {
+    setFilterConditions([]);
+    applyAllFilters(searchTerm, []);
+  };
+
   // Calculate the data to display for current page
   const displayData = filteredData.slice(
     page * rowsPerPage,
@@ -229,18 +234,47 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
         </Box>
 
         {filterConditions.length > 0 && (
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-            {filterConditions.map((condition, index) => (
-              <Chip
-                key={index}
-                label={`${condition.column} ${
-                  condition.type === "include" ? "includes" : "excludes"
-                } "${condition.value}"`}
-                onDelete={() => handleRemoveCondition(index)}
-                color="primary"
-                variant="outlined"
-              />
-            ))}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                Active Filters:
+              </Typography>
+              <Button
+                size="small"
+                onClick={handleClearAllFilters}
+                startIcon={<DeleteIcon />}
+                color="error"
+              >
+                Clear All Filters
+              </Button>
+            </Box>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+              {filterConditions.map((condition, index) => (
+                <Chip
+                  key={index}
+                  label={`${condition.column} ${
+                    condition.type === "include" ? "includes" : "excludes"
+                  } "${condition.value}"`}
+                  onDelete={() => handleRemoveCondition(index)}
+                  color={condition.type === "include" ? "success" : "error"}
+                  sx={{
+                    "& .MuiChip-label": {
+                      color:
+                        condition.type === "include"
+                          ? "success.main"
+                          : "error.main",
+                    },
+                  }}
+                  variant="outlined"
+                />
+              ))}
+            </Box>
           </Box>
         )}
       </Box>
@@ -267,7 +301,7 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
           </Typography>
 
           <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
-            <FormControl size="small" sx={{ minWidth: 180 }}>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>Column</InputLabel>
               <Select
                 value={newCondition.column}
@@ -308,13 +342,21 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
               onChange={(e) =>
                 setNewCondition({ ...newCondition, value: e.target.value })
               }
-              sx={{ flex: 1 }}
+              sx={{
+                maxWidth: "150px",
+                "& .MuiInputBase-root": {
+                  height: "40px",
+                  fontSize: "1rem",
+                  padding: "0px",
+                },
+              }}
+              fullWidth
             />
 
             <Button
               variant="contained"
               onClick={handleAddCondition}
-              startIcon={<AddIcon />}
+              // startIcon={<AddIcon />}
               disabled={!newCondition.column || !newCondition.value}
             >
               Add Filter
