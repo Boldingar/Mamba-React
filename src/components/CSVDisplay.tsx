@@ -1,75 +1,71 @@
-import React, { useState } from "react";
-import "../styles/CSVDisplay.css";
+import React, { useState, useEffect } from "react";
+import { Box, Drawer, IconButton, Typography } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import BusinessDataTable from "./BusinessDataTable";
 
-interface CSVDisplayProps {
-  data: {
-    columns: string[];
-    data: any[][];
-  };
+interface Data {
+  [key: string]: string | number;
 }
 
-const CSVDisplay: React.FC<CSVDisplayProps> = ({ data }) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 50;
+interface CSVDisplayProps {
+  open: boolean;
+  onClose: () => void;
+}
 
-  const totalPages = Math.ceil(data.data.length / rowsPerPage);
-  const startRow = (currentPage - 1) * rowsPerPage;
-  const endRow = startRow + rowsPerPage;
-  const currentPageData = data.data.slice(startRow, endRow);
+const CSVDisplay: React.FC<CSVDisplayProps> = ({ open, onClose }) => {
+  const [data, setData] = useState<Data[]>([]);
+  const [filteredData, setFilteredData] = useState<Data[]>([]);
 
-  const handleDownload = () => {
-    // Implementation for downloading CSV
-    // This would be similar to the original JavaScript download function
-  };
+  useEffect(() => {
+    // In a real application, you would fetch this data from the CSV file
+    fetch("/src/data/sample.csv")
+      .then((response) => response.text())
+      .then((csvText) => {
+        const rows = csvText.split("\n");
+        const headers = rows[0].split(",").map((header) => header.trim());
+
+        const parsedData = rows.slice(1).map((row) => {
+          const values = row.split(",");
+          return headers.reduce((obj, header, index) => {
+            obj[header] = values[index]?.trim() || "";
+            return obj;
+          }, {} as Data);
+        });
+        setData(parsedData);
+        setFilteredData(parsedData);
+      })
+      .catch((error) => console.error("Error loading CSV:", error));
+  }, []);
 
   return (
-    <div className="right-column">
-      <h2>Generated Data</h2>
-      <button id="download-csv-btn" onClick={handleDownload}>
-        Download CSV
-      </button>
-      <div className="csv-table-container">
-        <table id="csv-table">
-          <thead>
-            <tr>
-              {data.columns.map((column, index) => (
-                <th key={index}>{column}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {currentPageData.map((row, rowIndex) => (
-              <tr key={rowIndex}>
-                {row.map((cell, cellIndex) => (
-                  <td key={cellIndex}>{cell}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {totalPages > 1 && (
-        <div className="pagination-controls">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            &laquo; Previous
-          </button>
-          <span id="page-info">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-          >
-            Next &raquo;
-          </button>
-        </div>
-      )}
-    </div>
+    <Drawer
+      anchor="right"
+      open={open}
+      onClose={onClose}
+      PaperProps={{
+        sx: { width: "80%", maxWidth: "1000px" },
+      }}
+    >
+      <Box
+        sx={{ p: 3, height: "100%", display: "flex", flexDirection: "column" }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
+        >
+          <Typography variant="h6">Business Data</Typography>
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <BusinessDataTable data={data} onDataFilter={setFilteredData} />
+      </Box>
+    </Drawer>
   );
 };
 
