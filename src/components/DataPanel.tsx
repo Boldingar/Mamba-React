@@ -9,8 +9,11 @@ import {
   Select,
   MenuItem,
   SelectChangeEvent,
+  Button,
+  Tooltip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import DownloadIcon from "@mui/icons-material/Download";
 import BusinessDataTable from "./BusinessDataTable";
 
 interface Data {
@@ -58,6 +61,53 @@ const DataPanel: React.FC<DataPanelProps> = ({
       (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
     );
   }, [datasets]);
+
+  const handleDownload = () => {
+    if (filteredData.length === 0) return;
+
+    // Get headers from the first row
+    const headers = Object.keys(filteredData[0]);
+
+    // Convert data to CSV format
+    const csvContent = [
+      headers.join(","), // Header row
+      ...filteredData.map((row) =>
+        headers
+          .map((header) => {
+            const value = row[header];
+            // Handle values that might contain commas or quotes
+            if (
+              typeof value === "string" &&
+              (value.includes(",") || value.includes('"'))
+            ) {
+              return `"${value.replace(/"/g, '""')}"`;
+            }
+            return value;
+          })
+          .join(",")
+      ),
+    ].join("\n");
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+
+    // Get current dataset name for the file name
+    const currentDataset = sortedDatasets.find(
+      (ds) => ds.id === selectedDatasetId
+    );
+    const fileName = currentDataset
+      ? `${currentDataset.name.toLowerCase().replace(/\s+/g, "_")}_filtered.csv`
+      : "filtered_data.csv";
+
+    link.setAttribute("href", url);
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <Drawer
@@ -109,9 +159,29 @@ const DataPanel: React.FC<DataPanelProps> = ({
               </Select>
             </FormControl>
           </Box>
-          <IconButton onClick={onClose} size="small">
-            <CloseIcon />
-          </IconButton>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Tooltip title="Download filtered data as CSV">
+              <IconButton
+                onClick={handleDownload}
+                disabled={filteredData.length === 0}
+                sx={{
+                  bgcolor: "primary.main",
+                  color: "white",
+                  "&:hover": {
+                    bgcolor: "primary.dark",
+                  },
+                  "&.Mui-disabled": {
+                    bgcolor: "action.disabledBackground",
+                  },
+                }}
+              >
+                <DownloadIcon />
+              </IconButton>
+            </Tooltip>
+            <IconButton onClick={onClose} size="small">
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </Box>
 
         <BusinessDataTable data={data} onDataFilter={setFilteredData} />
