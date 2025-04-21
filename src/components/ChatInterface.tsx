@@ -17,6 +17,7 @@ const API_BASE_URL = "http://127.0.0.1:5000";
 
 const ChatContainer = styled(Paper)(({ theme }) => ({
   height: "calc(100vh - 180px)",
+  minWidth: "900px",
   display: "flex",
   flexDirection: "column",
   backgroundColor: theme.palette.background.default,
@@ -66,6 +67,7 @@ const ChatInterface: React.FC = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [agentProcessing, setAgentProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval>>();
 
@@ -89,10 +91,12 @@ const ChatInterface: React.FC = () => {
         if (!response.ok) throw new Error("Failed to fetch updates");
         const data = await response.json();
 
-        // Handle agent_processing and show_form directly from response
+        // Update agent processing state
+        setAgentProcessing(data.agent_processing || false);
+
+        // Handle show_form directly from response
         if (data.show_form) {
           setShowForm(true);
-          // Add a message prompting for business info if there isn't one
           setMessages((prev) => {
             const hasFormMessage = prev.some((msg) => msg.type === "form");
             if (!hasFormMessage) {
@@ -243,6 +247,31 @@ const ChatInterface: React.FC = () => {
         <Toolbar>
           <Avatar src="/logo.svg" sx={{ mr: 2 }} />
           <Typography variant="h6">Mamba AI Assistant</Typography>
+          {agentProcessing && (
+            <Typography
+              variant="caption"
+              sx={{
+                ml: 2,
+                color: "text.secondary",
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <Box
+                component="span"
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  backgroundColor: "primary.main",
+                  display: "inline-block",
+                  animation: "pulse 1.5s infinite ease-in-out",
+                }}
+              />
+              Agent is thinking...
+            </Typography>
+          )}
         </Toolbar>
       </AppBar>
 
@@ -272,16 +301,43 @@ const ChatInterface: React.FC = () => {
                 )}
               </MessageItem>
             ))}
-            {isLoading && (
+            {(isLoading || agentProcessing) && (
               <Typography
                 variant="caption"
-                sx={{ alignSelf: "center", color: "text.secondary" }}
+                sx={{
+                  alignSelf: "center",
+                  color: "text.secondary",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
               >
-                Processing...
+                <Box
+                  component="span"
+                  sx={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    backgroundColor: "primary.main",
+                    display: "inline-block",
+                    animation: "pulse 1.5s infinite ease-in-out",
+                  }}
+                />
+                {agentProcessing ? "Agent is thinking..." : "Processing..."}
               </Typography>
             )}
             <div ref={messagesEndRef} />
           </MessageList>
+
+          <style>
+            {`
+              @keyframes pulse {
+                0% { opacity: 0.4; }
+                50% { opacity: 1; }
+                100% { opacity: 0.4; }
+              }
+            `}
+          </style>
 
           <Box
             component="form"
