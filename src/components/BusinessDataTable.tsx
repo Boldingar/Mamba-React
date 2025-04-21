@@ -269,7 +269,15 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
                         condition.type === "include"
                           ? "success.main"
                           : "error.main",
+                      fontSize: "1rem",
                     },
+                    "& .MuiChip-deleteIcon": {
+                      fontSize: "1.2rem",
+                      marginRight: "4px",
+                    },
+                    height: "40px",
+                    borderRadius: "20px",
+                    padding: "0 8px",
                   }}
                   variant="outlined"
                 />
