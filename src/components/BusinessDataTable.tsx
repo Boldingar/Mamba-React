@@ -16,7 +16,15 @@ import {
   Select,
   MenuItem,
   SelectChangeEvent,
+  IconButton,
+  Popover,
+  Typography,
+  Button,
+  Chip,
 } from "@mui/material";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 interface Data {
   [key: string]: string | number;
@@ -28,6 +36,12 @@ interface HeadCell {
 }
 
 type Order = "asc" | "desc";
+
+interface FilterCondition {
+  column: string;
+  type: "include" | "exclude";
+  value: string;
+}
 
 interface BusinessDataTableProps {
   data: Data[];
@@ -46,6 +60,16 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [filterColumn, setFilterColumn] = React.useState<string>("");
+  const [filterAnchorEl, setFilterAnchorEl] =
+    React.useState<null | HTMLElement>(null);
+  const [filterConditions, setFilterConditions] = React.useState<
+    FilterCondition[]
+  >([]);
+  const [newCondition, setNewCondition] = React.useState<FilterCondition>({
+    column: "",
+    type: "include",
+    value: "",
+  });
 
   React.useEffect(() => {
     if (data.length > 0) {
@@ -83,10 +107,41 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
     onDataFilter(sortedData);
   };
 
+  const applyAllFilters = (search: string, conditions: FilterCondition[]) => {
+    const filtered = data.filter((row) => {
+      // Apply filter conditions
+      const passesConditions =
+        conditions.length === 0 ||
+        conditions.every((condition) => {
+          const value = String(row[condition.column]).toLowerCase();
+          const searchTerm = condition.value.toLowerCase();
+
+          if (condition.type === "include") {
+            return value.includes(searchTerm);
+          } else {
+            return !value.includes(searchTerm);
+          }
+        });
+
+      // Apply search term
+      const passesSearch =
+        !search ||
+        Object.values(row).some((value) =>
+          String(value).toLowerCase().includes(search.toLowerCase())
+        );
+
+      return passesConditions && passesSearch;
+    });
+
+    setFilteredData(filtered);
+    setPage(0);
+    onDataFilter(filtered);
+  };
+
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const searchTerm = event.target.value.toLowerCase();
-    setSearchTerm(searchTerm);
-    filterData(searchTerm, filterColumn);
+    const newSearchTerm = event.target.value.toLowerCase();
+    setSearchTerm(newSearchTerm);
+    applyAllFilters(newSearchTerm, filterConditions);
   };
 
   const handleFilterColumnChange = (event: SelectChangeEvent<string>) => {
@@ -125,6 +180,30 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
     setPage(0);
   };
 
+  const handleFilterClick = (event: React.MouseEvent<HTMLElement>) => {
+    setFilterAnchorEl(event.currentTarget);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchorEl(null);
+  };
+
+  const handleAddCondition = () => {
+    if (newCondition.column && newCondition.value) {
+      const updatedConditions = [...filterConditions, { ...newCondition }];
+      setFilterConditions(updatedConditions);
+      setNewCondition({ column: "", type: "include", value: "" });
+      applyAllFilters(searchTerm, updatedConditions);
+      handleFilterClose(); // Close the popover after adding
+    }
+  };
+
+  const handleRemoveCondition = (index: number) => {
+    const updatedConditions = filterConditions.filter((_, i) => i !== index);
+    setFilterConditions(updatedConditions);
+    applyAllFilters(searchTerm, updatedConditions);
+  };
+
   // Calculate the data to display for current page
   const displayData = filteredData.slice(
     page * rowsPerPage,
@@ -133,33 +212,116 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
 
   return (
     <Box>
-      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-        <TextField
-          fullWidth
-          variant="outlined"
-          size="small"
-          placeholder="Search..."
-          value={searchTerm}
-          onChange={handleSearch}
-        />
-        <FormControl size="small" sx={{ minWidth: 200 }}>
-          <InputLabel>Filter by Column</InputLabel>
-          <Select
-            value={filterColumn}
-            onChange={handleFilterColumnChange}
-            label="Filter by Column"
-          >
-            <MenuItem value="">
-              <em>All Columns</em>
-            </MenuItem>
-            {headers.map((header) => (
-              <MenuItem key={header.id} value={header.id}>
-                {header.label}
-              </MenuItem>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 3 }}>
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            size="small"
+            placeholder="Search across all columns..."
+            value={searchTerm}
+            onChange={handleSearch}
+          />
+
+          <IconButton onClick={handleFilterClick}>
+            <FilterListIcon />
+          </IconButton>
+        </Box>
+
+        {filterConditions.length > 0 && (
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {filterConditions.map((condition, index) => (
+              <Chip
+                key={index}
+                label={`${condition.column} ${
+                  condition.type === "include" ? "includes" : "excludes"
+                } "${condition.value}"`}
+                onDelete={() => handleRemoveCondition(index)}
+                color="primary"
+                variant="outlined"
+              />
             ))}
-          </Select>
-        </FormControl>
+          </Box>
+        )}
       </Box>
+
+      <Popover
+        open={Boolean(filterAnchorEl)}
+        anchorEl={filterAnchorEl}
+        onClose={handleFilterClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        PaperProps={{
+          sx: { width: "600px" },
+        }}
+      >
+        <Box sx={{ p: 3 }}>
+          <Typography variant="h6" sx={{ mb: 3 }}>
+            Add Filter Condition
+          </Typography>
+
+          <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
+            <FormControl size="small" sx={{ minWidth: 180 }}>
+              <InputLabel>Column</InputLabel>
+              <Select
+                value={newCondition.column}
+                onChange={(e) =>
+                  setNewCondition({ ...newCondition, column: e.target.value })
+                }
+                label="Column"
+              >
+                {headers.map((header) => (
+                  <MenuItem key={header.id} value={header.id}>
+                    {header.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>Type</InputLabel>
+              <Select
+                value={newCondition.type}
+                onChange={(e) =>
+                  setNewCondition({
+                    ...newCondition,
+                    type: e.target.value as "include" | "exclude",
+                  })
+                }
+                label="Type"
+              >
+                <MenuItem value="include">Include</MenuItem>
+                <MenuItem value="exclude">Exclude</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              size="small"
+              placeholder="Value to filter"
+              value={newCondition.value}
+              onChange={(e) =>
+                setNewCondition({ ...newCondition, value: e.target.value })
+              }
+              sx={{ flex: 1 }}
+            />
+
+            <Button
+              variant="contained"
+              onClick={handleAddCondition}
+              startIcon={<AddIcon />}
+              disabled={!newCondition.column || !newCondition.value}
+            >
+              Add Filter
+            </Button>
+          </Box>
+        </Box>
+      </Popover>
 
       <TableContainer component={Paper}>
         <Table stickyHeader>
