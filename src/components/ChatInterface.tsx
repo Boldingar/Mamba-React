@@ -6,19 +6,15 @@ import {
   Container,
   Paper,
   TextField,
-  IconButton,
   Typography,
   AppBar,
   Toolbar,
   Avatar,
-  SendIcon,
   Button,
 } from "./ui";
-import DataViewer from "./DataViewer";
 
 const API_BASE_URL = "http://127.0.0.1:5000";
 
-// Styled components
 const ChatContainer = styled(Paper)(({ theme }) => ({
   height: "calc(100vh - 180px)",
   display: "flex",
@@ -31,17 +27,17 @@ const ChatContainer = styled(Paper)(({ theme }) => ({
 const MessageList = styled(Box)(({ theme }) => ({
   flex: 1,
   overflowY: "auto",
-  padding: theme.spacing(2),
+  padding: theme.spacing(3),
   display: "flex",
   flexDirection: "column",
-  gap: theme.spacing(2),
+  gap: theme.spacing(1.5),
 }));
 
 const MessageItem = styled(Paper, {
   shouldForwardProp: (prop) => prop !== "isUser" && prop !== "type",
-})<{ isUser: boolean; type?: string }>(({ theme, isUser, type }) => ({
+})<{ isUser: boolean; type?: string }>(({ theme, isUser }) => ({
   padding: theme.spacing(2),
-  maxWidth: "80%",
+  maxWidth: "90%",
   alignSelf: isUser ? "flex-end" : "flex-start",
   backgroundColor: isUser
     ? theme.palette.primary.main
@@ -50,7 +46,6 @@ const MessageItem = styled(Paper, {
     ? theme.palette.primary.contrastText
     : theme.palette.text.primary,
   borderRadius: theme.spacing(2),
-  position: "relative",
   "&.form": {
     maxWidth: "100%",
     width: "100%",
@@ -59,24 +54,10 @@ const MessageItem = styled(Paper, {
   },
 }));
 
-const InputContainer = styled("form")(({ theme }) => ({
-  display: "flex",
-  gap: theme.spacing(1),
-  padding: theme.spacing(2),
-  borderTop: `1px solid ${theme.palette.divider}`,
-}));
-
-interface ViewData {
-  title: string;
-  headers: string[];
-  rows: any[][];
-}
-
 interface Message {
   id: string;
   text: string;
   sender: "user" | "agent";
-  timestamp: string;
   type?: "text" | "form" | "form_submitted";
 }
 
@@ -84,11 +65,8 @@ const ChatInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showForm, setShowForm] = useState(false);
-  const [viewData, setViewData] = useState<ViewData | null>(null);
-  const [agentStatus, setAgentStatus] = useState("");
-  const chatBoxRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval>>();
 
   const scrollToBottom = () => {
@@ -101,10 +79,65 @@ const ChatInterface: React.FC = () => {
 
   // Start polling when component mounts
   useEffect(() => {
+    const pollForUpdates = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/get_updates`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch updates");
+        const data = await response.json();
+
+        // Handle agent_processing and show_form directly from response
+        if (data.show_form) {
+          setShowForm(true);
+          // Add a message prompting for business info if there isn't one
+          setMessages((prev) => {
+            const hasFormMessage = prev.some((msg) => msg.type === "form");
+            if (!hasFormMessage) {
+              return [
+                ...prev,
+                {
+                  id: Date.now().toString(),
+                  text: "Please provide your business information:",
+                  sender: "agent",
+                  type: "form",
+                },
+              ];
+            }
+            return prev;
+          });
+        }
+
+        // Process any additional updates
+        data.updates.forEach((update: any) => {
+          if (update.sender === "System") {
+            if (update.data.action === "hide_form") {
+              setShowForm(false);
+            }
+          } else if (update.data.content) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: Date.now().toString(),
+                text: update.data.content,
+                sender: update.sender.toLowerCase(),
+                type: update.data.type || "text",
+              },
+            ]);
+          }
+        });
+      } catch (error) {
+        console.error("Error polling for updates:", error);
+      }
+    };
+
+    // Initial poll
     pollForUpdates();
 
-    // Set up periodic polling
-    pollingIntervalRef.current = setInterval(pollForUpdates, 1000);
+    // Set up polling interval (every 3 seconds)
+    pollingIntervalRef.current = setInterval(pollForUpdates, 3000);
 
     // Cleanup on unmount
     return () => {
@@ -116,170 +149,91 @@ const ChatInterface: React.FC = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       text: inputMessage,
       sender: "user",
-      timestamp: new Date().toISOString(),
       type: "text",
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInputMessage("");
     setIsLoading(true);
-    setAgentStatus("Agent is thinking...");
 
     try {
       const response = await fetch(`${API_BASE_URL}/send_message`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: inputMessage }),
       });
 
       if (!response.ok) throw new Error("Failed to send message");
-
       const data = await response.json();
 
-      // Check if the agent requests the business form
-      if (data.show_form) {
-        const formRequestMessage: Message = {
-          id: Date.now().toString(),
-          text:
-            data.message || "Please fill out the business information form:",
-          sender: "agent",
-          timestamp: new Date().toISOString(),
-          type: "form",
-        };
-        setMessages((prev) => [...prev, formRequestMessage]);
-        setShowForm(true);
-      } else {
-        const agentMessage: Message = {
-          id: Date.now().toString(),
-          text: data.message,
-          sender: "agent",
-          timestamp: new Date().toISOString(),
-          type: "text",
-        };
-        setMessages((prev) => [...prev, agentMessage]);
-      }
-    } catch (error) {
-      console.error("Error sending message:", error);
-      const errorMessage: Message = {
+      const agentMessage: Message = {
         id: Date.now().toString(),
-        text: "Sorry, there was an error processing your message. Please try again.",
+        text: data.message,
         sender: "agent",
-        timestamp: new Date().toISOString(),
-        type: "text",
+        type: data.show_form ? "form" : "text",
       };
-      setMessages((prev) => [...prev, errorMessage]);
+
+      setMessages((prev) => [...prev, agentMessage]);
+      setShowForm(data.show_form);
+    } catch (error) {
+      console.error("Error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          text: "Sorry, there was an error. Please try again.",
+          sender: "agent",
+          type: "text",
+        },
+      ]);
     } finally {
       setIsLoading(false);
-      setAgentStatus("");
-    }
-  };
-
-  const pollForUpdates = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/get_updates`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch updates");
-
-      const data = await response.json();
-
-      // Process updates
-      data.updates.forEach((update: any) => {
-        if (update.sender === "System") {
-          if (update.data.action === "show_form") {
-            setShowForm(true);
-          } else if (update.data.action === "hide_form") {
-            setShowForm(false);
-          } else if (update.data.action === "csv_ready") {
-            if (update.data.path) {
-              setViewData(update.data);
-            }
-          }
-        } else {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: Date.now().toString(),
-              text: update.data.content,
-              sender: update.sender.toLowerCase(),
-              timestamp: new Date().toISOString(),
-              type: update.data.type,
-            },
-          ]);
-        }
-      });
-
-      if (data.agent_processing) {
-        setAgentStatus("Agent is thinking...");
-      } else {
-        setAgentStatus("");
-      }
-    } catch (error) {
-      console.error("Error polling for updates:", error);
-      setAgentStatus("");
     }
   };
 
   const handleFormSubmit = async (formData: any) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/submit_business_info`, {
+      const response = await fetch(`${API_BASE_URL}/submit_data`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) throw new Error("Failed to submit form");
-
       const data = await response.json();
 
-      const confirmationMessage: Message = {
-        id: Date.now().toString(),
-        text:
-          data.message || "Thank you for submitting your business information!",
-        sender: "agent",
-        timestamp: new Date().toISOString(),
-        type: "form_submitted",
-      };
-
-      setMessages((prev) => [...prev, confirmationMessage]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          text: data.message || "Thank you for submitting your information!",
+          sender: "agent",
+          type: "form_submitted",
+        },
+      ]);
       setShowForm(false);
     } catch (error) {
-      console.error("Error submitting form:", error);
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        text: "Sorry, there was an error submitting the form. Please try again.",
-        sender: "agent",
-        timestamp: new Date().toISOString(),
-        type: "text",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      console.error("Error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          text: "Sorry, there was an error submitting the form. Please try again.",
+          sender: "agent",
+          type: "text",
+        },
+      ]);
     }
   };
 
-  const handleFileClick = (data: ViewData) => {
-    setViewData(data);
-  };
-
-  const handleCloseView = () => {
-    setViewData(null);
-  };
-
   return (
-    <Container maxWidth="xl" sx={{ height: "100vh", py: 2 }}>
+    <Container maxWidth={false} sx={{ height: "100vh", py: 2, px: 4 }}>
       <AppBar
         position="static"
         color="transparent"
@@ -294,86 +248,71 @@ const ChatInterface: React.FC = () => {
 
       <Box
         sx={{
-          display: "flex",
-          gap: 2,
+          maxWidth: "1600px",
+          mx: "auto",
           height: "calc(100vh - 100px)",
-          backgroundColor: "background.default",
         }}
       >
-        <Box
-          sx={{
-            flex: viewData ? "0 0 50%" : "1 1 auto",
-            transition: "flex 0.3s ease",
-          }}
-        >
-          <ChatContainer elevation={3}>
-            <MessageList ref={chatBoxRef}>
-              {messages.map((message) => (
-                <MessageItem
-                  key={message.id}
-                  isUser={message.sender === "user"}
-                  className={message.type === "form" ? "form" : ""}
-                >
-                  {message.type === "form" ? (
-                    <BusinessInfoForm
-                      onClose={() => setShowForm(false)}
-                      onFileClick={handleFileClick}
-                      onSubmit={handleFormSubmit}
-                    />
-                  ) : (
-                    <Typography>{message.text}</Typography>
-                  )}
-                </MessageItem>
-              ))}
-              {agentStatus && (
-                <Typography
-                  variant="caption"
-                  sx={{ alignSelf: "center", color: "text.secondary" }}
-                >
-                  {agentStatus}
-                </Typography>
-              )}
-              <div ref={messagesEndRef} />
-            </MessageList>
-
-            <InputContainer onSubmit={handleSendMessage}>
-              <TextField
-                fullWidth
-                multiline
-                maxRows={4}
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                disabled={isLoading}
-                placeholder="Type your message..."
-                variant="outlined"
-                size="small"
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                disabled={isLoading || !inputMessage.trim()}
+        <ChatContainer elevation={3}>
+          <MessageList>
+            {messages.map((message) => (
+              <MessageItem
+                key={message.id}
+                isUser={message.sender === "user"}
+                className={message.type === "form" ? "form" : ""}
               >
-                Send
-              </Button>
-            </InputContainer>
-          </ChatContainer>
-        </Box>
+                {message.type === "form" && showForm ? (
+                  <BusinessInfoForm
+                    onSubmit={handleFormSubmit}
+                    onClose={() => setShowForm(false)}
+                    onFileClick={() => {}}
+                  />
+                ) : (
+                  <Typography>{message.text}</Typography>
+                )}
+              </MessageItem>
+            ))}
+            {isLoading && (
+              <Typography
+                variant="caption"
+                sx={{ alignSelf: "center", color: "text.secondary" }}
+              >
+                Processing...
+              </Typography>
+            )}
+            <div ref={messagesEndRef} />
+          </MessageList>
 
-        {viewData && (
           <Box
+            component="form"
+            onSubmit={handleSendMessage}
             sx={{
-              flex: "0 0 50%",
-              borderLeft: 1,
+              p: 2,
+              borderTop: 1,
               borderColor: "divider",
+              display: "flex",
+              gap: 1,
             }}
           >
-            <DataViewer
-              data={viewData}
-              title={viewData.title}
-              onClose={handleCloseView}
+            <TextField
+              fullWidth
+              size="small"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              disabled={isLoading}
+              placeholder="Type your message..."
+              multiline
+              maxRows={4}
             />
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isLoading || !inputMessage.trim()}
+            >
+              Send
+            </Button>
           </Box>
-        )}
+        </ChatContainer>
       </Box>
     </Container>
   );
