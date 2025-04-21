@@ -1,11 +1,485 @@
-Company Name,Industry,Revenue,Employees,Location,Founded
-Acme Corp,Technology,5000000,250,New York,2010
-Beta Systems,Healthcare,3500000,150,California,2015
-Gamma Industries,Manufacturing,7500000,500,Texas,2008
-Delta Solutions,Consulting,2000000,75,Florida,2018
-Echo Enterprises,Retail,4000000,200,Illinois,2012
-Foxtrot Tech,Software,6000000,300,Washington,2014
-Golf Analytics,Data Science,3000000,100,Massachusetts,2016
-Hotel Chain Inc,Hospitality,8000000,600,Nevada,2005
-India Exports,Trading,4500000,180,Arizona,2011
-Juliet Foods,Food & Beverage,5500000,400,Oregon,2009 
+product,keyword,search_volume,difficulty,intent
+Gaming keyboard,100 mechanical keyboard,590,2,transactional
+Gaming keyboard,60 keyboards for gaming,50,18,commercial
+Gaming keyboard,60 percent keyboard cheap,90,0,transactional
+Gaming keyboard,affordable gaming keyboard,110,13,transactional
+Gaming keyboard,affordable mechanical keyboard,1300,28,transactional
+Gaming keyboard,amazon gaming keyboard and mouse,170,10,transactional
+Gaming keyboard,amazon keychron,210,0,navigational
+Gaming keyboard,amazon logitech keyboard and mouse,110,0,transactional
+Gaming keyboard,apex pro tkl amazon,70,9,transactional
+Gaming keyboard,artisan keyboard,140,4,transactional
+Gaming keyboard,azeron cyborg gaming keypad,210,20,transactional
+Gaming keyboard,best 10 keyless keyboard,40,11,transactional
+Gaming keyboard,best 100 keyboard,210,0,transactional
+Gaming keyboard,best 100 mechanical keyboard,170,7,transactional
+Gaming keyboard,best 60 gaming keyboard,320,32,transactional
+Gaming keyboard,best 60 keyboard,1000,11,transactional
+Gaming keyboard,best 60 keyboard for gaming,110,12,transactional
+Gaming keyboard,best 60 mechanical keyboard,110,4,transactional
+Gaming keyboard,best 60 percent gaming keyboard,70,38,transactional
+Gaming keyboard,best 60 percent keyboard,880,34,transactional
+Gaming keyboard,best 60 percent keyboard for gaming,90,34,commercial
+Gaming keyboard,best 60 wireless keyboard,30,0,transactional
+Gaming keyboard,best 65 gaming keyboard,90,3,transactional
+Gaming keyboard,best 65 mechanical keyboard,70,5,transactional
+Gaming keyboard,best 65 percent keyboard,110,9,transactional
+Gaming keyboard,best 70 keyboard,260,24,transactional
+Gaming keyboard,best 75 gaming keyboard,170,24,transactional
+Gaming keyboard,best 75 keyboard,2400,4,transactional
+Gaming keyboard,best 75 mechanical keyboard,170,3,transactional
+Gaming keyboard,best 75 percent keyboard,170,10,transactional
+Gaming keyboard,best 96 keyboard,260,10,transactional
+Gaming keyboard,best affordable gaming keyboard,2900,23,transactional
+Gaming keyboard,best affordable mechanical keyboard,720,28,transactional
+Gaming keyboard,best alienware keyboard,30,12,transactional
+Gaming keyboard,best backlit keyboard and mouse combo,20,21,transactional
+Gaming keyboard,best backlit mechanical keyboard,50,10,transactional
+Gaming keyboard,best beginner mechanical keyboard,70,28,transactional
+Gaming keyboard,best blue switch keyboard,90,4,transactional
+Gaming keyboard,best bluetooth gaming keyboard,140,27,transactional
+Gaming keyboard,best bluetooth keyboard and mouse,590,15,transactional
+Gaming keyboard,best bluetooth keyboard for steam deck,50,13,transactional
+Gaming keyboard,best brown switch keyboard,140,0,transactional
+Gaming keyboard,best budget 60 keyboard,90,6,transactional
+Gaming keyboard,best budget 60 mechanical keyboard,10,16,transactional
+Gaming keyboard,best budget 75 keyboard,110,2,transactional
+Gaming keyboard,best budget custom keyboard,70,0,transactional
+Gaming keyboard,best budget gaming keyboard,2900,13,transactional
+Gaming keyboard,best budget gaming keyboard and mouse,260,23,transactional
+Gaming keyboard,best budget gaming keyboard and mouse combo,90,4,transactional
+Gaming keyboard,best budget keyboard and mouse,110,25,transactional
+Gaming keyboard,best budget keyboards,1900,24,commercial
+Gaming keyboard,best budget mechanical gaming keyboard,210,36,transactional
+Gaming keyboard,best budget mechanical keyboard,1600,28,transactional
+Gaming keyboard,best budget wireless gaming keyboard,140,23,transactional
+Gaming keyboard,best budget wireless keyboard and mouse,90,12,transactional
+Gaming keyboard,best budget wireless mechanical keyboard,140,33,transactional
+Gaming keyboard,best buy corsair keyboard,90,3,transactional
+Gaming keyboard,best buy gaming keyboard,720,0,transactional
+Gaming keyboard,best buy gaming keyboard and mouse,170,5,transactional
+Gaming keyboard,best buy razer keyboard,260,0,transactional
+Gaming keyboard,best cheap 60 keyboard,30,54,transactional
+Gaming keyboard,best cheap 60 percent keyboard,30,3,transactional
+Gaming keyboard,best cheap gaming keyboard,2900,14,transactional
+Gaming keyboard,best cheap keyboard and mouse,50,7,transactional
+Gaming keyboard,best cheap keyboards,590,20,transactional
+Gaming keyboard,best cheap mechanical keyboard,720,33,transactional
+Gaming keyboard,best cherry mx red keyboard,40,0,transactional
+Gaming keyboard,best clicky gaming keyboard,50,26,transactional
+Gaming keyboard,best clicky keyboard,590,9,transactional
+Gaming keyboard,best clicky mechanical keyboard,90,13,transactional
+Gaming keyboard,best compact gaming keyboard,210,15,transactional
+Gaming keyboard,best compact mechanical keyboard,70,34,transactional
+Gaming keyboard,best corsair gaming keyboard,110,0,transactional
+Gaming keyboard,best corsair keyboard,590,0,transactional
+Gaming keyboard,best couch keyboard,50,1,transactional
+Gaming keyboard,best custom gaming keyboard,140,2,transactional
+Gaming keyboard,best custom keyboard for gaming,90,1,transactional
+Gaming keyboard,best custom mechanical keyboard,260,0,transactional
+Gaming keyboard,best customizable gaming keyboard,20,52,commercial
+Gaming keyboard,best ergonomic gaming keyboard,90,8,transactional
+Gaming keyboard,best ergonomic mechanical keyboard,320,7,transactional
+Gaming keyboard,best foldable keyboard for steam deck,30,2,transactional
+Gaming keyboard,best fortnite keyboard,480,0,commercial
+Gaming keyboard,best fps keyboard,260,26,transactional
+Gaming keyboard,best full mechanical keyboard,70,11,transactional
+Gaming keyboard,best full size gaming keyboard,390,47,transactional
+Gaming keyboard,best full size mechanical keyboard,590,6,transactional
+Gaming keyboard,best full size wireless mechanical keyboard,30,13,transactional
+Gaming keyboard,best gaming 60 keyboard,50,20,transactional
+Gaming keyboard,best gaming keyboard,27100,24,transactional
+Gaming keyboard,best gaming keyboard 2022,50,28,transactional
+Gaming keyboard,best gaming keyboard 2022 reddit,10,0,transactional
+Gaming keyboard,best gaming keyboard 2023,50,48,transactional
+Gaming keyboard,best gaming keyboard 60 percent,90,38,transactional
+Gaming keyboard,best gaming keyboard and mouse,2400,47,transactional
+Gaming keyboard,best gaming keyboard and mouse combo,1600,22,transactional
+Gaming keyboard,best gaming keyboard and mouse combo 2022,10,62,transactional
+Gaming keyboard,best gaming keyboard and mouse wireless,20,19,transactional
+Gaming keyboard,best gaming keyboard brands,720,47,transactional
+Gaming keyboard,best gaming keyboard for fortnite,210,14,commercial
+Gaming keyboard,best gaming keyboard for mac,110,6,transactional
+Gaming keyboard,best gaming keyboard for ps5,90,12,transactional
+Gaming keyboard,best gaming keyboard in the world,170,27,transactional
+Gaming keyboard,best gaming keyboard mouse combo,140,17,transactional
+Gaming keyboard,best gaming keyboard on amazon,110,17,transactional
+Gaming keyboard,best gaming keyboard reddit,1300,0,commercial
+Gaming keyboard,best gaming keyboard under $100,590,0,transactional
+Gaming keyboard,best gaming keyboard under 100,260,5,transactional
+Gaming keyboard,best gaming keyboard under 50,170,4,transactional
+Gaming keyboard,best gaming keyboards 2023,50,24,commercial
+Gaming keyboard,best gaming keycaps,320,12,commercial
+Gaming keyboard,best gaming keypad,390,8,transactional
+Gaming keyboard,best gaming mechanical keyboard 2022,10,87,transactional
+Gaming keyboard,best gaming mini keyboard,260,10,transactional
+Gaming keyboard,best gaming mouse and keyboard combo 2022,0,62,transactional
+Gaming keyboard,best gaming tkl keyboard,260,23,transactional
+Gaming keyboard,best high end gaming keyboard,40,15,transactional
+Gaming keyboard,best hyperx keyboard,70,10,transactional
+Gaming keyboard,best illuminated keyboard,50,6,transactional
+Gaming keyboard,best keyboard 2023,70,46,transactional
+Gaming keyboard,best keyboard and mouse for ps4,70,0,transactional
+Gaming keyboard,best keyboard and mouse for ps5,320,2,transactional
+Gaming keyboard,best keyboard and mouse for steam deck,110,4,transactional
+Gaming keyboard,best keyboard and mouse for xbox one,20,0,transactional
+Gaming keyboard,best keyboard for fortnite,880,6,commercial
+Gaming keyboard,best keyboard for gaming 2022,10,66,commercial
+Gaming keyboard,best keyboard for gaming 2023,10,51,transactional
+Gaming keyboard,best keyboard for league of legends,140,13,commercial
+Gaming keyboard,best keyboard for ps5,590,0,transactional
+Gaming keyboard,best keyboard for steam deck,210,7,transactional
+Gaming keyboard,best keyboard for typing and gaming,170,41,transactional
+Gaming keyboard,best keyboard for valorant,320,3,transactional
+Gaming keyboard,best keyboard for wow,320,7,transactional
+Gaming keyboard,best keyboard switches for gaming,880,8,commercial
+Gaming keyboard,best keyboard under 100,390,0,transactional
+Gaming keyboard,best keyboard under 50,140,6,transactional
+Gaming keyboard,best keyboards 2023,70,59,commercial
+Gaming keyboard,best keyboards for fortnite,210,2,commercial
+Gaming keyboard,best keyboards for gaming 2022,10,66,commercial
+Gaming keyboard,best keyboards to buy,90,27,transactional
+Gaming keyboard,best keycaps for gaming,320,2,commercial
+Gaming keyboard,best led keyboard,70,19,transactional
+Gaming keyboard,best logitech gaming keyboard,1000,17,transactional
+Gaming keyboard,best logitech keyboard gaming,1000,17,transactional
+Gaming keyboard,best logitech mechanical keyboard,140,17,transactional
+Gaming keyboard,best low profile gaming keyboard,210,11,transactional
+Gaming keyboard,best low profile keyboard,720,2,transactional
+Gaming keyboard,best low profile mechanical keyboard,1000,0,transactional
+Gaming keyboard,best mechanical bluetooth keyboard,30,20,transactional
+Gaming keyboard,best mechanical gaming keyboard 2022,10,83,transactional
+Gaming keyboard,best mechanical keyboard,14800,12,transactional
+Gaming keyboard,best mechanical keyboard 2022,10,39,transactional
+Gaming keyboard,best mechanical keyboard 2023,30,37,transactional
+Gaming keyboard,best mechanical keyboard and mouse combo,70,11,transactional
+Gaming keyboard,best mechanical keyboard brands,720,15,transactional
+Gaming keyboard,best mechanical keyboard for coding,590,4,transactional
+Gaming keyboard,best mechanical keyboard for gaming,2900,47,transactional
+Gaming keyboard,best mechanical keyboard for mac,1600,9,transactional
+Gaming keyboard,best mechanical keyboard for programming,590,14,transactional
+Gaming keyboard,best mechanical keyboard for typing,720,34,transactional
+Gaming keyboard,best mechanical keyboard for work,320,8,transactional
+Gaming keyboard,best mechanical keyboard reddit,880,7,transactional
+Gaming keyboard,best mechanical keyboard switches,320,10,transactional
+Gaming keyboard,best mechanical keyboard under 100,210,4,transactional
+Gaming keyboard,best mechanical keyboard under 50,140,1,transactional
+Gaming keyboard,best mechanical keyboard with numpad,110,2,transactional
+Gaming keyboard,best mechanical keyboards 2022,10,40,commercial
+Gaming keyboard,best mechanical keyboards 2023,30,34,transactional
+Gaming keyboard,best membrane gaming keyboard,90,4,transactional
+Gaming keyboard,best membrane keyboard,390,4,transactional
+Gaming keyboard,best mini gaming keyboard,260,10,transactional
+Gaming keyboard,best mini keyboard for gaming,140,21,transactional
+Gaming keyboard,best mini keyboard for steam deck,30,10,transactional
+Gaming keyboard,best mini keyboard gaming,260,10,transactional
+Gaming keyboard,best mini mechanical keyboard,40,9,transactional
+Gaming keyboard,best mmo keyboard,260,25,transactional
+Gaming keyboard,best mmo keyboard 2022,0,87,transactional
+Gaming keyboard,best mouse and keyboard,1600,7,transactional
+Gaming keyboard,best mouse and keyboard combo,880,10,transactional
+Gaming keyboard,best mouse and keyboard for ps5,260,0,transactional
+Gaming keyboard,best mouse and keyboard for steam deck,70,3,transactional
+Gaming keyboard,best non mechanical keyboard,110,16,transactional
+Gaming keyboard,best office mechanical keyboard,140,13,transactional
+Gaming keyboard,best one handed gaming keyboard,140,0,transactional
+Gaming keyboard,best one handed keyboard,140,0,transactional
+Gaming keyboard,best optical switches,50,0,transactional
+Gaming keyboard,best pc gaming keyboard,320,47,transactional
+Gaming keyboard,best pc keyboard and mouse,1600,21,transactional
+Gaming keyboard,best pink gaming keyboard,40,0,transactional
+Gaming keyboard,best portable keyboard,880,4,transactional
+Gaming keyboard,best portable keyboard for steam deck,40,7,transactional
+Gaming keyboard,best portable mechanical keyboard,110,4,transactional
+Gaming keyboard,best prebuilt keyboards,320,1,transactional
+Gaming keyboard,best prebuilt mechanical keyboard,260,2,transactional
+Gaming keyboard,best ps5 keyboard,90,1,transactional
+Gaming keyboard,best ps5 keyboard and mouse,70,2,transactional
+Gaming keyboard,best quiet gaming keyboard,880,3,transactional
+Gaming keyboard,best quiet keyboards,140,1,commercial
+Gaming keyboard,best quiet mechanical keyboard,880,0,transactional
+Gaming keyboard,best quiet wireless keyboard,90,6,transactional
+Gaming keyboard,best rated gaming keyboard,480,39,transactional
+Gaming keyboard,best razer gaming keyboard,390,3,transactional
+Gaming keyboard,best razer keyboard,1300,0,transactional
+Gaming keyboard,best razer keyboard 2022,10,44,transactional
+Gaming keyboard,best razer mechanical keyboard,20,22,transactional
+Gaming keyboard,best razer wireless keyboard,70,0,transactional
+Gaming keyboard,best red switch keyboard,50,3,transactional
+Gaming keyboard,best redragon keyboard,170,5,transactional
+Gaming keyboard,best rgb gaming keyboard,140,19,transactional
+Gaming keyboard,best rgb keyboard,590,20,transactional
+Gaming keyboard,best rgb keyboard and mouse combo,30,11,transactional
+Gaming keyboard,best rgb mechanical keyboard,140,19,transactional
+Gaming keyboard,best rgb wireless keyboard,40,20,transactional
+Gaming keyboard,best silent gaming keyboard,210,3,transactional
+Gaming keyboard,best silent mechanical keyboard,880,0,transactional
+Gaming keyboard,best silent switches,480,0,commercial
+Gaming keyboard,best small gaming keyboard,210,9,transactional
+Gaming keyboard,best small keyboard for gaming,40,19,transactional
+Gaming keyboard,best small mechanical keyboard,50,5,transactional
+Gaming keyboard,best sounding gaming keyboard,140,26,transactional
+Gaming keyboard,best split keyboards,1300,6,commercial
+Gaming keyboard,best split mechanical keyboard,140,0,transactional
+Gaming keyboard,best steam deck keyboard,170,7,transactional
+Gaming keyboard,best steelseries keyboard,260,3,transactional
+Gaming keyboard,best tenkeyless keyboard,880,17,transactional
+Gaming keyboard,best tenkeyless mechanical keyboard,320,12,transactional
+Gaming keyboard,best tkl gaming keyboard,260,18,transactional
+Gaming keyboard,best tkl gaming keyboards 2022,10,54,transactional
+Gaming keyboard,best tkl keyboard,880,10,transactional
+Gaming keyboard,best tkl keyboard 2022,10,39,transactional
+Gaming keyboard,best tkl mechanical keyboard,320,8,transactional
+Gaming keyboard,best travel keyboard and mouse,110,7,transactional
+Gaming keyboard,best travel mechanical keyboard,70,11,transactional
+Gaming keyboard,best typing keyboard mechanical,720,34,transactional
+Gaming keyboard,best value gaming keyboard,40,35,transactional
+Gaming keyboard,best value mechanical keyboard,110,28,transactional
+Gaming keyboard,best white gaming keyboard,210,9,transactional
+Gaming keyboard,best white keyboard,170,8,transactional
+Gaming keyboard,best white mechanical keyboard,70,4,transactional
+Gaming keyboard,best white wireless keyboard,170,11,transactional
+Gaming keyboard,best wired backlit keyboard,40,7,transactional
+Gaming keyboard,best wired gaming keyboard,480,48,transactional
+Gaming keyboard,best wired keyboard,880,26,transactional
+Gaming keyboard,best wired keyboard and mouse,90,10,transactional
+Gaming keyboard,best wired keyboard for gaming,90,47,transactional
+Gaming keyboard,best wired mechanical keyboard,170,37,transactional
+Gaming keyboard,best wireless 60 keyboard,70,16,transactional
+Gaming keyboard,best wireless backlit keyboard,260,25,transactional
+Gaming keyboard,best wireless gaming keyboard,4400,18,transactional
+Gaming keyboard,best wireless gaming keyboard 2022,10,72,transactional
+Gaming keyboard,best wireless gaming keyboard 2023,10,30,transactional
+Gaming keyboard,best wireless gaming keyboard and mouse,1600,22,transactional
+Gaming keyboard,best wireless gaming keyboard and mouse combo,480,9,transactional
+Gaming keyboard,best wireless keyboard and mouse for ps5,110,4,transactional
+Gaming keyboard,best wireless keyboard for pc,110,26,transactional
+Gaming keyboard,best wireless keyboard for ps5,210,9,transactional
+Gaming keyboard,best wireless keyboard for steam deck,30,7,transactional
+Gaming keyboard,best wireless keyboard mouse combo,1000,12,transactional
+Gaming keyboard,best wireless mechanical gaming keyboard,70,17,transactional
+Gaming keyboard,best wireless mechanical keyboard,1900,28,transactional
+Gaming keyboard,best wireless mechanical keyboard and mouse combo,30,19,transactional
+Gaming keyboard,best wireless mouse and keyboard,4400,11,transactional
+Gaming keyboard,best wireless rgb keyboard,50,27,transactional
+Gaming keyboard,best wireless tkl keyboard,70,5,transactional
+Gaming keyboard,black friday deals on keyboards,480,0,commercial
+Gaming keyboard,black friday gaming keyboard,110,0,transactional
+Gaming keyboard,black friday keyboard and mouse deals,10,43,commercial
+Gaming keyboard,black friday mechanical keyboard,140,0,transactional
+Gaming keyboard,bluetooth keyboard gaming,90,11,transactional
+Gaming keyboard,budget 60 keyboard,50,5,transactional
+Gaming keyboard,budget 60 percent keyboard,20,9,transactional
+Gaming keyboard,budget gaming keyboard,590,24,transactional
+Gaming keyboard,budget mechanical keyboard,590,11,transactional
+Gaming keyboard,budget wireless gaming keyboard,40,32,transactional
+Gaming keyboard,budget wireless mechanical keyboard,40,13,transactional
+Gaming keyboard,buy custom keyboard,140,0,transactional
+Gaming keyboard,buy gaming keyboard,40,32,transactional
+Gaming keyboard,buy keyboard gaming,20,14,transactional
+Gaming keyboard,buy keyboard near me,210,6,transactional
+Gaming keyboard,cheap 60 keyboard,210,0,transactional
+Gaming keyboard,cheap gaming keyboard,880,24,transactional
+Gaming keyboard,cheap gaming keyboard and mouse,320,10,transactional
+Gaming keyboard,cheap gaming keyboard and mouse wireless,20,8,transactional
+Gaming keyboard,cheap keyboard and mouse gaming,90,0,transactional
+Gaming keyboard,cheap mechanical keyboard,1300,28,transactional
+Gaming keyboard,cheap mouse and keyboard,1000,0,transactional
+Gaming keyboard,cheap rgb keyboard,110,24,transactional
+Gaming keyboard,cheap wireless gaming keyboard,90,26,transactional
+Gaming keyboard,cheap wireless mechanical keyboard,50,30,transactional
+Gaming keyboard,cheap wireless mouse and keyboard,170,18,transactional
+Gaming keyboard,cheapest razer keyboard,210,0,transactional
+Gaming keyboard,compact mechanical keyboard with numpad,50,0,transactional
+Gaming keyboard,computer keyboard reviews,70,47,transactional
+Gaming keyboard,cool gaming keyboard,27100,61,transactional
+Gaming keyboard,corsair gaming bundle,30,0,transactional
+Gaming keyboard,corsair k100 review,140,2,transactional
+Gaming keyboard,corsair k100 rgb opx,10,32,transactional
+Gaming keyboard,corsair k55 rgb gaming keyboard,390,2,transactional
+Gaming keyboard,corsair k70 keyboard,480,0,transactional
+Gaming keyboard,corsair k70 rgb,720,2,transactional
+Gaming keyboard,corsair vengeance gaming pc review,10,0,transactional
+Gaming keyboard,corsair vengeance pc review,20,18,transactional
+Gaming keyboard,corsair vengeance review,110,2,transactional
+Gaming keyboard,corsair wireless gaming bundle,20,0,transactional
+Gaming keyboard,cute gaming keyboard,480,0,transactional
+Gaming keyboard,ergonomic keyboard gaming,70,0,transactional
+Gaming keyboard,everest keyboard review,10,54,transactional
+Gaming keyboard,everest max keyboard review,20,6,transactional
+Gaming keyboard,expensive gaming keyboard,210,2,transactional
+Gaming keyboard,fastest gaming keyboard,590,17,transactional
+Gaming keyboard,fastest keyboard switches,260,11,transactional
+Gaming keyboard,full mechanical keyboard wireless,30,2,transactional
+Gaming keyboard,full size mechanical keyboard wireless,70,8,transactional
+Gaming keyboard,gaming keyboard 2022,10,66,transactional
+Gaming keyboard,gaming keyboard 2023,10,61,transactional
+Gaming keyboard,gaming keyboard black friday deals,140,0,commercial
+Gaming keyboard,gaming keyboard brands,480,48,transactional
+Gaming keyboard,gaming keyboard comparison,40,50,commercial
+Gaming keyboard,gaming keyboard cute,50,0,commercial
+Gaming keyboard,gaming keyboard cyber monday,30,0,transactional
+Gaming keyboard,gaming keyboard deals,260,32,transactional
+Gaming keyboard,gaming keyboard features,10,0,transactional
+Gaming keyboard,gaming keyboard for ipad,70,2,transactional
+Gaming keyboard,gaming keyboard for laptop,140,32,transactional
+Gaming keyboard,gaming keyboard for mac,390,7,transactional
+Gaming keyboard,gaming keyboard for small hands,110,0,transactional
+Gaming keyboard,gaming keyboard mechanical,260,24,transactional
+Gaming keyboard,gaming keyboard recommendations,480,60,commercial
+Gaming keyboard,gaming keyboard reviews,260,59,transactional
+Gaming keyboard,gaming keyboard sale,480,0,transactional
+Gaming keyboard,gaming keyboard under 500,10,0,transactional
+Gaming keyboard,gaming keyboards,9900,48,commercial
+Gaming keyboard,gaming keyboards 2022,10,66,commercial
+Gaming keyboard,gaming keyboards amazon,880,8,transactional
+Gaming keyboard,gaming keypads,210,8,commercial
+Gaming keyboard,gaming wireless keyboard,720,11,transactional
+Gaming keyboard,gmmk pro layout,210,0,transactional
+Gaming keyboard,good 60 keyboards,140,6,transactional
+Gaming keyboard,good 60 percent keyboards,40,16,transactional
+Gaming keyboard,good budget gaming keyboard,2900,24,transactional
+Gaming keyboard,good budget mechanical keyboard,1600,24,transactional
+Gaming keyboard,good cheap gaming keyboards,170,24,transactional
+Gaming keyboard,good cheap keyboards,320,27,transactional
+Gaming keyboard,good cheap mechanical keyboard,110,28,transactional
+Gaming keyboard,good gaming keyboard,27100,48,transactional
+Gaming keyboard,good gaming keyboard and mouse,2400,46,transactional
+Gaming keyboard,good gaming keyboard brands,90,59,transactional
+Gaming keyboard,good gaming keyboards under 100,260,5,transactional
+Gaming keyboard,good gaming keyboards under 50,170,2,transactional
+Gaming keyboard,good mechanical keyboard,14800,6,transactional
+Gaming keyboard,good mechanical keyboard for gaming,2900,52,transactional
+Gaming keyboard,good mouse and keyboard,50,23,transactional
+Gaming keyboard,good rgb keyboard,590,34,transactional
+Gaming keyboard,great gaming keyboards,27100,55,commercial
+Gaming keyboard,halo 65 keyboard amazon,10,0,transactional
+Gaming keyboard,heavy duty wireless keyboard and mouse,10,0,transactional
+Gaming keyboard,high end gaming keyboard,110,60,transactional
+Gaming keyboard,high end mechanical keyboard,210,14,transactional
+Gaming keyboard,high quality gaming keyboard,110,59,transactional
+Gaming keyboard,highground gaming keyboard,260,0,transactional
+Gaming keyboard,homall gaming chair review,170,2,transactional
+Gaming keyboard,hyperx alloy,1000,17,transactional
+Gaming keyboard,hyperx alloy keyboard,320,13,transactional
+Gaming keyboard,hyperx alloy origins best mainstream gaming keyboard,50,27,transactional
+Gaming keyboard,hyperx origins keyboard,90,24,transactional
+Gaming keyboard,hyperx switches comparison,10,0,commercial
+Gaming keyboard,keyboard and mouse best buy,140,0,transactional
+Gaming keyboard,keyboard and mouse deals,110,0,transactional
+Gaming keyboard,keyboard brands gaming,50,59,commercial
+Gaming keyboard,keyboards best buy,1300,2,transactional
+Gaming keyboard,lighted keyboards for pc,40,0,transactional
+Gaming keyboard,lofree keyboard review,70,0,transactional
+Gaming keyboard,logitech 60 percent keyboard,140,22,transactional
+Gaming keyboard,logitech backlit wireless keyboard and mouse combo,70,0,transactional
+Gaming keyboard,logitech g502 keyboard,70,27,transactional
+Gaming keyboard,logitech g815 review,90,7,transactional
+Gaming keyboard,logitech g915 review,170,12,transactional
+Gaming keyboard,logitech g915 tkl review,110,6,transactional
+Gaming keyboard,logitech gaming bundle,170,0,transactional
+Gaming keyboard,logitech keyboard 60 percent,70,18,transactional
+Gaming keyboard,logitech keyboard amazon,480,18,transactional
+Gaming keyboard,logitech keyboard black friday,10,39,transactional
+Gaming keyboard,logitech keyboard gaming mechanical,170,12,transactional
+Gaming keyboard,logitech keys to go review,90,0,transactional
+Gaming keyboard,logitech one handed keyboard,70,20,transactional
+Gaming keyboard,logitech romer g,40,4,transactional
+Gaming keyboard,logitech wireless gaming keyboard and mouse combo,40,8,transactional
+Gaming keyboard,logitech wireless keyboard gaming,90,18,transactional
+Gaming keyboard,low latency keyboard,320,16,transactional
+Gaming keyboard,low profile gaming keyboards,880,6,transactional
+Gaming keyboard,low profile keyboards,3600,1,transactional
+Gaming keyboard,low profile wired keyboard,70,5,transactional
+Gaming keyboard,mechanical corsair keyboard,1300,15,transactional
+Gaming keyboard,mechanical keyboard black friday deals,50,0,transactional
+Gaming keyboard,mechanical keyboard black friday sale,30,0,transactional
+Gaming keyboard,mechanical keyboard brands,480,11,transactional
+Gaming keyboard,mechanical keyboard cyber monday,20,0,transactional
+Gaming keyboard,mechanical keyboard deals,1000,13,transactional
+Gaming keyboard,mechanical keyboard for coding,260,8,transactional
+Gaming keyboard,mechanical keyboard mac layout,140,0,transactional
+Gaming keyboard,mechanical keyboard office,320,13,transactional
+Gaming keyboard,mechanical keyboard recommendations,70,13,commercial
+Gaming keyboard,mechanical keyboard sale,590,0,transactional
+Gaming keyboard,mechanical keyboard under 100,40,0,transactional
+Gaming keyboard,mechanical keyboard under 50,70,0,transactional
+Gaming keyboard,mechanical keyboard with macro keys,140,0,transactional
+Gaming keyboard,mechanical wireless keyboard,880,28,transactional
+Gaming keyboard,minimalist gaming keyboard,50,8,transactional
+Gaming keyboard,most expensive gaming keyboard,320,4,transactional
+Gaming keyboard,most expensive keyboard for gaming,70,10,transactional
+Gaming keyboard,most expensive mechanical keyboard,170,4,transactional
+Gaming keyboard,most popular gaming keyboard,50,48,transactional
+Gaming keyboard,new corsair keyboard,140,0,transactional
+Gaming keyboard,nice gaming keyboards,27100,61,transactional
+Gaming keyboard,nice keyboard and mouse,50,23,transactional
+Gaming keyboard,nice keyboards for gaming,30,47,commercial
+Gaming keyboard,nuphy review,70,0,commercial
+Gaming keyboard,pc keyboards for sale,480,6,transactional
+Gaming keyboard,pc mouse and keyboard,110,10,transactional
+Gaming keyboard,pnk keyboard review,10,29,transactional
+Gaming keyboard,popular gaming keyboards,480,50,commercial
+Gaming keyboard,prebuilt keyboard,480,0,transactional
+Gaming keyboard,prebuilt mechanical keyboard,480,0,transactional
+Gaming keyboard,pro x keyboard gx red linear shroud edition,10,11,transactional
+Gaming keyboard,quiet keyboard for gaming,1300,2,transactional
+Gaming keyboard,quiet mechanical gaming keyboard,110,3,transactional
+Gaming keyboard,quiet mechanical keyboard for office,170,2,transactional
+Gaming keyboard,quietest keyboards,4400,4,commercial
+Gaming keyboard,quietest mechanical keyboard,2400,0,transactional
+Gaming keyboard,quietest mechanical keyboard switches,720,0,transactional
+Gaming keyboard,razer blackwidow v3 review,90,0,transactional
+Gaming keyboard,razer deathadder keyboard,70,0,transactional
+Gaming keyboard,razer huntsman mini amazon,70,9,transactional
+Gaming keyboard,razer keyboard black friday,20,0,transactional
+Gaming keyboard,razer keyboard sale,140,0,transactional
+Gaming keyboard,razer keyboard wireless,320,0,transactional
+Gaming keyboard,rgb ergonomic keyboard,50,13,transactional
+Gaming keyboard,roccat gaming keyboard,90,0,transactional
+Gaming keyboard,roccat keyboard,1900,8,transactional
+Gaming keyboard,roccat keyboard vulcan,70,0,transactional
+Gaming keyboard,roccat mechanical keyboard,50,0,transactional
+Gaming keyboard,roccat vulcan keyboard,260,0,transactional
+Gaming keyboard,romer g,110,5,informational
+Gaming keyboard,romer g keycaps,170,0,commercial
+Gaming keyboard,romer g switches,320,0,commercial
+Gaming keyboard,satisfying keyboards,390,18,commercial
+Gaming keyboard,shop custom gaming keyboard under $60,10,10,transactional
+Gaming keyboard,silent keyboard gaming,1300,0,transactional
+Gaming keyboard,small gaming keyboard and mouse,70,7,transactional
+Gaming keyboard,small keyboard gaming,110,0,transactional
+Gaming keyboard,small wireless gaming keyboard,40,15,transactional
+Gaming keyboard,small wireless mechanical keyboard,20,63,transactional
+Gaming keyboard,smallest mechanical keyboard,480,2,transactional
+Gaming keyboard,steelseries apex,880,1,commercial
+Gaming keyboard,the best gaming keyboard,260,48,transactional
+Gaming keyboard,the best wireless keyboard and mouse,50,27,transactional
+Gaming keyboard,top 10 best gaming keyboards,30,59,transactional
+Gaming keyboard,top 10 gaming keyboards,140,60,transactional
+Gaming keyboard,top 10 mechanical keyboards,50,35,transactional
+Gaming keyboard,top 5 gaming keyboards,50,48,transactional
+Gaming keyboard,top gaming keyboard and mouse combo,20,52,transactional
+Gaming keyboard,top gaming keyboards,27100,61,commercial
+Gaming keyboard,top gaming keyboards 2022,10,64,commercial
+Gaming keyboard,top mechanical keyboards,480,41,transactional
+Gaming keyboard,top rated gaming keyboard,480,55,transactional
+Gaming keyboard,top rated gaming keyboards 2022,10,0,transactional
+Gaming keyboard,top rated mechanical keyboard,14800,41,transactional
+Gaming keyboard,top wireless gaming keyboard,4400,46,transactional
+Gaming keyboard,top wireless keyboard and mouse,4400,27,transactional
+Gaming keyboard,travel gaming keyboard,70,2,transactional
+Gaming keyboard,vertagear review,20,18,transactional
+Gaming keyboard,vissles keyboard,70,7,transactional
+Gaming keyboard,waterproof gaming keyboard,40,0,transactional
+Gaming keyboard,white wireless keyboard gaming,260,0,transactional
+Gaming keyboard,wireless full size keyboard,90,4,transactional
+Gaming keyboard,wireless gaming bundle,30,0,transactional
+Gaming keyboard,wireless gaming keypad,140,2,transactional
+Gaming keyboard,wireless gaming mechanical keyboard,390,27,transactional
+Gaming keyboard,wireless keyboard and mouse mechanical,1000,12,transactional
+Gaming keyboard,wireless led keyboard and mouse,210,2,transactional
+Gaming keyboard,wireless mechanical keyboard and mouse combo,170,0,transactional
+Gaming keyboard,wireless mechanical keyboard brown switches,30,0,transactional
+Gaming keyboard,wireless mechanical keyboard tkl,260,0,transactional
+Gaming keyboard,wireless tkl mechanical keyboard,260,1,transactional
