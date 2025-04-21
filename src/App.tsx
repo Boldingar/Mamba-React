@@ -274,6 +274,8 @@ function App() {
               onClick={() => setIsPanelOpen(true)}
               sx={{
                 position: "fixed",
+                width: 56,
+                height: 56,
                 top: 20,
                 right: 20,
                 zIndex: 1200,
