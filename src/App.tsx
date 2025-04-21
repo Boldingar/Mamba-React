@@ -6,11 +6,13 @@ import {
   Button,
   Typography,
   IconButton,
+  Tooltip,
 } from "@mui/material";
 import { theme } from "./theme";
 import ChatInterface from "./components/ChatInterface";
 import DataPanel from "./components/DataPanel";
 import CloseIcon from "@mui/icons-material/Close";
+import DescriptionIcon from "@mui/icons-material/Description";
 
 interface Data {
   [key: string]: string | number;
@@ -220,15 +222,27 @@ function App() {
       <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
         <ChatInterface />
 
-        {/* Show CSV button when data is available */}
+        {/* Replace Show CSV button with icon button */}
         {datasets.length > 0 && (
-          <Button
-            variant="contained"
-            onClick={() => setIsPanelOpen(true)}
-            sx={{ position: "fixed", top: 20, right: 20, zIndex: 1200 }}
-          >
-            Show CSV Data ({datasets.length})
-          </Button>
+          <Tooltip title="View CSV Data" placement="left">
+            <IconButton
+              onClick={() => setIsPanelOpen(true)}
+              sx={{
+                position: "fixed",
+                top: 20,
+                right: 20,
+                zIndex: 1200,
+                bgcolor: "background.paper",
+                boxShadow: 2,
+                "&:hover": {
+                  bgcolor: "background.paper",
+                  opacity: 0.8,
+                },
+              }}
+            >
+              <DescriptionIcon />
+            </IconButton>
+          </Tooltip>
         )}
 
         {/* Show error message if any */}
