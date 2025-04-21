@@ -26,6 +26,29 @@ interface CSVDataset {
   data: Data[];
 }
 
+const ScrollbarStyle = {
+  "&::-webkit-scrollbar": {
+    width: "8px",
+    backgroundColor: "transparent",
+  },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: "rgba(155, 155, 155, 0.5)",
+    borderRadius: "10px",
+    "&:hover": {
+      backgroundColor: "rgba(155, 155, 155, 0.7)",
+    },
+  },
+  "&::-webkit-scrollbar-track": {
+    backgroundColor: "transparent",
+    border: "none",
+  },
+  "&::-webkit-scrollbar-corner": {
+    backgroundColor: "transparent",
+  },
+  scrollbarWidth: "thin",
+  scrollbarColor: "rgba(155, 155, 155, 0.5) transparent",
+};
+
 function App() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [datasets, setDatasets] = useState<CSVDataset[]>([]);
@@ -45,7 +68,7 @@ function App() {
 
       try {
         const filesToLoad = [
-          { path: "/src/data/sampleee.csv", name: "Business Data" },
+          { path: "/src/data/sample.csv", name: "Business Data" },
           { path: "/src/data/employees.csv", name: "Employee Records" },
         ];
 
@@ -219,10 +242,32 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-        <ChatInterface />
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden", // Prevent main container from scrolling
+          position: "fixed", // Fix the container
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          // Remove ScrollbarStyle from main container
+        }}
+      >
+        <Box
+          sx={{
+            flex: 1,
+            position: "relative",
+            overflow: "hidden", // Ensure chat container doesn't cause page scroll
+            "& > *": ScrollbarStyle, // Apply ScrollbarStyle only to chat content
+          }}
+        >
+          <ChatInterface />
+        </Box>
 
-        {/* Replace Show CSV button with icon button */}
+        {/* Icon button */}
         {datasets.length > 0 && (
           <Tooltip title="View CSV Data" placement="left">
             <IconButton
@@ -245,7 +290,7 @@ function App() {
           </Tooltip>
         )}
 
-        {/* Show error message if any */}
+        {/* Error message box */}
         {error && (
           <Box
             sx={{
@@ -261,6 +306,7 @@ function App() {
               display: "flex",
               flexDirection: "column",
               gap: 1,
+              ...ScrollbarStyle,
             }}
           >
             <Box
