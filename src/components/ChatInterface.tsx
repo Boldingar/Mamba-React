@@ -203,19 +203,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     setIsLoading(true);
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
-
       const response = await fetch(`${API_BASE_URL}/send_message`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ message: inputMessage }),
-        signal: controller.signal,
       });
-
-      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error("Failed to send message");
@@ -227,16 +221,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       console.error("Error sending message:", error);
       const errorMessage: Message = {
         id: Date.now().toString(),
-        text:
-          error.name === "AbortError"
-            ? "Request timed out after 15 seconds. Please try again."
-            : "Error sending message. Please try again.",
+        text: "Error sending message. Please try again.",
         sender: "system",
         timestamp: new Date(),
         type: "text",
       };
       setMessages((prev) => [...prev, errorMessage]);
-      setIsLoading(false);
     }
   };
 
