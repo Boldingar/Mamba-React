@@ -73,10 +73,27 @@ interface CSVData {
   };
 }
 
+interface BusinessInfo {
+  name: string;
+  industry: string;
+  location: string;
+  description: string;
+}
+
+interface Message {
+  id: string;
+  text: string;
+  sender: "user" | "agent" | "system";
+  timestamp: Date;
+  type: "text" | "form" | "form_submitted" | "csv_data";
+  csvData?: CSVData;
+}
+
 interface UpdateData {
   type: "text" | "form" | "csv_data";
   content?: string;
   action?: string;
+  id?: string;
   csv_data?: CSVData;
 }
 
@@ -91,29 +108,31 @@ interface APIResponse {
   updates: Update[];
 }
 
-interface Message {
-  id: string;
-  text: string;
-  sender: "user" | "agent";
-  type?: "text" | "form" | "form_submitted" | "csv_data";
-  csvData?: CSVData;
+interface ChatInterfaceProps {
+  onTableReady: (id: string) => void;
+  updates: Update[];
+  agentProcessing: boolean;
 }
 
-const ChatInterface: React.FC = () => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({
+  onTableReady,
+  updates,
+  agentProcessing,
+}) => {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: "welcome",
-      text: "Welcome! I am Lily from Mamba. How can I help you today ?",
+      id: "1",
+      text: "Welcome! I am Lily from Mamba. How can I help you today?",
       sender: "agent",
+      timestamp: new Date(),
       type: "text",
     },
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [agentProcessing, setAgentProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const pollingIntervalRef = useRef<ReturnType<typeof setInterval>>();
+  const [processedUpdateIds] = useState<Set<string>>(new Set());
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -123,109 +142,48 @@ const ChatInterface: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Start polling when component mounts
+  // Process updates from parent component
   useEffect(() => {
-    const pollForUpdates = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/get_updates`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
+    for (const update of updates) {
+      // Skip if we've already processed this update
+      const updateId = `${update.sender}-${
+        update.data.content || update.data.id || Date.now()
+      }`;
+      if (processedUpdateIds.has(updateId)) continue;
+      processedUpdateIds.add(updateId);
 
-        if (!response.ok) throw new Error("Failed to fetch updates");
-        const data: APIResponse = await response.json();
-
-        // Update agent processing state
-        setAgentProcessing(data.agent_processing || false);
-
-        // Handle show_form directly from response
-        if (data.show_form) {
-          setShowForm(true);
-          setMessages((prev) => {
-            const hasFormMessage = prev.some((msg) => msg.type === "form");
-            if (!hasFormMessage) {
-              return [
-                ...prev,
-                {
-                  id: Date.now().toString(),
-                  text: "Please provide your business information:",
-                  sender: "agent",
-                  type: "form",
-                },
-              ];
-            }
-            return prev;
-          });
-        } else if (!data.show_form && showForm) {
-          setShowForm(false);
-          setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
-        }
-
-        // Process any additional updates
-        data.updates.forEach((update: Update) => {
-          if (update.sender === "System") {
-            if (update.data.action === "hide_form") {
-              setShowForm(false);
-              setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
-            }
-          } else {
-            const sender = update.sender.toLowerCase();
-            if (sender !== "user" && sender !== "agent") return;
-
-            if (update.data.type === "csv_data" && update.data.csv_data) {
-              // Handle CSV data update
-              const csvData = update.data.csv_data;
-              const messageText = `Received CSV file: ${csvData.metadata.filename}\nTotal rows: ${csvData.metadata.total_rows}`;
-
-              const newMessage: Message = {
-                id: Date.now().toString(),
-                text: messageText,
-                sender: sender as "user" | "agent",
-                type: "csv_data",
-                csvData: csvData,
-              };
-
-              setMessages((prev) => [...prev, newMessage]);
-            } else if (update.data.content) {
-              // Handle regular text message
-              const newMessage: Message = {
-                id: Date.now().toString(),
-                text: update.data.content,
-                sender: sender as "user" | "agent",
-                type: update.data.type || "text",
-              };
-
-              setMessages((prev) => [...prev, newMessage]);
-            }
-          }
-        });
-      } catch (error) {
-        console.error("Error polling for updates:", error);
+      if (
+        update.sender === "System" &&
+        update.data.action === "table_ready" &&
+        update.data.id
+      ) {
+        onTableReady(update.data.id);
+      } else if (
+        update.sender === "Agent" &&
+        update.data.type === "text" &&
+        update.data.content
+      ) {
+        const agentMessage: Message = {
+          id: Date.now().toString(),
+          text: update.data.content,
+          sender: "agent",
+          timestamp: new Date(),
+          type: "text",
+        };
+        setMessages((prev) => [...prev, agentMessage]);
       }
-    };
-
-    // Initial poll
-    pollForUpdates();
-
-    // Set up polling interval (every 3 seconds)
-    pollingIntervalRef.current = setInterval(pollForUpdates, 3000);
-
-    // Cleanup on unmount
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-      }
-    };
-  }, [showForm]);
+    }
+  }, [updates, onTableReady]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim() || isLoading) return;
+    if (!inputMessage.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       text: inputMessage,
       sender: "user",
+      timestamp: new Date(),
       type: "text",
     };
 
@@ -236,73 +194,90 @@ const ChatInterface: React.FC = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/send_message`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ message: inputMessage }),
       });
 
-      if (!response.ok) throw new Error("Failed to send message");
-      // We still need to read the response, even if we don't use it immediately
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error("Failed to send message");
+      }
 
-      // We don't add the agent message here anymore.
-      // Polling will handle receiving and displaying the agent's response.
-      // const agentMessage: Message = {
-      //   id: Date.now().toString(),
-      //   text: data.message, // This might be empty initially
-      //   sender: "agent",
-      //   type: data.show_form ? "form" : "text",
-      // };
-      // setMessages((prev) => [...prev, agentMessage]);
-      // setShowForm(data.show_form);
+      const data = await response.json();
+      setShowForm(data.show_form);
     } catch (error) {
       console.error("Error sending message:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          text: "Sorry, there was an error. Please try again.",
-          sender: "agent",
-          type: "text",
-        },
-      ]);
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        text: "Error sending message. Please try again.",
+        sender: "system",
+        timestamp: new Date(),
+        type: "text",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleFormSubmit = async (formData: any) => {
+  const handleFormSubmit = async (formData: BusinessInfo) => {
+    const formMessage: Message = {
+      id: Date.now().toString(),
+      text: JSON.stringify(formData),
+      sender: "user",
+      timestamp: new Date(),
+      type: "form_submitted",
+    };
+
+    setMessages((prev) => [...prev, formMessage]);
+    setShowForm(false);
+
     try {
-      const response = await fetch(`${API_BASE_URL}/submit_data`, {
+      const response = await fetch("http://localhost:8000/submit_form", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error("Failed to submit form");
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error("Failed to submit form");
+      }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          text: data.message || "Thank you for submitting your information!",
-          sender: "agent",
-          type: "form_submitted",
-        },
-      ]);
-      setShowForm(false);
+      const data = await response.json();
+      const agentMessage: Message = {
+        id: Date.now().toString(),
+        text: data.message,
+        sender: "agent",
+        timestamp: new Date(),
+        type: "text",
+      };
+      setMessages((prev) => [...prev, agentMessage]);
     } catch (error) {
-      console.error("Error:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          text: "Sorry, there was an error submitting the form. Please try again.",
-          sender: "agent",
-          type: "text",
-        },
-      ]);
+      console.error("Error submitting form:", error);
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        text: "Error submitting form. Please try again.",
+        sender: "system",
+        timestamp: new Date(),
+        type: "text",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     }
+  };
+
+  const handleCSVData = (data: CSVData) => {
+    const csvMessage: Message = {
+      id: Date.now().toString(),
+      text: "CSV data received",
+      sender: "system",
+      timestamp: new Date(),
+      type: "csv_data",
+      csvData: data,
+    };
+    setMessages((prev) => [...prev, csvMessage]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

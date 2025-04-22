@@ -22,11 +22,11 @@ interface CSVData {
 }
 
 interface UpdateData {
-  type?: "text" | "form" | "csv_data";
+  type: "text" | "form" | "csv_data";
   content?: string;
   action?: string;
-  csv_data?: CSVData;
   id?: string;
+  csv_data?: CSVData;
 }
 
 interface Update {
@@ -108,6 +108,7 @@ const ChatPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showDataPanel, setShowDataPanel] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [updates, setUpdates] = useState<Update[]>([]);
   const [agentProcessing, setAgentProcessing] = useState(false);
 
   // Function to add a new CSV dataset
@@ -163,7 +164,7 @@ const ChatPage: React.FC = () => {
     }
   }, []);
 
-  // Update the polling function to handle the new response format
+  // Start polling when component mounts
   useEffect(() => {
     const pollForUpdates = async () => {
       try {
@@ -175,64 +176,27 @@ const ChatPage: React.FC = () => {
         if (!response.ok) throw new Error("Failed to fetch updates");
         const data: APIResponse = await response.json();
 
+        // Update agent processing state
         setAgentProcessing(data.agent_processing || false);
 
-        if (data.show_form) {
-          setShowForm(true);
-          setMessages((prev) => {
-            const hasFormMessage = prev.some((msg) => msg.type === "form");
-            if (!hasFormMessage) {
-              return [
-                ...prev,
-                {
-                  id: Date.now().toString(),
-                  text: "Please provide your business information:",
-                  sender: "agent",
-                  type: "form",
-                },
-              ];
-            }
-            return prev;
-          });
-        } else if (!data.show_form && showForm) {
-          setShowForm(false);
-          setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
-        }
-
-        // Process updates sequentially to maintain order
-        for (const update of data.updates) {
-          if (update.sender === "System") {
-            if (update.data.action === "hide_form") {
-              setShowForm(false);
-              setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
-            } else if (update.data.action === "table_ready" && update.data.id) {
-              // When table is ready, fetch the data
-              await fetchTableData(update.data.id);
-            }
-          } else {
-            const sender = update.sender.toLowerCase();
-            if (sender !== "user" && sender !== "agent") continue;
-
-            if (update.data.content) {
-              const newMessage: Message = {
-                id: Date.now().toString(),
-                text: update.data.content,
-                sender: sender as "user" | "agent",
-                type: update.data.type || "text",
-              };
-
-              setMessages((prev) => [...prev, newMessage]);
-            }
-          }
+        // Process updates
+        if (data.updates && data.updates.length > 0) {
+          setUpdates(data.updates);
         }
       } catch (error) {
         console.error("Error polling for updates:", error);
       }
     };
 
-    const intervalId = setInterval(pollForUpdates, 1000);
+    // Initial poll
+    pollForUpdates();
+
+    // Set up polling interval (every 3 seconds)
+    const intervalId = setInterval(pollForUpdates, 3000);
+
+    // Cleanup on unmount
     return () => clearInterval(intervalId);
-  }, [fetchTableData, showForm]);
+  }, []);
 
   // Load sample CSV files on component mount
   useEffect(() => {
@@ -423,7 +387,11 @@ const ChatPage: React.FC = () => {
           "& > *": ScrollbarStyle,
         }}
       >
-        <ChatInterface />
+        <ChatInterface
+          onTableReady={fetchTableData}
+          updates={updates}
+          agentProcessing={agentProcessing}
+        />
       </Box>
 
       {datasets.length > 0 && (
