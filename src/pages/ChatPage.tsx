@@ -1,12 +1,50 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import ChatInterface from "../components/ChatInterface";
 import DataPanel from "../components/DataPanel";
 import CloseIcon from "@mui/icons-material/Close";
 import DescriptionIcon from "@mui/icons-material/Description";
+import TableChartIcon from "@mui/icons-material/TableChart";
+
+const API_BASE_URL = "http://127.0.0.1:5000";
 
 interface Data {
   [key: string]: string | number;
+}
+
+interface CSVData {
+  headers: string[];
+  rows: Array<Record<string, string | number>>;
+  metadata: {
+    filename: string;
+    total_rows: number;
+  };
+}
+
+interface UpdateData {
+  type: "text" | "form" | "csv_data";
+  content?: string;
+  action?: string;
+  csv_data?: CSVData;
+}
+
+interface Update {
+  sender: string;
+  data: UpdateData;
+}
+
+interface APIResponse {
+  agent_processing: boolean;
+  show_form: boolean;
+  updates: Update[];
+}
+
+interface Message {
+  id: string;
+  text: string;
+  sender: "user" | "agent";
+  type?: "text" | "form" | "form_submitted" | "csv_data";
+  csvData?: CSVData;
 }
 
 interface CSVDataset {
@@ -15,6 +53,14 @@ interface CSVDataset {
   displayName: string;
   timestamp: Date;
   data: Data[];
+}
+
+interface Dataset {
+  id: string;
+  name: string;
+  displayName: string;
+  data: Data[];
+  timestamp: Date;
 }
 
 const ScrollbarStyle = {
@@ -41,13 +87,117 @@ const ScrollbarStyle = {
 };
 
 const ChatPage: React.FC = () => {
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [datasets, setDatasets] = useState<CSVDataset[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(
     null
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDataPanel, setShowDataPanel] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [agentProcessing, setAgentProcessing] = useState(false);
+
+  // Function to add a new CSV dataset
+  const addCSVDataset = useCallback((csvData: CSVData) => {
+    const newDataset: Dataset = {
+      id: Date.now().toString(),
+      name: csvData.metadata.filename,
+      displayName: csvData.metadata.filename,
+      data: csvData.rows,
+      timestamp: new Date(),
+    };
+
+    setDatasets((prev) => [...prev, newDataset]);
+    // Optionally select the new dataset
+    setSelectedDatasetId(newDataset.id);
+    // Show the data panel when new CSV data arrives
+    setShowDataPanel(true);
+  }, []);
+
+  // Update the polling function to handle CSV data
+  useEffect(() => {
+    const pollForUpdates = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/get_updates`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch updates");
+        const data: APIResponse = await response.json();
+
+        setAgentProcessing(data.agent_processing || false);
+
+        if (data.show_form) {
+          setShowForm(true);
+          setMessages((prev) => {
+            const hasFormMessage = prev.some((msg) => msg.type === "form");
+            if (!hasFormMessage) {
+              return [
+                ...prev,
+                {
+                  id: Date.now().toString(),
+                  text: "Please provide your business information:",
+                  sender: "agent",
+                  type: "form",
+                },
+              ];
+            }
+            return prev;
+          });
+        } else if (!data.show_form && showForm) {
+          setShowForm(false);
+          setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
+        }
+
+        data.updates.forEach((update: Update) => {
+          if (update.sender === "System") {
+            if (update.data.action === "hide_form") {
+              setShowForm(false);
+              setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
+            }
+          } else {
+            const sender = update.sender.toLowerCase();
+            if (sender !== "user" && sender !== "agent") return;
+
+            if (update.data.type === "csv_data" && update.data.csv_data) {
+              // Handle CSV data update
+              const csvData = update.data.csv_data;
+              const messageText = `Received CSV file: ${csvData.metadata.filename}\nTotal rows: ${csvData.metadata.total_rows}`;
+
+              // Add the CSV data to datasets
+              addCSVDataset(csvData);
+
+              const newMessage: Message = {
+                id: Date.now().toString(),
+                text: messageText,
+                sender: sender as "user" | "agent",
+                type: "csv_data",
+                csvData: csvData,
+              };
+
+              setMessages((prev) => [...prev, newMessage]);
+            } else if (update.data.content) {
+              // Handle regular text message
+              const newMessage: Message = {
+                id: Date.now().toString(),
+                text: update.data.content,
+                sender: sender as "user" | "agent",
+                type: update.data.type || "text",
+              };
+
+              setMessages((prev) => [...prev, newMessage]);
+            }
+          }
+        });
+      } catch (error) {
+        console.error("Error polling for updates:", error);
+      }
+    };
+
+    // ... rest of the polling setup
+  }, [addCSVDataset, showForm]);
 
   // Load sample CSV files on component mount
   useEffect(() => {
@@ -160,7 +310,7 @@ const ChatPage: React.FC = () => {
 
         setDatasets(newDatasets);
         setSelectedDatasetId(newDatasets[0].id);
-        setIsPanelOpen(true);
+        setShowDataPanel(true);
       } catch (error) {
         console.error("Error loading CSV files:", error);
         setError((prev) =>
@@ -244,7 +394,7 @@ const ChatPage: React.FC = () => {
       {datasets.length > 0 && (
         <Tooltip title="View CSV Data" placement="left">
           <IconButton
-            onClick={() => setIsPanelOpen(true)}
+            onClick={() => setShowDataPanel(true)}
             sx={{
               position: "fixed",
               width: 56,
@@ -316,8 +466,8 @@ const ChatPage: React.FC = () => {
       )}
 
       <DataPanel
-        open={isPanelOpen}
-        onClose={() => setIsPanelOpen(false)}
+        open={showDataPanel}
+        onClose={() => setShowDataPanel(false)}
         datasets={datasets}
         selectedDatasetId={selectedDatasetId}
         onDatasetSelect={handleDatasetSelect}
