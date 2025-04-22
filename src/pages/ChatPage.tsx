@@ -22,15 +22,29 @@ interface CSVData {
 }
 
 interface UpdateData {
-  type: "text" | "form" | "csv_data";
+  type?: "text" | "form" | "csv_data";
   content?: string;
   action?: string;
   csv_data?: CSVData;
+  id?: string;
 }
 
 interface Update {
   sender: string;
   data: UpdateData;
+}
+
+interface TableData {
+  headers: string[];
+  id: string;
+  rows: Array<Record<string, string | number>>;
+}
+
+interface TableResponse {
+  status: string;
+  data: {
+    [key: string]: TableData;
+  };
 }
 
 interface APIResponse {
@@ -115,7 +129,43 @@ const ChatPage: React.FC = () => {
     setShowDataPanel(true);
   }, []);
 
-  // Update the polling function to handle CSV data
+  // Function to fetch table data
+  const fetchTableData = useCallback(async (tableId: string) => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/get_table_data?table_id=${tableId}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to fetch table data");
+      const result: TableResponse = await response.json();
+
+      if (result.status === "success" && result.data[tableId]) {
+        const tableData = result.data[tableId];
+
+        // Create dataset from table data
+        const newDataset: Dataset = {
+          id: tableData.id,
+          name: tableId,
+          displayName: tableId, // Use the tableId directly as the display name
+          data: tableData.rows,
+          timestamp: new Date(),
+        };
+
+        setDatasets((prev) => [...prev, newDataset]);
+        setSelectedDatasetId(newDataset.id);
+        setShowDataPanel(true);
+      }
+    } catch (error) {
+      console.error("Error fetching table data:", error);
+      setError(`Failed to load table data: ${error.message}`);
+    }
+  }, []);
+
+  // Update the polling function to handle the new response format
   useEffect(() => {
     const pollForUpdates = async () => {
       try {
@@ -151,15 +201,19 @@ const ChatPage: React.FC = () => {
           setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
         }
 
-        data.updates.forEach((update: Update) => {
+        // Process updates sequentially to maintain order
+        for (const update of data.updates) {
           if (update.sender === "System") {
             if (update.data.action === "hide_form") {
               setShowForm(false);
               setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
+            } else if (update.data.action === "table_ready" && update.data.id) {
+              // When table is ready, fetch the data
+              await fetchTableData(update.data.id);
             }
           } else {
             const sender = update.sender.toLowerCase();
-            if (sender !== "user" && sender !== "agent") return;
+            if (sender !== "user" && sender !== "agent") continue;
 
             if (update.data.type === "csv_data" && update.data.csv_data) {
               // Handle CSV data update
@@ -179,7 +233,6 @@ const ChatPage: React.FC = () => {
 
               setMessages((prev) => [...prev, newMessage]);
             } else if (update.data.content) {
-              // Handle regular text message
               const newMessage: Message = {
                 id: Date.now().toString(),
                 text: update.data.content,
@@ -190,14 +243,15 @@ const ChatPage: React.FC = () => {
               setMessages((prev) => [...prev, newMessage]);
             }
           }
-        });
+        }
       } catch (error) {
         console.error("Error polling for updates:", error);
       }
     };
 
-    // ... rest of the polling setup
-  }, [addCSVDataset, showForm]);
+    const intervalId = setInterval(pollForUpdates, 1000);
+    return () => clearInterval(intervalId);
+  }, [fetchTableData, showForm]);
 
   // Load sample CSV files on component mount
   useEffect(() => {
