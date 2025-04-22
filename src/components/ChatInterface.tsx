@@ -64,11 +64,39 @@ const MessageItem = styled(Paper, {
   },
 }));
 
+interface CSVData {
+  headers: string[];
+  rows: Array<Record<string, string | number>>;
+  metadata: {
+    filename: string;
+    total_rows: number;
+  };
+}
+
+interface UpdateData {
+  type: "text" | "form" | "csv_data";
+  content?: string;
+  action?: string;
+  csv_data?: CSVData;
+}
+
+interface Update {
+  sender: string;
+  data: UpdateData;
+}
+
+interface APIResponse {
+  agent_processing: boolean;
+  show_form: boolean;
+  updates: Update[];
+}
+
 interface Message {
   id: string;
   text: string;
   sender: "user" | "agent";
-  type?: "text" | "form" | "form_submitted";
+  type?: "text" | "form" | "form_submitted" | "csv_data";
+  csvData?: CSVData;
 }
 
 const ChatInterface: React.FC = () => {
@@ -105,7 +133,7 @@ const ChatInterface: React.FC = () => {
         });
 
         if (!response.ok) throw new Error("Failed to fetch updates");
-        const data = await response.json();
+        const data: APIResponse = await response.json();
 
         // Update agent processing state
         setAgentProcessing(data.agent_processing || false);
@@ -129,28 +157,46 @@ const ChatInterface: React.FC = () => {
             return prev;
           });
         } else if (!data.show_form && showForm) {
-          // If form was previously shown but now shouldn't be, remove the form message
           setShowForm(false);
           setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
         }
 
         // Process any additional updates
-        data.updates.forEach((update: any) => {
+        data.updates.forEach((update: Update) => {
           if (update.sender === "System") {
             if (update.data.action === "hide_form") {
               setShowForm(false);
               setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
             }
-          } else if (update.data.content) {
-            setMessages((prev) => [
-              ...prev,
-              {
+          } else {
+            const sender = update.sender.toLowerCase();
+            if (sender !== "user" && sender !== "agent") return;
+
+            if (update.data.type === "csv_data" && update.data.csv_data) {
+              // Handle CSV data update
+              const csvData = update.data.csv_data;
+              const messageText = `Received CSV file: ${csvData.metadata.filename}\nTotal rows: ${csvData.metadata.total_rows}`;
+
+              const newMessage: Message = {
+                id: Date.now().toString(),
+                text: messageText,
+                sender: sender as "user" | "agent",
+                type: "csv_data",
+                csvData: csvData,
+              };
+
+              setMessages((prev) => [...prev, newMessage]);
+            } else if (update.data.content) {
+              // Handle regular text message
+              const newMessage: Message = {
                 id: Date.now().toString(),
                 text: update.data.content,
-                sender: update.sender.toLowerCase(),
+                sender: sender as "user" | "agent",
                 type: update.data.type || "text",
-              },
-            ]);
+              };
+
+              setMessages((prev) => [...prev, newMessage]);
+            }
           }
         });
       } catch (error) {
