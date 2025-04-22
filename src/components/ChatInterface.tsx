@@ -135,6 +135,22 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [processedUpdateIds] = useState<Set<string>>(new Set());
 
+  // Initialize connection with server
+  useEffect(() => {
+    const initializeServer = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/`);
+        if (!response.ok) {
+          console.warn("Server initialization failed");
+        }
+      } catch (error) {
+        console.error("Failed to connect to server:", error);
+      }
+    };
+
+    initializeServer();
+  }, []); // Empty dependency array means this runs once on mount
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
