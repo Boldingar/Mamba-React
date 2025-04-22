@@ -81,9 +81,16 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
         }))
       );
     }
+    // Reset all filters and states when data changes
     setFilteredData(data);
-    setPage(0); // Reset to first page when data changes
-  }, [data]);
+    setPage(0);
+    setSearchTerm("");
+    setFilterConditions([]);
+    setNewCondition({ column: "", type: "include", value: "" });
+    setOrderBy("");
+    setOrder("asc");
+    onDataFilter(data); // Reset filtered data in parent component
+  }, [data]); // Only run when data changes
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === "asc";
