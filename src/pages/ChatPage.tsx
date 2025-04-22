@@ -162,6 +162,9 @@ const ChatPage: React.FC = () => {
         // Update agent processing state
         setAgentProcessing(data.agent_processing || false);
 
+        // Update form visibility
+        setShowForm(data.show_form || false);
+
         // Process updates
         if (data.updates && data.updates.length > 0) {
           setUpdates(data.updates);
@@ -213,6 +216,7 @@ const ChatPage: React.FC = () => {
           onTableReady={fetchTableData}
           updates={updates}
           agentProcessing={agentProcessing}
+          showForm={showForm}
         />
       </Box>
 

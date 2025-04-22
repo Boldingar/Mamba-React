@@ -112,12 +112,14 @@ interface ChatInterfaceProps {
   onTableReady: (id: string) => void;
   updates: Update[];
   agentProcessing: boolean;
+  showForm: boolean;
 }
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   onTableReady,
   updates,
   agentProcessing,
+  showForm,
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -130,7 +132,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [processedUpdateIds] = useState<Set<string>>(new Set());
 
@@ -152,12 +153,22 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       if (processedUpdateIds.has(updateId)) continue;
       processedUpdateIds.add(updateId);
 
-      if (
-        update.sender === "System" &&
-        update.data.action === "table_ready" &&
-        update.data.id
-      ) {
-        onTableReady(update.data.id);
+      if (update.sender === "System") {
+        if (update.data.action === "table_ready" && update.data.id) {
+          onTableReady(update.data.id);
+        } else if (update.data.action === "show_form") {
+          const formMessage: Message = {
+            id: Date.now().toString(),
+            text: "",
+            sender: "agent",
+            timestamp: new Date(),
+            type: "form",
+          };
+          setMessages((prev) => [...prev, formMessage]);
+        } else if (update.data.action === "hide_form") {
+          // Remove any form messages from the list
+          setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
+        }
       } else if (
         update.sender === "Agent" &&
         update.data.type === "text" &&
@@ -205,7 +216,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       }
 
       const data = await response.json();
-      setShowForm(data.show_form);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error sending message:", error);
       const errorMessage: Message = {
@@ -216,25 +227,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         type: "text",
       };
       setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleFormSubmit = async (formData: BusinessInfo) => {
-    const formMessage: Message = {
-      id: Date.now().toString(),
-      text: JSON.stringify(formData),
-      sender: "user",
-      timestamp: new Date(),
-      type: "form_submitted",
-    };
-
-    setMessages((prev) => [...prev, formMessage]);
-    setShowForm(false);
+    setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8000/submit_form", {
+      const response = await fetch(`${API_BASE_URL}/submit_data`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -247,9 +247,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       }
 
       const data = await response.json();
+
+      // Only add a success message from the agent
       const agentMessage: Message = {
         id: Date.now().toString(),
-        text: data.message,
+        text: "Thank you for providing the information. I'll analyze this and provide recommendations shortly.",
         sender: "agent",
         timestamp: new Date(),
         type: "text",
@@ -265,6 +267,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         type: "text",
       };
       setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -365,10 +369,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   isUser={message.sender === "user"}
                   className={message.type === "form" ? "form" : ""}
                 >
-                  {message.type === "form" && showForm ? (
+                  {message.type === "form" ? (
                     <BusinessInfoForm
                       onSubmit={handleFormSubmit}
-                      onClose={() => setShowForm(false)}
+                      onClose={() => {}}
                       onFileClick={() => {}}
                     />
                   ) : (

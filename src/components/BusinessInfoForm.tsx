@@ -376,7 +376,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             ))}
           </TextField>
         </Grid>
-        <Grid size={{ xs: 12 }}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             multiline
@@ -388,7 +388,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             helperText="Describe your ideal customers (e.g., Small business owners, Tech-savvy millennials)"
           />
         </Grid>
-        <Grid size={{ xs: 12 }}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             select
@@ -406,7 +406,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             ))}
           </TextField>
         </Grid>
-        <Grid size={{ xs: 12 }}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             fullWidth
             multiline
@@ -444,7 +444,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
         >
           <Grid container spacing={2}>
             <Grid
-              size={{ xs: 12 }}
+              size={{ xs: 12, sm: 6 }}
               sx={{ display: "flex", justifyContent: "flex-end" }}
             >
               <IconButton
@@ -479,7 +479,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                 helperText="Optional: Link to product page or documentation"
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 multiline
@@ -496,7 +496,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                 helperText="Brief description of features and benefits"
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 multiline
@@ -513,7 +513,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                 helperText="Who is this product/service designed for?"
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
+            <Grid size={{ xs: 12, sm: 6}}>
               <Typography gutterBottom color="text.secondary">
                 Priority Level
               </Typography>
