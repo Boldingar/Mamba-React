@@ -1,12 +1,62 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import ChatInterface from "../components/ChatInterface";
 import DataPanel from "../components/DataPanel";
 import CloseIcon from "@mui/icons-material/Close";
 import DescriptionIcon from "@mui/icons-material/Description";
+import TableChartIcon from "@mui/icons-material/TableChart";
+
+const API_BASE_URL = "http://127.0.0.1:5000";
 
 interface Data {
   [key: string]: string | number;
+}
+
+interface CSVData {
+  headers: string[];
+  rows: Array<Record<string, string | number>>;
+  metadata: {
+    filename: string;
+    total_rows: number;
+  };
+}
+
+interface UpdateData {
+  type: "text" | "form" | "csv_data";
+  content?: string;
+  action?: string;
+  id?: string;
+  csv_data?: CSVData;
+}
+
+interface Update {
+  sender: string;
+  data: UpdateData;
+}
+
+interface TableData {
+  headers: string[];
+  id: string;
+  rows: Array<Record<string, string | number>>;
+}
+
+interface TableResponse {
+  status: string;
+  data: TableData;
+}
+
+interface APIResponse {
+  agent_processing: boolean;
+  show_form: boolean;
+  updates: Update[];
+}
+
+interface Message {
+  id: string;
+  text: string;
+  sender: "user" | "agent";
+  type?: "text" | "form" | "form_submitted" | "csv_data";
+  csvData?: CSVData;
 }
 
 interface CSVDataset {
@@ -15,6 +65,14 @@ interface CSVDataset {
   displayName: string;
   timestamp: Date;
   data: Data[];
+}
+
+interface Dataset {
+  id: string;
+  name: string;
+  displayName: string;
+  data: Data[];
+  timestamp: Date;
 }
 
 const ScrollbarStyle = {
@@ -41,174 +99,90 @@ const ScrollbarStyle = {
 };
 
 const ChatPage: React.FC = () => {
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [datasets, setDatasets] = useState<CSVDataset[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(
     null
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDataPanel, setShowDataPanel] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [updates, setUpdates] = useState<Update[]>([]);
+  const [agentProcessing, setAgentProcessing] = useState(false);
 
-  // Load sample CSV files on component mount
-  useEffect(() => {
-    const loadCSVFiles = async () => {
-      if (isLoading || datasets.length > 0) return;
-      setIsLoading(true);
-      setError(null);
+  // Function to fetch table data
+  const fetchTableData = useCallback(async (tableId: string) => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/get_table_data?table_id=${tableId}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
-      try {
-        const filesToLoad = [
-          { path: "/src/data/sample.csv", name: "Business Data" },
-          { path: "/src/data/employees.csv", name: "Employee Records" },
-        ];
+      if (!response.ok) throw new Error("Failed to fetch table data");
+      const result: TableResponse = await response.json();
 
-        const loadCSVFile = async (path: string, name: string) => {
-          try {
-            const response = await fetch(path);
-            if (!response.ok) {
-              throw new Error(`File not found: ${path} (${response.status})`);
-            }
+      if (result.status === "success" && result.data) {
+        const tableData = result.data;
 
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.includes("text/html")) {
-              throw new Error(
-                `Invalid response: Got HTML instead of CSV for ${path}`
-              );
-            }
-
-            const csvText = await response.text();
-            if (!csvText.trim()) {
-              throw new Error(`Empty file: ${path}`);
-            }
-
-            if (
-              csvText.toLowerCase().includes("<!doctype html") ||
-              csvText.toLowerCase().includes("<html")
-            ) {
-              throw new Error(
-                `Invalid response: Got HTML content instead of CSV for ${path}`
-              );
-            }
-
-            const lines = csvText.split("\n").filter((line) => line.trim());
-            if (lines.length < 2) {
-              throw new Error(
-                `Invalid CSV: File contains no data rows (${path})`
-              );
-            }
-
-            const headers = lines[0].split(",");
-            if (headers.length < 1) {
-              throw new Error(`Invalid CSV: No headers found (${path})`);
-            }
-
-            const headerCount = headers.length;
-            const invalidRow = lines.find(
-              (line) => line.split(",").length !== headerCount
-            );
-            if (invalidRow) {
-              throw new Error(
-                `Invalid CSV: Inconsistent number of columns (${path})`
-              );
-            }
-
-            const parsedData = parseCSV(csvText);
-            if (!parsedData || parsedData.length === 0) {
-              throw new Error(`Failed to parse CSV data from ${path}`);
-            }
-
-            return { name, data: parsedData };
-          } catch (error) {
-            console.error(`Error loading ${name}:`, error);
-            return { error: error.message, name };
-          }
+        // Create dataset from table data
+        const newDataset: Dataset = {
+          id: tableData.id,
+          name: tableData.id,
+          displayName: tableData.id,
+          data: tableData.rows,
+          timestamp: new Date(),
         };
 
-        const results = await Promise.all(
-          filesToLoad.map((file) => loadCSVFile(file.path, file.name))
-        );
+        setDatasets((prev) => [...prev, newDataset]);
+        setSelectedDatasetId(newDataset.id);
+        setShowDataPanel(true);
+      }
+    } catch (error) {
+      console.error("Error fetching table data:", error);
+      setError(`Failed to load table data: ${error.message}`);
+    }
+  }, []);
 
-        const errors = results
-          .filter(
-            (result): result is { error: string; name: string } =>
-              "error" in result
-          )
-          .map((result) => result.error)
-          .filter((error, index, self) => self.indexOf(error) === index);
+  // Start polling when component mounts
+  useEffect(() => {
+    const pollForUpdates = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/get_updates`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
 
-        if (errors.length > 0) {
-          setError(errors.join("\n"));
+        if (!response.ok) throw new Error("Failed to fetch updates");
+        const data: APIResponse = await response.json();
+
+        // Update agent processing state
+        setAgentProcessing(data.agent_processing || false);
+
+        // Update form visibility
+        setShowForm(data.show_form || false);
+
+        // Process updates
+        if (data.updates && data.updates.length > 0) {
+          setUpdates(data.updates);
         }
-
-        const validResults = results.filter(
-          (result): result is { name: string; data: Data[] } =>
-            result !== null && !("error" in result)
-        );
-
-        if (validResults.length === 0) {
-          throw new Error("No valid CSV files were loaded");
-        }
-
-        const timestamp = new Date();
-        const newDatasets = validResults.map(({ name, data }, index) => ({
-          id: `dataset-${index}-${timestamp.getTime()}`,
-          name,
-          displayName: `${name} (${formatTimestamp(timestamp)})`,
-          timestamp,
-          data,
-        }));
-
-        setDatasets(newDatasets);
-        setSelectedDatasetId(newDatasets[0].id);
-        setIsPanelOpen(true);
       } catch (error) {
-        console.error("Error loading CSV files:", error);
-        setError((prev) =>
-          prev ? `${prev}\n${error.message}` : error.message
-        );
-      } finally {
-        setIsLoading(false);
+        console.error("Error polling for updates:", error);
       }
     };
 
-    loadCSVFiles();
+    // Initial poll
+    pollForUpdates();
+
+    // Set up polling interval (every 3 seconds)
+    const intervalId = setInterval(pollForUpdates, 3000);
+
+    // Cleanup on unmount
+    return () => clearInterval(intervalId);
   }, []);
-
-  const parseCSV = (csvText: string): Data[] => {
-    const rows = csvText.split("\n");
-    const headers = rows[0].split(",").map((header) => header.trim());
-
-    return rows
-      .slice(1)
-      .filter((row) => row.trim())
-      .map((row) => {
-        const values = row.split(",");
-        if (values.length !== headers.length) {
-          console.warn(`Skipping invalid row: ${row}`);
-          return null;
-        }
-        return headers.reduce((obj, header, index) => {
-          const value = values[index]?.trim() || "";
-          obj[header] =
-            !isNaN(Number(value)) && header !== "Employee ID"
-              ? Number(value)
-              : value;
-          return obj;
-        }, {} as Data);
-      })
-      .filter((row): row is Data => row !== null);
-  };
-
-  const formatTimestamp = (date: Date): string => {
-    return date.toLocaleString("en-US", {
-      month: "2-digit",
-      day: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
 
   const handleDatasetSelect = (datasetId: string) => {
     setSelectedDatasetId(datasetId);
@@ -238,13 +212,18 @@ const ChatPage: React.FC = () => {
           "& > *": ScrollbarStyle,
         }}
       >
-        <ChatInterface />
+        <ChatInterface
+          onTableReady={fetchTableData}
+          updates={updates}
+          agentProcessing={agentProcessing}
+          showForm={showForm}
+        />
       </Box>
 
       {datasets.length > 0 && (
         <Tooltip title="View CSV Data" placement="left">
           <IconButton
-            onClick={() => setIsPanelOpen(true)}
+            onClick={() => setShowDataPanel(true)}
             sx={{
               position: "fixed",
               width: 56,
@@ -316,8 +295,8 @@ const ChatPage: React.FC = () => {
       )}
 
       <DataPanel
-        open={isPanelOpen}
-        onClose={() => setIsPanelOpen(false)}
+        open={showDataPanel}
+        onClose={() => setShowDataPanel(false)}
         datasets={datasets}
         selectedDatasetId={selectedDatasetId}
         onDatasetSelect={handleDatasetSelect}

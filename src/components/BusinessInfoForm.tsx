@@ -10,7 +10,6 @@ import {
   Paper,
   CloseIcon,
   AddIcon,
-  RemoveIcon,
 } from "./ui";
 import Grid from "./Grid";
 
@@ -326,7 +325,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
       </Box>
 
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
             label="Company Name"
@@ -337,7 +336,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             helperText="Enter your company's legal name"
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
             label="Website"
@@ -348,7 +347,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             helperText="Optional: Your company's website URL"
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
             label="Niche"
@@ -358,7 +357,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             helperText="e.g., E-commerce, SaaS, Healthcare"
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
             select
@@ -376,7 +375,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             ))}
           </TextField>
         </Grid>
-        <Grid size={{ xs: 12 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
             multiline
@@ -388,7 +387,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             helperText="Describe your ideal customers (e.g., Small business owners, Tech-savvy millennials)"
           />
         </Grid>
-        <Grid size={{ xs: 12 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
             select
@@ -420,7 +419,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
         </Grid>
       </Grid>
 
-      <Box mt={3} mb={2}>
+      <Box mt={4} mb={2}>
         <Typography variant="subtitle1" color="primary">
           Products/Services
         </Typography>
@@ -442,20 +441,17 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
           }}
           elevation={0}
         >
-          <Grid container spacing={2}>
-            <Grid
-              size={{ xs: 12 }}
-              sx={{ display: "flex", justifyContent: "flex-end" }}
+          <Box display="flex" justifyContent="flex-end" mb={2}>
+            <IconButton
+              onClick={() => removeProductService(index)}
+              size="small"
+              color="error"
             >
-              <IconButton
-                onClick={() => removeProductService(index)}
-                size="small"
-                color="error"
-              >
-                <RemoveIcon />
-              </IconButton>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="Product/Service Name"
@@ -467,7 +463,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                 helperText="Name of your product or service"
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="URL"
@@ -479,7 +475,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                 helperText="Optional: Link to product page or documentation"
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 multiline
@@ -496,7 +492,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                 helperText="Brief description of features and benefits"
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 multiline
