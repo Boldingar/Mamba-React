@@ -42,9 +42,7 @@ interface TableData {
 
 interface TableResponse {
   status: string;
-  data: {
-    [key: string]: TableData;
-  };
+  data: TableData;
 }
 
 interface APIResponse {
@@ -143,14 +141,14 @@ const ChatPage: React.FC = () => {
       if (!response.ok) throw new Error("Failed to fetch table data");
       const result: TableResponse = await response.json();
 
-      if (result.status === "success" && result.data[tableId]) {
-        const tableData = result.data[tableId];
+      if (result.status === "success" && result.data) {
+        const tableData = result.data;
 
         // Create dataset from table data
         const newDataset: Dataset = {
           id: tableData.id,
-          name: tableId,
-          displayName: tableId, // Use the tableId directly as the display name
+          name: tableData.id,
+          displayName: tableData.id,
           data: tableData.rows,
           timestamp: new Date(),
         };
@@ -215,24 +213,7 @@ const ChatPage: React.FC = () => {
             const sender = update.sender.toLowerCase();
             if (sender !== "user" && sender !== "agent") continue;
 
-            if (update.data.type === "csv_data" && update.data.csv_data) {
-              // Handle CSV data update
-              const csvData = update.data.csv_data;
-              const messageText = `Received CSV file: ${csvData.metadata.filename}\nTotal rows: ${csvData.metadata.total_rows}`;
-
-              // Add the CSV data to datasets
-              addCSVDataset(csvData);
-
-              const newMessage: Message = {
-                id: Date.now().toString(),
-                text: messageText,
-                sender: sender as "user" | "agent",
-                type: "csv_data",
-                csvData: csvData,
-              };
-
-              setMessages((prev) => [...prev, newMessage]);
-            } else if (update.data.content) {
+            if (update.data.content) {
               const newMessage: Message = {
                 id: Date.now().toString(),
                 text: update.data.content,
