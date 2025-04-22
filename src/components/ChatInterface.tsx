@@ -336,7 +336,7 @@ const ChatInterface: React.FC = () => {
                     sx={{
                       width: 34,
                       height: 34,
-                      mt: 1,
+                      mt: 1.3,
                     }}
                   />
                 )}
