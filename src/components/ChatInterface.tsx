@@ -34,6 +34,15 @@ const MessageList = styled(Box)(({ theme }) => ({
   gap: theme.spacing(1.5),
 }));
 
+const MessageWrapper = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "isUser",
+})<{ isUser: boolean }>(({ theme, isUser }) => ({
+  display: "flex",
+  gap: theme.spacing(1.5),
+  justifyContent: isUser ? "flex-end" : "flex-start",
+  alignItems: "flex-start",
+}));
+
 const MessageItem = styled(Paper, {
   shouldForwardProp: (prop) => prop !== "isUser" && prop !== "type",
 })<{ isUser: boolean; type?: string }>(({ theme, isUser }) => ({
@@ -63,7 +72,14 @@ interface Message {
 }
 
 const ChatInterface: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "welcome",
+      text: "Welcome! I am Lily from Mamba. How can I help you today ?",
+      sender: "agent",
+      type: "text",
+    },
+  ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -112,6 +128,10 @@ const ChatInterface: React.FC = () => {
             }
             return prev;
           });
+        } else if (!data.show_form && showForm) {
+          // If form was previously shown but now shouldn't be, remove the form message
+          setShowForm(false);
+          setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
         }
 
         // Process any additional updates
@@ -119,6 +139,7 @@ const ChatInterface: React.FC = () => {
           if (update.sender === "System") {
             if (update.data.action === "hide_form") {
               setShowForm(false);
+              setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
             }
           } else if (update.data.content) {
             setMessages((prev) => [
@@ -149,7 +170,7 @@ const ChatInterface: React.FC = () => {
         clearInterval(pollingIntervalRef.current);
       }
     };
-  }, []);
+  }, [showForm]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,19 +195,21 @@ const ChatInterface: React.FC = () => {
       });
 
       if (!response.ok) throw new Error("Failed to send message");
+      // We still need to read the response, even if we don't use it immediately
       const data = await response.json();
 
-      const agentMessage: Message = {
-        id: Date.now().toString(),
-        text: data.message,
-        sender: "agent",
-        type: data.show_form ? "form" : "text",
-      };
-
-      setMessages((prev) => [...prev, agentMessage]);
-      setShowForm(data.show_form);
+      // We don't add the agent message here anymore.
+      // Polling will handle receiving and displaying the agent's response.
+      // const agentMessage: Message = {
+      //   id: Date.now().toString(),
+      //   text: data.message, // This might be empty initially
+      //   sender: "agent",
+      //   type: data.show_form ? "form" : "text",
+      // };
+      // setMessages((prev) => [...prev, agentMessage]);
+      // setShowForm(data.show_form);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error sending message:", error);
       setMessages((prev) => [
         ...prev,
         {
@@ -302,29 +325,36 @@ const ChatInterface: React.FC = () => {
       >
         <ChatContainer elevation={3}>
           <MessageList>
-            <MessageItem isUser={false}>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                <Typography>
-                  Welcome! I am Lily from Mamba. How can I help you today ?
-                </Typography>
-              </Box>
-            </MessageItem>
             {messages.map((message) => (
-              <MessageItem
+              <MessageWrapper
                 key={message.id}
                 isUser={message.sender === "user"}
-                className={message.type === "form" ? "form" : ""}
               >
-                {message.type === "form" && showForm ? (
-                  <BusinessInfoForm
-                    onSubmit={handleFormSubmit}
-                    onClose={() => setShowForm(false)}
-                    onFileClick={() => {}}
+                {message.sender !== "user" && (
+                  <Avatar
+                    src="/src/assets/agent.png"
+                    sx={{
+                      width: 34,
+                      height: 34,
+                      mt: 1,
+                    }}
                   />
-                ) : (
-                  <Typography>{message.text}</Typography>
                 )}
-              </MessageItem>
+                <MessageItem
+                  isUser={message.sender === "user"}
+                  className={message.type === "form" ? "form" : ""}
+                >
+                  {message.type === "form" && showForm ? (
+                    <BusinessInfoForm
+                      onSubmit={handleFormSubmit}
+                      onClose={() => setShowForm(false)}
+                      onFileClick={() => {}}
+                    />
+                  ) : (
+                    <Typography>{message.text}</Typography>
+                  )}
+                </MessageItem>
+              </MessageWrapper>
             ))}
             {(isLoading || agentProcessing) && (
               <Typography
