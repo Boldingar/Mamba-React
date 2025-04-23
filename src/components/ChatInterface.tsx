@@ -319,7 +319,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       >
         <Toolbar>
           <Avatar
-            src="src\assets\MambaLogo.svg"
+            src="/MambaLogo.svg"
             sx={{
               mr: 3,
               width: 230,
@@ -375,7 +375,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               >
                 {message.sender !== "user" && (
                   <Avatar
-                    src="/src/assets/agent.png"
+                    src="/agent.png"
                     sx={{
                       width: 34,
                       height: 34,
