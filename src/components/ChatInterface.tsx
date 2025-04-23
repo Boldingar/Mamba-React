@@ -12,6 +12,8 @@ import {
   Avatar,
   Button,
 } from "./ui";
+import MambaLogo from "./assets/MambaLogo.svg";
+import AgentLogo from "/agent.png";
 
 const API_BASE_URL = import.meta.env.VITE_SERVER_URL;
 // const API_BASE_URL = "mamba-seo-fork-production-4091.up.railway.app";
@@ -318,7 +320,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       >
         <Toolbar>
           <Avatar
-            src="src\assets\MambaLogo.svg"
+            src={MambaLogo}
             sx={{
               mr: 3,
               width: 230,
@@ -374,7 +376,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               >
                 {message.sender !== "user" && (
                   <Avatar
-                    src="/src/assets/agent.png"
+                    src={AgentLogo}
                     sx={{
                       width: 34,
                       height: 34,
