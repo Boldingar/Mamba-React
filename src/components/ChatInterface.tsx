@@ -13,7 +13,8 @@ import {
   Button,
 } from "./ui";
 
-const API_BASE_URL = "http://127.0.0.1:5000";
+const API_BASE_URL = import.meta.env.VITE_SERVER_URL;
+// const API_BASE_URL = "mamba-seo-fork-production-4091.up.railway.app";
 
 const ChatContainer = styled(Paper)(({ theme }) => ({
   height: "calc(100vh - 180px)",
