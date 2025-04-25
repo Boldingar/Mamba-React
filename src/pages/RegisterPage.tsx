@@ -6,76 +6,71 @@ import {
   TextField,
   Button,
   Box,
+  FormControlLabel,
+  Checkbox,
+  Divider,
   Alert,
   Link,
-  Grid,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-
-const textFieldStyle = {
-  "& .MuiOutlinedInput-root": {
-    "&.Mui-focused fieldset": {
-      borderColor: "rgba(255, 255, 255, 0.23)",
-    },
-  },
-  "& label.Mui-focused": {
-    color: "text.primary",
-  },
-};
+import GoogleIcon from "@mui/icons-material/Google";
+import axios from "axios";
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsLoading(true);
 
-    // Basic validation
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
+      setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-        }),
+      const response = await axios.post("http://127.0.0.1:5000/register", {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
+      if (response.status !== 200) {
+        const errorData = response.data;
         throw new Error(errorData.message || "Registration failed");
       }
 
-      // Registration successful, redirect to login
+      // Navigate to login page after successful registration
       navigate("/login");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleGoogleRegister = () => {
+    // Redirect to Google OAuth endpoint
+    window.location.href = "http://127.0.0.1:5000/auth/google";
   };
 
   return (
@@ -100,36 +95,44 @@ const RegisterPage: React.FC = () => {
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  id="firstName"
-                  label="First Name"
-                  name="firstName"
-                  autoComplete="given-name"
-                  autoFocus
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  sx={textFieldStyle}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  id="lastName"
-                  label="Last Name"
-                  name="lastName"
-                  autoComplete="family-name"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  sx={textFieldStyle}
-                />
-              </Grid>
-            </Grid>
+          <Box sx={{ mt: 1 }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="firstName"
+              label="First Name"
+              name="firstName"
+              autoComplete="given-name"
+              autoFocus
+              value={formData.firstName}
+              onChange={handleInputChange}
+              disabled={isLoading}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="lastName"
+              label="Last Name"
+              name="lastName"
+              autoComplete="family-name"
+              value={formData.lastName}
+              onChange={handleInputChange}
+              disabled={isLoading}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="username"
+              label="Username"
+              name="username"
+              autoComplete="username"
+              value={formData.username}
+              onChange={handleInputChange}
+              disabled={isLoading}
+            />
             <TextField
               margin="normal"
               required
@@ -139,8 +142,8 @@ const RegisterPage: React.FC = () => {
               name="email"
               autoComplete="email"
               value={formData.email}
-              onChange={handleChange}
-              sx={textFieldStyle}
+              onChange={handleInputChange}
+              disabled={isLoading}
             />
             <TextField
               margin="normal"
@@ -152,8 +155,8 @@ const RegisterPage: React.FC = () => {
               id="password"
               autoComplete="new-password"
               value={formData.password}
-              onChange={handleChange}
-              sx={textFieldStyle}
+              onChange={handleInputChange}
+              disabled={isLoading}
             />
             <TextField
               margin="normal"
@@ -165,16 +168,35 @@ const RegisterPage: React.FC = () => {
               id="confirmPassword"
               autoComplete="new-password"
               value={formData.confirmPassword}
-              onChange={handleChange}
-              sx={textFieldStyle}
+              onChange={handleInputChange}
+              disabled={isLoading}
             />
+
             <Button
-              type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={isLoading}
+              onClick={handleSubmit}
             >
-              Register
+              {isLoading ? "Registering..." : "Register"}
+            </Button>
+
+            <Divider sx={{ my: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                OR
+              </Typography>
+            </Divider>
+
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<GoogleIcon />}
+              onClick={handleGoogleRegister}
+              sx={{ mb: 2 }}
+              disabled={isLoading}
+            >
+              Register with Google
             </Button>
 
             <Box sx={{ textAlign: "center", mt: 2 }}>

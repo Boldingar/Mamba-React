@@ -5,8 +5,9 @@ import DataPanel from "../components/DataPanel";
 import CloseIcon from "@mui/icons-material/Close";
 import DescriptionIcon from "@mui/icons-material/Description";
 import TableChartIcon from "@mui/icons-material/TableChart";
+import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_SERVER_URL;
+const API_BASE_URL = "http://127.0.0.1:5000";
 
 interface Data {
   [key: string]: string | number;
@@ -114,16 +115,16 @@ const ChatPage: React.FC = () => {
   // Function to fetch table data
   const fetchTableData = useCallback(async (tableId: string) => {
     try {
-      const response = await fetch(
+      const response = await axios.get(
         `${API_BASE_URL}/get_table_data?table_id=${tableId}`,
         {
-          method: "GET",
           headers: { "Content-Type": "application/json" },
         }
       );
 
-      if (!response.ok) throw new Error("Failed to fetch table data");
-      const result: TableResponse = await response.json();
+      if (response.status !== 200)
+        throw new Error("Failed to fetch table data");
+      const result: TableResponse = response.data;
 
       if (result.status === "success" && result.data) {
         const tableData = result.data;
@@ -149,15 +150,25 @@ const ChatPage: React.FC = () => {
 
   // Start polling when component mounts
   useEffect(() => {
+    let isPolling = true;
+    let retryCount = 0;
+    const maxRetries = 3;
+    let pollInterval = 3000; // Start with 3 seconds
+
     const pollForUpdates = async () => {
+      if (!isPolling) return;
+
       try {
-        const response = await fetch(`${API_BASE_URL}/get_updates`, {
-          method: "GET",
+        const response = await axios.get(`${API_BASE_URL}/get_updates`, {
           headers: { "Content-Type": "application/json" },
         });
 
-        if (!response.ok) throw new Error("Failed to fetch updates");
-        const data: APIResponse = await response.json();
+        if (response.status !== 200) throw new Error("Failed to fetch updates");
+        const data: APIResponse = response.data;
+
+        // Reset retry count and interval on successful request
+        retryCount = 0;
+        pollInterval = 3000;
 
         // Update agent processing state
         setAgentProcessing(data.agent_processing || false);
@@ -171,17 +182,32 @@ const ChatPage: React.FC = () => {
         }
       } catch (error) {
         console.error("Error polling for updates:", error);
+        retryCount++;
+
+        // If we've failed maxRetries times, stop polling
+        if (retryCount >= maxRetries) {
+          console.log("Max retries reached, stopping polling");
+          isPolling = false;
+          return;
+        }
+
+        // Exponential backoff: double the interval each time
+        pollInterval = Math.min(pollInterval * 2, 30000); // Max 30 seconds
+      }
+
+      // Schedule next poll
+      if (isPolling) {
+        setTimeout(pollForUpdates, pollInterval);
       }
     };
 
     // Initial poll
     pollForUpdates();
 
-    // Set up polling interval (every 3 seconds)
-    const intervalId = setInterval(pollForUpdates, 3000);
-
     // Cleanup on unmount
-    return () => clearInterval(intervalId);
+    return () => {
+      isPolling = false;
+    };
   }, []);
 
   const handleDatasetSelect = (datasetId: string) => {

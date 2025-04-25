@@ -12,8 +12,9 @@ import {
   AddIcon,
 } from "./ui";
 import Grid from "./Grid";
+import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_SERVER_URL;
+const API_BASE_URL = "http://127.0.0.1:5000";
 
 interface ProductService {
   name: string;
@@ -289,6 +290,8 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Just pass the data to parent component through onSubmit
     onSubmit({
       company_name: formData.company_name,
       website: formData.website,
@@ -303,11 +306,14 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
 
   return (
     <Box
-      component="form"
-      onSubmit={handleSubmit}
       sx={{
         p: 2,
         backgroundColor: "transparent",
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+        }
       }}
     >
       <Box
@@ -540,7 +546,13 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
         >
           Add Product/Service
         </Button>
-        <Button variant="contained" color="primary" type="submit" size="large">
+        <Button
+          fullWidth
+          variant="contained"
+          color="primary"
+          size="large"
+          onClick={handleSubmit}
+        >
           Submit Information
         </Button>
       </Box>

@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import GoogleIcon from "@mui/icons-material/Google";
+import axios from "axios";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,24 +30,18 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          remember_me: rememberMe,
-        }),
+      const response = await axios.post("http://127.0.0.1:5000/login", {
+        email,
+        password,
+        remember_me: rememberMe,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
+      if (response.status !== 200) {
+        const errorData = response.data;
         throw new Error(errorData.message || "Login failed");
       }
 
-      const data = await response.json();
+      const data = response.data;
 
       // Store the token if remember_me is true
       if (rememberMe && data.token) {

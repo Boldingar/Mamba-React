@@ -12,9 +12,9 @@ import {
   Avatar,
   Button,
 } from "./ui";
+import axios from "axios";
 
-
-const API_BASE_URL = import.meta.env.VITE_SERVER_URL;
+const API_BASE_URL = "http://127.0.0.1:5000";
 // const API_BASE_URL = "mamba-seo-fork-production-4091.up.railway.app";
 
 const ChatContainer = styled(Paper)(({ theme }) => ({
@@ -138,20 +138,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [processedUpdateIds] = useState<Set<string>>(new Set());
 
   // Initialize connection with server
-  useEffect(() => {
-    const initializeServer = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/`);
-        if (!response.ok) {
-          console.warn("Server initialization failed");
-        }
-      } catch (error) {
-        console.error("Failed to connect to server:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const initializeServer = async () => {
+  //     try {
+  //       const response = await axios.get(`${API_BASE_URL}/`);
+  //       if (response.status !== 200) {
+  //         console.warn("Server initialization failed");
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to connect to server:", error);
+  //     }
+  //   };
 
-    initializeServer();
-  }, []); // Empty dependency array means this runs once on mount
+  //   initializeServer();
+  // }, []); // Empty dependency array means this runs once on mount
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -221,19 +221,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/send_message`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ message: inputMessage }),
+      const response = await axios.post(`${API_BASE_URL}/send_message`, {
+        message: inputMessage,
       });
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error("Failed to send message");
       }
 
-      const data = await response.json();
+      const data = response.data;
       setIsLoading(false);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -248,33 +244,40 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
-  const handleFormSubmit = async (formData: BusinessInfo) => {
+  const handleFormSubmit = async (formData: any) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/submit_data`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/submit_data`,
+        formData
+      );
 
-      if (!response.ok) {
+      if (response.status !== 200) {
         throw new Error("Failed to submit form");
       }
 
-      const data = await response.json();
+      const data = response.data;
 
-      // Only add a success message from the agent
-      const agentMessage: Message = {
+      // Add a form submitted message
+      const formSubmittedMessage: Message = {
         id: Date.now().toString(),
-        text: "Thank you for providing the information. I'll analyze this and provide recommendations shortly.",
+        text: "Business Information Form Submitted",
+        sender: "user",
+        timestamp: new Date(),
+        type: "form_submitted",
+      };
+
+      // Add the agent's response message
+      const agentMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Thank you for providing your business information. I'll analyze this and provide recommendations shortly.",
         sender: "agent",
         timestamp: new Date(),
         type: "text",
       };
-      setMessages((prev) => [...prev, agentMessage]);
+
+      setMessages((prev) => [...prev, formSubmittedMessage, agentMessage]);
     } catch (error) {
       console.error("Error submitting form:", error);
       const errorMessage: Message = {
@@ -429,12 +432,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
           <style>
             {`
-              @keyframes pulse {
-                0% { opacity: 0.4; }
-                50% { opacity: 1; }
-                100% { opacity: 0.4; }
-              }
-            `}
+                @keyframes pulse {
+                  0% { opacity: 0.4; }
+                  50% { opacity: 1; }
+                  100% { opacity: 0.4; }
+                }
+              `}
           </style>
 
           <Box
