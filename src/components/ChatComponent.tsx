@@ -23,8 +23,10 @@ const API_BASE_URL = "http://localhost:8000";
 
 const ChatContainer = styled(Paper)(({ theme }) => ({
   height: "calc(100vh - 180px)",
-  minWidth: "900px",
+  minWidth: "700px",
+  maxWidth: "1200px",
   display: "flex",
+  margin: "0 auto",
   flexDirection: "column",
   backgroundColor: theme.palette.background.default,
   borderRadius: theme.spacing(2),

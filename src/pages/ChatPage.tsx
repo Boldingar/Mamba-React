@@ -101,9 +101,6 @@ const ScrollbarStyle = {
   scrollbarColor: "rgba(155, 155, 155, 0.5) transparent",
 };
 
-const collapsedWidth = 64;
-const expandedWidth = 300;
-
 const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
@@ -116,7 +113,6 @@ const ChatPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [updates, setUpdates] = useState<Update[]>([]);
   const [agentProcessing, setAgentProcessing] = useState(false);
-  const [userPanelOpen, setUserPanelOpen] = useState(false);
 
   // Function to fetch table data
   const fetchTableData = useCallback(async (tableId: string) => {
@@ -225,121 +221,113 @@ const ChatPage: React.FC = () => {
   return (
     <Box
       sx={{
-        display: "flex",
         height: "100vh",
-        bgcolor: "background.default",
-        minHeight: "100vh",
         width: "100vw",
+        bgcolor: "background.default",
+        display: "flex",
+        flexDirection: "row",
+        overflow: "hidden",
         position: "relative",
       }}
     >
-      <UserPanel open={userPanelOpen} onClose={() => setUserPanelOpen(false)} />
+      <UserPanel />
       <Box
         sx={{
           flex: 1,
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          minHeight: "100vh",
-          width: "100vw",
-          bgcolor: "background.default",
+          height: "100vh",
+          overflow: "hidden",
         }}
       >
-        {/* Menu button to open UserPanel */}
-        <Box sx={{ position: "absolute", top: 16, left: 16, zIndex: 1301 }}>
-          <IconButton color="primary" onClick={() => setUserPanelOpen(true)}>
-            <MenuIcon />
-          </IconButton>
-        </Box>
-        {/* Main chat area */}
         <ChatComponent
           onTableReady={fetchTableData}
           updates={updates}
           agentProcessing={agentProcessing}
           showForm={showForm}
         />
-        {datasets.length > 0 && (
-          <Tooltip title="View CSV Data" placement="left">
-            <IconButton
-              onClick={() => setShowDataPanel(true)}
-              sx={{
-                position: "fixed",
-                width: 56,
-                height: 56,
-                top: 20,
-                right: 20,
-                zIndex: 1200,
+      </Box>
+      {datasets.length > 0 && (
+        <Tooltip title="View CSV Data" placement="left">
+          <IconButton
+            onClick={() => setShowDataPanel(true)}
+            sx={{
+              position: "fixed",
+              width: 56,
+              height: 56,
+              top: 20,
+              right: 20,
+              zIndex: 1200,
+              bgcolor: "background.paper",
+              boxShadow: 2,
+              "&:hover": {
                 bgcolor: "background.paper",
-                boxShadow: 2,
+                opacity: 0.8,
+              },
+            }}
+          >
+            <DescriptionIcon />
+          </IconButton>
+        </Tooltip>
+      )}
+      {error && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 80,
+            right: 20,
+            zIndex: 1200,
+            bgcolor: "error.main",
+            color: "white",
+            p: 2,
+            borderRadius: 1,
+            maxWidth: "300px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            ...ScrollbarStyle,
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+            }}
+          >
+            <Typography
+              variant="body2"
+              component="pre"
+              sx={{ whiteSpace: "pre-wrap", flex: 1 }}
+            >
+              {error}
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={() => setError(null)}
+              sx={{
+                color: "white",
+                p: 0.5,
+                ml: 1,
                 "&:hover": {
-                  bgcolor: "background.paper",
-                  opacity: 0.8,
+                  bgcolor: "rgba(255, 255, 255, 0.1)",
                 },
               }}
             >
-              <DescriptionIcon />
+              <CloseIcon fontSize="small" />
             </IconButton>
-          </Tooltip>
-        )}
-        {error && (
-          <Box
-            sx={{
-              position: "fixed",
-              top: 80,
-              right: 20,
-              zIndex: 1200,
-              bgcolor: "error.main",
-              color: "white",
-              p: 2,
-              borderRadius: 1,
-              maxWidth: "300px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 1,
-              ...ScrollbarStyle,
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-              }}
-            >
-              <Typography
-                variant="body2"
-                component="pre"
-                sx={{ whiteSpace: "pre-wrap", flex: 1 }}
-              >
-                {error}
-              </Typography>
-              <IconButton
-                size="small"
-                onClick={() => setError(null)}
-                sx={{
-                  color: "white",
-                  p: 0.5,
-                  ml: 1,
-                  "&:hover": {
-                    bgcolor: "rgba(255, 255, 255, 0.1)",
-                  },
-                }}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            </Box>
           </Box>
-        )}
-        <DataPanel
-          open={showDataPanel}
-          onClose={() => setShowDataPanel(false)}
-          datasets={datasets}
-          selectedDatasetId={selectedDatasetId}
-          onDatasetSelect={handleDatasetSelect}
-          data={selectedDataset?.data || []}
-        />
-      </Box>
+        </Box>
+      )}
+      <DataPanel
+        open={showDataPanel}
+        onClose={() => setShowDataPanel(false)}
+        datasets={datasets}
+        selectedDatasetId={selectedDatasetId}
+        onDatasetSelect={handleDatasetSelect}
+        data={selectedDataset?.data || []}
+      />
     </Box>
   );
 };

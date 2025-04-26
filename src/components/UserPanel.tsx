@@ -29,14 +29,10 @@ const dummyChats = [
 
 const panelWidth = 300;
 
-interface UserPanelProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-const UserPanel: React.FC<UserPanelProps> = ({ open, onClose }) => {
+const UserPanel: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
+  const sidebarBg = "#232323";
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
@@ -52,23 +48,24 @@ const UserPanel: React.FC<UserPanelProps> = ({ open, onClose }) => {
 
   return (
     <Drawer
-      variant="temporary"
+      variant="permanent"
       anchor="left"
-      open={open}
-      onClose={onClose}
       sx={{
-        zIndex: 1302,
+        width: panelWidth,
+        flexShrink: 0,
         [`& .MuiDrawer-paper`]: {
           width: panelWidth,
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
-          bgcolor: theme.palette.background.paper,
+          bgcolor: sidebarBg,
           overflowX: "hidden",
-          boxShadow: "0 4px 24px 0 rgba(0,0,0,0.18)",
+          boxShadow: "none",
+          borderRight: "none",
+          borderRadius: 0,
         },
       }}
-      PaperProps={{ elevation: 4 }}
+      PaperProps={{ elevation: 0 }}
     >
       <Toolbar sx={{ minHeight: 48 }} />
       <Box
@@ -133,7 +130,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ open, onClose }) => {
           ))}
         </List>
         <Box sx={{ flexGrow: 1 }} />
-        <Divider sx={{ my: 2, width: "100%" }} />
+        <Divider sx={{ my: 2, width: "100%", borderColor: "#292929" }} />
         {/* Logout Button */}
         <Box
           sx={{
@@ -148,7 +145,14 @@ const UserPanel: React.FC<UserPanelProps> = ({ open, onClose }) => {
             color="error"
             startIcon={<LogoutIcon />}
             onClick={handleLogout}
-            sx={{ borderRadius: 2, fontWeight: 600, minHeight: 40, px: 2 }}
+            sx={{
+              borderRadius: 2,
+              fontWeight: 600,
+              minHeight: 40,
+              px: 2,
+              boxShadow: "none",
+              border: "none",
+            }}
           >
             Logout
           </Button>
