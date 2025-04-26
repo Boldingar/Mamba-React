@@ -20,9 +20,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <TopAppBar />
-      {/* Spacer to push content below the AppBar */}
-      <div style={{ height: 40 }} />
+     
       <BrowserRouter>
         <Routes>
           <Route
@@ -40,7 +38,15 @@ function App() {
           <Route
             path="/chat"
             element={
-              isAuthenticated ? <ChatPage /> : <Navigate to="/login" replace />
+              isAuthenticated ? (
+                <>
+                  <TopAppBar />
+                  <div style={{ height: 40 }} />
+                  <ChatPage />
+                </>
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
           <Route

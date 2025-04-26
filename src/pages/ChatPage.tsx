@@ -222,7 +222,7 @@ const ChatPage: React.FC = () => {
     <Box
       sx={{
         height: "100vh",
-        width: "100vw",
+        width: "90vw",
         bgcolor: "background.default",
         display: "flex",
         flexDirection: "row",
