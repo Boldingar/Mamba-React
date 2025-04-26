@@ -221,7 +221,7 @@ const ChatPage: React.FC = () => {
   return (
     <Box
       sx={{
-        height: "100vh",
+        height: "80vh",
         width: "90vw",
         bgcolor: "background.default",
         display: "flex",

@@ -5,28 +5,20 @@
 import React, { useState, useRef, useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import BusinessInfoForm from "./BusinessInfoForm";
-import {
-  Box,
-  Container,
-  Paper,
-  TextField,
-  Typography,
-  AppBar,
-  Toolbar,
-  Avatar,
-  Button,
-} from "./ui";
+import { Box, Paper, TextField, Typography, Avatar, Button } from "./ui";
 import axios from "axios";
 
 const API_BASE_URL = "http://localhost:8000";
 // const API_BASE_URL = "mamba-seo-fork-production-4091.up.railway.app";
 
+const CHAT_HEIGHT = 600; // px, adjust as needed
+
 const ChatContainer = styled(Paper)(({ theme }) => ({
-  height: "calc(100vh - 180px)",
-  minWidth: "700px",
-  maxWidth: "1200px",
+  width: "100%",
+  maxWidth: "700px",
+  minWidth: "300px",
+  height: `${CHAT_HEIGHT}px`,
   display: "flex",
-  margin: "0 auto",
   flexDirection: "column",
   backgroundColor: theme.palette.background.default,
   borderRadius: theme.spacing(2),
@@ -319,166 +311,115 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   };
 
   return (
-    <Container maxWidth={false} sx={{ height: "100vh", py: 2, px: 4 }}>
-      {/* <AppBar
-        position="static"
-        color="transparent"
-        elevation={0}
-        sx={{ mb: 2 }}
-      >
-        <Toolbar>
-          <Avatar
-            src="/MambaLogo.svg"
-            sx={{
-              mr: 3,
-              width: 230,
-              height: 50,
-            }}
-            variant="square"
-          />
-          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-            Lily - Senior SEO Engineer
-          </Typography>
-          {agentProcessing && (
+    <Box
+      sx={{
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "80%",
+      }}
+    >
+      <ChatContainer elevation={3}>
+        <MessageList>
+          {messages.map((message) => (
+            <MessageWrapper key={message.id} isUser={message.sender === "user"}>
+              {message.sender !== "user" && (
+                <Avatar
+                  src="/agent.png"
+                  sx={{
+                    width: 34,
+                    height: 34,
+                    mt: 1.3,
+                  }}
+                />
+              )}
+              <MessageItem
+                isUser={message.sender === "user"}
+                className={message.type === "form" ? "form" : ""}
+              >
+                {message.type === "form" ? (
+                  <BusinessInfoForm
+                    onSubmit={handleFormSubmit}
+                    onClose={() => {}}
+                    onFileClick={() => {}}
+                  />
+                ) : (
+                  <Typography>{message.text}</Typography>
+                )}
+              </MessageItem>
+            </MessageWrapper>
+          ))}
+          {(isLoading || agentProcessing) && (
             <Typography
               variant="caption"
               sx={{
-                ml: 2,
+                alignSelf: "center",
                 color: "text.secondary",
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
-                fontWeight: "bold",
               }}
             >
               <Box
                 component="span"
                 sx={{
-                  width: 8,
-                  height: 8,
+                  width: 6,
+                  height: 6,
                   borderRadius: "50%",
                   backgroundColor: "primary.main",
                   display: "inline-block",
                   animation: "pulse 1.5s infinite ease-in-out",
                 }}
               />
-              Agent is thinking...
+              {agentProcessing ? "Agent is thinking..." : "Processing..."}
             </Typography>
           )}
-        </Toolbar>
-      </AppBar> */}
+          <div ref={messagesEndRef} />
+        </MessageList>
 
-      <Box
-        sx={{
-          maxWidth: "1600px",
-          mx: "auto",
-          height: "calc(100vh - 100px)",
-        }}
-      >
-        <ChatContainer elevation={3}>
-          <MessageList>
-            {messages.map((message) => (
-              <MessageWrapper
-                key={message.id}
-                isUser={message.sender === "user"}
-              >
-                {message.sender !== "user" && (
-                  <Avatar
-                    src="/agent.png"
-                    sx={{
-                      width: 34,
-                      height: 34,
-                      mt: 1.3,
-                    }}
-                  />
-                )}
-                <MessageItem
-                  isUser={message.sender === "user"}
-                  className={message.type === "form" ? "form" : ""}
-                >
-                  {message.type === "form" ? (
-                    <BusinessInfoForm
-                      onSubmit={handleFormSubmit}
-                      onClose={() => {}}
-                      onFileClick={() => {}}
-                    />
-                  ) : (
-                    <Typography>{message.text}</Typography>
-                  )}
-                </MessageItem>
-              </MessageWrapper>
-            ))}
-            {(isLoading || agentProcessing) && (
-              <Typography
-                variant="caption"
-                sx={{
-                  alignSelf: "center",
-                  color: "text.secondary",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                <Box
-                  component="span"
-                  sx={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    backgroundColor: "primary.main",
-                    display: "inline-block",
-                    animation: "pulse 1.5s infinite ease-in-out",
-                  }}
-                />
-                {agentProcessing ? "Agent is thinking..." : "Processing..."}
-              </Typography>
-            )}
-            <div ref={messagesEndRef} />
-          </MessageList>
+        <style>
+          {`
+              @keyframes pulse {
+                0% { opacity: 0.4; }
+                50% { opacity: 1; }
+                100% { opacity: 0.4; }
+              }
+            `}
+        </style>
 
-          <style>
-            {`
-                @keyframes pulse {
-                  0% { opacity: 0.4; }
-                  50% { opacity: 1; }
-                  100% { opacity: 0.4; }
-                }
-              `}
-          </style>
-
-          <Box
-            component="form"
-            onSubmit={handleSendMessage}
-            sx={{
-              p: 2,
-              borderTop: 1,
-              borderColor: "divider",
-              display: "flex",
-              gap: 1,
-            }}
+        <Box
+          component="form"
+          onSubmit={handleSendMessage}
+          sx={{
+            p: 2,
+            borderTop: 1,
+            borderColor: "divider",
+            display: "flex",
+            gap: 1,
+          }}
+        >
+          <TextField
+            fullWidth
+            size="small"
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={isLoading}
+            placeholder="Type your message..."
+            multiline
+            maxRows={4}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isLoading || !inputMessage.trim()}
           >
-            <TextField
-              fullWidth
-              size="small"
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isLoading}
-              placeholder="Type your message..."
-              multiline
-              maxRows={4}
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={isLoading || !inputMessage.trim()}
-            >
-              Send
-            </Button>
-          </Box>
-        </ChatContainer>
-      </Box>
-    </Container>
+            Send
+          </Button>
+        </Box>
+      </ChatContainer>
+    </Box>
   );
 };
 
