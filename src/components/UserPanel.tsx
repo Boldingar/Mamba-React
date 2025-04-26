@@ -79,38 +79,30 @@ const UserPanel: React.FC = () => {
           height: "100%",
         }}
       >
-        {/* New Chat Button */}
-        <Box
-          sx={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "flex-start",
-            mb: 2,
-          }}
-        >
-          <Fab
-            color="primary"
-            variant="extended"
-            onClick={handleNewChat}
-            sx={{
-              boxShadow: "none",
-              borderRadius: 2,
-              minHeight: 40,
-              px: 2,
-              fontWeight: 600,
-            }}
-          >
-            <AddIcon sx={{ mr: 1 }} /> New Chat
-          </Fab>
-        </Box>
+        <List sx={{ width: "100%" }}>
+          {/* New Chat Button */}
+          <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
+            <ListItemButton sx={{ borderRadius: 2 }} onClick={handleNewChat}>
+              <ListItemIcon>
+                <AddIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary="New Chat"
+                primaryTypographyProps={{ fontWeight: 600 }}
+              />
+            </ListItemButton>
+          </ListItem>
+        </List>
+        {/* Recent Chats Section Header */}
         <Typography
           variant="subtitle2"
           color="text.secondary"
-          sx={{ mb: 1, mt: 1, fontWeight: 700, letterSpacing: 1 }}
+          sx={{ mb: 1, mt: 2, fontWeight: 700, letterSpacing: 1 }}
         >
-          Recent
+          Recent Chats
         </Typography>
         <List sx={{ width: "100%" }}>
+          {/* Recent Chats */}
           {dummyChats.map((chat) => (
             <ListItem
               key={chat.id}
@@ -132,31 +124,22 @@ const UserPanel: React.FC = () => {
         <Box sx={{ flexGrow: 1 }} />
         <Divider sx={{ my: 2, width: "100%", borderColor: "#292929" }} />
         {/* Logout Button */}
-        <Box
-          sx={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "flex-start",
-            mb: 1,
-          }}
-        >
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<LogoutIcon />}
-            onClick={handleLogout}
-            sx={{
-              borderRadius: 2,
-              fontWeight: 600,
-              minHeight: 40,
-              px: 2,
-              boxShadow: "none",
-              border: "none",
-            }}
-          >
-            Logout
-          </Button>
-        </Box>
+        <List sx={{ width: "100%" }}>
+          <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
+            <ListItemButton sx={{ borderRadius: 2 }} onClick={handleLogout}>
+              <ListItemIcon>
+                <LogoutIcon color="error" />
+              </ListItemIcon>
+              <ListItemText
+                primary="Logout"
+                primaryTypographyProps={{
+                  fontWeight: 600,
+                  color: "error.main",
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
+        </List>
       </Box>
     </Drawer>
   );
