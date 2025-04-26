@@ -238,7 +238,7 @@ const ChatPage: React.FC = () => {
           alignItems: "center",
           justifyContent: "center",
           height: "100vh",
-          marginTop: "270px",
+          marginTop: "290px",
           overflow: "hidden",
         }}
       >

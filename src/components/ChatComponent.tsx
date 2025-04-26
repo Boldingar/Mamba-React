@@ -11,13 +11,12 @@ import axios from "axios";
 const API_BASE_URL = "http://127.0.0.1:8080";
 // const API_BASE_URL = "mamba-seo-fork-production-4091.up.railway.app";
 
-const CHAT_HEIGHT = 800; // px, adjust as needed
 
 const ChatContainer = styled(Paper)(({ theme }) => ({
   width: "100%",
   maxWidth: "1200px",
   minWidth: "300px",
-  height: `${CHAT_HEIGHT}px`,
+  height: "70vh",
   display: "flex",
   flexDirection: "column",
   backgroundColor: theme.palette.background.default,
