@@ -8,14 +8,14 @@ import BusinessInfoForm from "./BusinessInfoForm";
 import { Box, Paper, TextField, Typography, Avatar, Button } from "./ui";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "http://127.0.0.1:8080";
 // const API_BASE_URL = "mamba-seo-fork-production-4091.up.railway.app";
 
-const CHAT_HEIGHT = 600; // px, adjust as needed
+const CHAT_HEIGHT = 800; // px, adjust as needed
 
 const ChatContainer = styled(Paper)(({ theme }) => ({
   width: "100%",
-  maxWidth: "700px",
+  maxWidth: "1200px",
   minWidth: "300px",
   height: `${CHAT_HEIGHT}px`,
   display: "flex",
@@ -32,6 +32,20 @@ const MessageList = styled(Box)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   gap: theme.spacing(1.5),
+  // Custom minimal scrollbar
+  "&::-webkit-scrollbar": {
+    width: "8px",
+    background: "transparent",
+  },
+  "&::-webkit-scrollbar-thumb": {
+    background: "#444", // or theme.palette.divider
+    borderRadius: "8px",
+  },
+  "&::-webkit-scrollbar-track": {
+    background: "transparent",
+  },
+  scrollbarWidth: "thin",
+  scrollbarColor: "#444 transparent", // For Firefox
 }));
 
 const MessageWrapper = styled(Box, {

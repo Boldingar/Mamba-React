@@ -9,7 +9,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import TableChartIcon from "@mui/icons-material/TableChart";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "http://127.0.0.1:8080";
 
 interface Data {
   [key: string]: string | number;
@@ -221,7 +221,7 @@ const ChatPage: React.FC = () => {
   return (
     <Box
       sx={{
-        height: "80vh",
+        height: "90vh",
         width: "90vw",
         bgcolor: "background.default",
         display: "flex",
@@ -238,6 +238,7 @@ const ChatPage: React.FC = () => {
           alignItems: "center",
           justifyContent: "center",
           height: "100vh",
+          marginTop: "230px",
           overflow: "hidden",
         }}
       >

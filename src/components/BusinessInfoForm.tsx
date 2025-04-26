@@ -14,7 +14,7 @@ import {
 import Grid from "./Grid";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "http://127.0.0.1:8080";
 
 interface ProductService {
   name: string;
