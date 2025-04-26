@@ -14,11 +14,11 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import GoogleIcon from "@mui/icons-material/Google";
-import axios from "axios";
+import axiosInstance, { API_BASE_URL } from "../utils/axios";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,26 +30,27 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/login", {
-        email,
+      const response = await axiosInstance.post(`/login`, {
+        username,
         password,
         remember_me: rememberMe,
       });
 
-      if (response.status !== 200) {
-        const errorData = response.data;
-        throw new Error(errorData.message || "Login failed");
+      const { access_token, user } = response.data;
+
+      // Store the token and user data only if remember me is checked
+      if (rememberMe) {
+        localStorage.setItem("authToken", access_token);
+        localStorage.setItem("userData", JSON.stringify(user));
+      } else {
+        // For non-remember-me sessions, store in sessionStorage instead
+        // This will be cleared when the browser/tab is closed
+        sessionStorage.setItem("authToken", access_token);
+        sessionStorage.setItem("userData", JSON.stringify(user));
       }
 
-      const data = response.data;
-
-      // Store the token if remember_me is true
-      if (rememberMe && data.token) {
-        localStorage.setItem("authToken", data.token);
-      }
-
-      // Navigate to the main app
-      navigate("/");
+      // Redirect to chat page after successful login
+      navigate("/chat");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -59,7 +60,7 @@ const LoginPage: React.FC = () => {
 
   const handleGoogleLogin = () => {
     // Redirect to Google OAuth endpoint
-    window.location.href = "http://127.0.0.1:5000/auth/google";
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   return (
@@ -89,13 +90,13 @@ const LoginPage: React.FC = () => {
               margin="normal"
               required
               fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
+              id="username"
+              label="Username"
+              name="username"
+              autoComplete="username"
               autoFocus
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               disabled={isLoading}
               sx={{
                 "& .MuiOutlinedInput-root": {

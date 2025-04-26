@@ -14,14 +14,14 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import GoogleIcon from "@mui/icons-material/Google";
-import axios from "axios";
+import axiosInstance, { API_BASE_URL } from "../utils/axios";
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
     username: "",
+    first_name: "",
+    last_name: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -46,18 +46,13 @@ const RegisterPage: React.FC = () => {
     }
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/register", {
-        first_name: formData.firstName,
-        last_name: formData.lastName,
+      const response = await axiosInstance.post(`/register`, {
         username: formData.username,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
         email: formData.email,
         password: formData.password,
       });
-
-      if (response.status !== 200) {
-        const errorData = response.data;
-        throw new Error(errorData.message || "Registration failed");
-      }
 
       // Navigate to login page after successful registration
       navigate("/login");
@@ -70,7 +65,7 @@ const RegisterPage: React.FC = () => {
 
   const handleGoogleRegister = () => {
     // Redirect to Google OAuth endpoint
-    window.location.href = "http://127.0.0.1:5000/auth/google";
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   return (
@@ -100,12 +95,23 @@ const RegisterPage: React.FC = () => {
               margin="normal"
               required
               fullWidth
+              id="username"
+              label="Username"
+              name="username"
+              autoComplete="username"
+              value={formData.username}
+              onChange={handleInputChange}
+              disabled={isLoading}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
               id="firstName"
               label="First Name"
-              name="firstName"
+              name="first_name"
               autoComplete="given-name"
-              autoFocus
-              value={formData.firstName}
+              value={formData.first_name}
               onChange={handleInputChange}
               disabled={isLoading}
             />
@@ -115,21 +121,9 @@ const RegisterPage: React.FC = () => {
               fullWidth
               id="lastName"
               label="Last Name"
-              name="lastName"
+              name="last_name"
               autoComplete="family-name"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              disabled={isLoading}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="username"
-              label="Username"
-              name="username"
-              autoComplete="username"
-              value={formData.username}
+              value={formData.last_name}
               onChange={handleInputChange}
               disabled={isLoading}
             />

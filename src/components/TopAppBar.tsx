@@ -1,0 +1,50 @@
+import React from "react";
+import AppBar from "@mui/material/AppBar";
+import Box from "@mui/material/Box";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import Avatar from "@mui/material/Avatar";
+
+const TopAppBar: React.FC = () => {
+  return (
+    <AppBar
+      position="fixed"
+      color="default"
+      elevation={0}
+      sx={{ bgcolor: "background.default", zIndex: 1302 }}
+    >
+      <Toolbar
+        sx={{
+          minHeight: 80,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-start",
+        }}
+      >
+        <Avatar
+          src="/MambaLogo.svg"
+          alt="Mamba Logo"
+          sx={{ width: 190, height: 40, mr: 2 }}
+          variant="square"
+        />
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 600,
+            fontSize: { xs: 16, sm: 20 },
+            color: "text.primary",
+            opacity: 0.9,
+            fontFamily: "inherit",
+            lineHeight: 1.2,
+            whiteSpace: "nowrap",
+          }}
+        >
+          Lily - Senior SEO Engineer
+        </Typography>
+        {/* You can add a responsive menu or user actions here if needed */}
+      </Toolbar>
+    </AppBar>
+  );
+};
+
+export default TopAppBar;
