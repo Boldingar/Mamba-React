@@ -123,6 +123,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
           p: 3,
           height: "100%",
           display: "flex",
+          marginTop: "70px",
           flexDirection: "column",
         }}
       >
