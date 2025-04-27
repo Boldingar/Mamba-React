@@ -157,54 +157,54 @@ const ChatPage: React.FC = () => {
     const maxRetries = 3;
     let pollInterval = 3000; // Start with 3 seconds
 
-    const pollForUpdates = async () => {
-      if (!isPolling) return;
+    // const pollForUpdates = async () => {
+    //   if (!isPolling) return;
 
-      try {
-        const response = await axios.get(`${API_BASE_URL}/get_updates`, {
-          headers: { "Content-Type": "application/json" },
-        });
+    //   try {
+    //     const response = await axios.get(`${API_BASE_URL}/get_updates`, {
+    //       headers: { "Content-Type": "application/json" },
+    //     });
 
-        if (response.status !== 200) throw new Error("Failed to fetch updates");
-        const data: APIResponse = response.data;
+    //     if (response.status !== 200) throw new Error("Failed to fetch updates");
+    //     const data: APIResponse = response.data;
 
-        // Reset retry count and interval on successful request
-        retryCount = 0;
-        pollInterval = 3000;
+    //     // Reset retry count and interval on successful request
+    //     retryCount = 0;
+    //     pollInterval = 3000;
 
-        // Update agent processing state
-        setAgentProcessing(data.agent_processing || false);
+    //     // Update agent processing state
+    //     setAgentProcessing(data.agent_processing || false);
 
-        // Update form visibility
-        setShowForm(data.show_form || false);
+    //     // Update form visibility
+    //     setShowForm(data.show_form || false);
 
-        // Process updates
-        if (data.updates && data.updates.length > 0) {
-          setUpdates(data.updates);
-        }
-      } catch (error) {
-        console.error("Error polling for updates:", error);
-        retryCount++;
+    //     // Process updates
+    //     if (data.updates && data.updates.length > 0) {
+    //       setUpdates(data.updates);
+    //     }
+    //   } catch (error) {
+    //     console.error("Error polling for updates:", error);
+    //     retryCount++;
 
-        // If we've failed maxRetries times, stop polling
-        if (retryCount >= maxRetries) {
-          console.log("Max retries reached, stopping polling");
-          isPolling = false;
-          return;
-        }
+    //     // If we've failed maxRetries times, stop polling
+    //     if (retryCount >= maxRetries) {
+    //       console.log("Max retries reached, stopping polling");
+    //       isPolling = false;
+    //       return;
+    //     }
 
-        // Exponential backoff: double the interval each time
-        pollInterval = Math.min(pollInterval * 2, 30000); // Max 30 seconds
-      }
+    //     // Exponential backoff: double the interval each time
+    //     pollInterval = Math.min(pollInterval * 2, 30000); // Max 30 seconds
+    //   }
 
-      // Schedule next poll
-      if (isPolling) {
-        setTimeout(pollForUpdates, pollInterval);
-      }
-    };
+    //   // Schedule next poll
+    //   if (isPolling) {
+    //     setTimeout(pollForUpdates, pollInterval);
+    //   }
+    // };
 
-    // Initial poll
-    pollForUpdates();
+    // // Initial poll
+    // pollForUpdates();
 
     // Cleanup on unmount
     return () => {

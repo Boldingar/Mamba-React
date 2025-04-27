@@ -16,7 +16,11 @@ import { useNavigate } from "react-router-dom";
 import GoogleIcon from "@mui/icons-material/Google";
 import axiosInstance, { API_BASE_URL } from "../utils/axios";
 
-const LoginPage: React.FC = () => {
+interface LoginPageProps {
+  setIsAuthenticated?: (auth: boolean) => void;
+}
+
+const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +37,6 @@ const LoginPage: React.FC = () => {
       const response = await axiosInstance.post(`/login`, {
         username,
         password,
-        remember_me: rememberMe,
       });
 
       const { access_token, user } = response.data;
@@ -50,6 +53,7 @@ const LoginPage: React.FC = () => {
       }
 
       // Redirect to chat page after successful login
+      if (setIsAuthenticated) setIsAuthenticated(true);
       navigate("/chat");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");

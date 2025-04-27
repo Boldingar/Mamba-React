@@ -7,26 +7,37 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import TopAppBar from "./components/TopAppBar";
 
+function checkAuth() {
+  const localToken = localStorage.getItem("authToken");
+  const sessionToken = sessionStorage.getItem("authToken");
+  return !!(localToken || sessionToken);
+}
+
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(checkAuth());
 
   useEffect(() => {
-    // Check both localStorage and sessionStorage for the auth token
-    const localToken = localStorage.getItem("authToken");
-    const sessionToken = sessionStorage.getItem("authToken");
-    setIsAuthenticated(!!(localToken || sessionToken));
+    function handleStorageChange() {
+      setIsAuthenticated(checkAuth());
+    }
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-     
+
       <BrowserRouter>
         <Routes>
           <Route
             path="/login"
             element={
-              isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+              isAuthenticated ? (
+                <Navigate to="/" replace />
+              ) : (
+                <LoginPage setIsAuthenticated={setIsAuthenticated} />
+              )
             }
           />
           <Route
@@ -40,7 +51,7 @@ function App() {
             element={
               isAuthenticated ? (
                 <>
-                  <TopAppBar />
+                  <TopAppBar csvPanelOpen={false} onToggleCSVPanel={() => {}} />
                   <div style={{ height: 40 }} />
                   <ChatPage />
                 </>
