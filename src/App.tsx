@@ -53,7 +53,7 @@ function App() {
                 <>
                   <TopAppBar csvPanelOpen={false} onToggleCSVPanel={() => {}} />
                   <div style={{ height: 40 }} />
-                  <ChatPage />
+                  <ChatPage setIsAuthenticated={setIsAuthenticated} />
                 </>
               ) : (
                 <Navigate to="/login" replace />

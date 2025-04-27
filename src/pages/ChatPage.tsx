@@ -78,6 +78,10 @@ interface Dataset {
   timestamp: Date;
 }
 
+interface ChatPageProps {
+  setIsAuthenticated?: (auth: boolean) => void;
+}
+
 const ScrollbarStyle = {
   "&::-webkit-scrollbar": {
     width: "8px",
@@ -101,7 +105,7 @@ const ScrollbarStyle = {
   scrollbarColor: "rgba(155, 155, 155, 0.5) transparent",
 };
 
-const ChatPage: React.FC = () => {
+const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(
@@ -267,7 +271,7 @@ const ChatPage: React.FC = () => {
           position: "relative",
         }}
       >
-        <UserPanel />
+        <UserPanel setIsAuthenticated={setIsAuthenticated} />
         <Box
           sx={{
             flex: 1,

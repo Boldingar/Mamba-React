@@ -29,7 +29,11 @@ const dummyChats = [
 
 const panelWidth = 300;
 
-const UserPanel: React.FC = () => {
+interface UserPanelProps {
+  setIsAuthenticated?: (auth: boolean) => void;
+}
+
+const UserPanel: React.FC<UserPanelProps> = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const sidebarBg = "#232323";
@@ -39,6 +43,7 @@ const UserPanel: React.FC = () => {
     localStorage.removeItem("userData");
     sessionStorage.removeItem("authToken");
     sessionStorage.removeItem("userData");
+    if (setIsAuthenticated) setIsAuthenticated(false);
     navigate("/login");
   };
 
