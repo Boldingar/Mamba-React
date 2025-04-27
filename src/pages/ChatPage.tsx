@@ -9,8 +9,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import TableChartIcon from "@mui/icons-material/TableChart";
 import axios from "axios";
 import TopAppBar from "../components/TopAppBar";
-
-const API_BASE_URL = "http://127.0.0.1:8080";
+import { API_BASE_URL } from "../utils/axios";
 
 interface Data {
   [key: string]: string | number;

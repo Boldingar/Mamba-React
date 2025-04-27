@@ -8,9 +8,7 @@ import BusinessInfoForm from "./BusinessInfoForm";
 import { Box, Paper, TextField, Typography, Avatar, Button } from "./ui";
 import axios from "axios";
 import SendIcon from "@mui/icons-material/Send";
-
-const API_BASE_URL = "http://127.0.0.1:8080";
-// const API_BASE_URL = "mamba-seo-fork-production-4091.up.railway.app";
+import { API_BASE_URL } from "../utils/axios";
 
 const ChatContainer = styled(Paper)(({ theme }) => ({
   width: "100%",
