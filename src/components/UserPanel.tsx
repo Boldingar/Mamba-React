@@ -15,10 +15,12 @@ import {
   Divider,
   useTheme,
   Button,
+  Avatar,
 } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
 import AddIcon from "@mui/icons-material/Add";
 import LogoutIcon from "@mui/icons-material/Logout";
+import PersonIcon from "@mui/icons-material/Person";
 import { useNavigate } from "react-router-dom";
 
 const dummyChats = [
@@ -31,9 +33,13 @@ const panelWidth = 300;
 
 interface UserPanelProps {
   setIsAuthenticated?: (auth: boolean) => void;
+  onProfileClick?: () => void;
 }
 
-const UserPanel: React.FC<UserPanelProps> = ({ setIsAuthenticated }) => {
+const UserPanel: React.FC<UserPanelProps> = ({
+  setIsAuthenticated,
+  onProfileClick,
+}) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const sidebarBg = "#232323";
@@ -128,6 +134,23 @@ const UserPanel: React.FC<UserPanelProps> = ({ setIsAuthenticated }) => {
         </List>
         <Box sx={{ flexGrow: 1 }} />
         <Divider sx={{ my: 2, width: "100%", borderColor: "#292929" }} />
+        {/* Profile Button */}
+        <List sx={{ width: "100%" }}>
+          <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
+            <ListItemButton sx={{ borderRadius: 2 }} onClick={onProfileClick}>
+              <ListItemIcon>
+                <PersonIcon fontSize="medium" />
+              </ListItemIcon>
+              <ListItemText
+                primary="Profile"
+                primaryTypographyProps={{
+                  fontWeight: 600,
+                  color: "text.primary",
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
+        </List>
         {/* Logout Button */}
         <List sx={{ width: "100%" }}>
           <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>

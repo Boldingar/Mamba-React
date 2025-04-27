@@ -10,6 +10,7 @@ import TableChartIcon from "@mui/icons-material/TableChart";
 import axios from "axios";
 import TopAppBar from "../components/TopAppBar";
 import { API_BASE_URL } from "../utils/axios";
+import UserProfile from "../components/UserProfile";
 
 interface Data {
   [key: string]: string | number;
@@ -117,6 +118,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [showForm, setShowForm] = useState(false);
   const [updates, setUpdates] = useState<Update[]>([]);
   const [agentProcessing, setAgentProcessing] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   // Function to fetch table data
   const fetchTableData = useCallback(async (tableId: string) => {
@@ -256,6 +258,22 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
 
   return (
     <>
+      {showProfile && (
+        <>
+          <Box
+            sx={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              bgcolor: "rgba(0,0,0,0.45)",
+              zIndex: 1399,
+            }}
+          />
+          <UserProfile onClose={() => setShowProfile(false)} />
+        </>
+      )}
       <TopAppBar
         csvPanelOpen={showDataPanel}
         onToggleCSVPanel={handleToggleCSVPanel}
@@ -271,7 +289,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           position: "relative",
         }}
       >
-        <UserPanel setIsAuthenticated={setIsAuthenticated} />
+        <UserPanel
+          setIsAuthenticated={setIsAuthenticated}
+          onProfileClick={() => setShowProfile(true)}
+        />
         <Box
           sx={{
             flex: 1,
