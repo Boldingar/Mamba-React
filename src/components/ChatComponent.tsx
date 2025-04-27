@@ -7,10 +7,10 @@ import { styled } from "@mui/material/styles";
 import BusinessInfoForm from "./BusinessInfoForm";
 import { Box, Paper, TextField, Typography, Avatar, Button } from "./ui";
 import axios from "axios";
+import SendIcon from "@mui/icons-material/Send";
 
 const API_BASE_URL = "http://127.0.0.1:8080";
 // const API_BASE_URL = "mamba-seo-fork-production-4091.up.railway.app";
-
 
 const ChatContainer = styled(Paper)(({ theme }) => ({
   width: "100%",
@@ -409,7 +409,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             borderTop: 1,
             borderColor: "divider",
             display: "flex",
-            gap: 1,
+            gap: 1.5,
+            alignItems: "center",
+            bgcolor: "background.main",
           }}
         >
           <TextField
@@ -422,11 +424,33 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             placeholder="Type your message..."
             multiline
             maxRows={4}
+            sx={{
+              borderRadius: 3,
+              ".MuiOutlinedInput-root": {
+                borderRadius: 3,
+                bgcolor: "background.paper",
+              },
+            }}
           />
           <Button
             type="submit"
             variant="contained"
             disabled={isLoading || !inputMessage.trim()}
+            sx={{
+              borderRadius: 2,
+              fontWeight: 600,
+              minWidth: 56,
+              minHeight: 40,
+              px: 2.5,
+              boxShadow: "none",
+              textTransform: "none",
+              bgcolor: "primary.main",
+              "&:hover": { bgcolor: "primary.dark" },
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+            endIcon={<SendIcon sx={{ fontSize: 22, ml: 0.5 }} />}
           >
             Send
           </Button>
