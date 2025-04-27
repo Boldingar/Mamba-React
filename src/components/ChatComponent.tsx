@@ -132,10 +132,22 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   agentProcessing,
   showForm,
 }) => {
+  const getFirstName = () => {
+    try {
+      const stored =
+        localStorage.getItem("userData") || sessionStorage.getItem("userData");
+      if (stored) {
+        const user = JSON.parse(stored);
+        return user.first_name || "there";
+      }
+    } catch {}
+    return "there";
+  };
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Welcome! I am Lily from Mamba. How can I help you today?",
+      text: `Welcome ${getFirstName()}! I am Lily from Mamba. How can I help you today?`,
       sender: "agent",
       timestamp: new Date(),
       type: "text",
@@ -356,7 +368,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                     onFileClick={() => {}}
                   />
                 ) : (
-                  <Typography>{message.text}</Typography>
+                  <Typography sx={{ fontSize: "17px" }}>
+                    {message.text}
+                  </Typography>
                 )}
               </MessageItem>
             </MessageWrapper>
