@@ -34,11 +34,17 @@ const panelWidth = 300;
 interface UserPanelProps {
   setIsAuthenticated?: (auth: boolean) => void;
   onProfileClick?: () => void;
+  onNewChat?: () => void;
+  recentChats?: { id: string; title: string }[];
+  onSelectChat?: (id: string) => void;
 }
 
 const UserPanel: React.FC<UserPanelProps> = ({
   setIsAuthenticated,
   onProfileClick,
+  onNewChat,
+  recentChats = [],
+  onSelectChat,
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -93,7 +99,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
         <List sx={{ width: "100%" }}>
           {/* New Chat Button */}
           <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
-            <ListItemButton sx={{ borderRadius: 2 }} onClick={handleNewChat}>
+            <ListItemButton sx={{ borderRadius: 2 }} onClick={onNewChat}>
               <ListItemIcon>
                 <AddIcon />
               </ListItemIcon>
@@ -114,13 +120,16 @@ const UserPanel: React.FC<UserPanelProps> = ({
         </Typography>
         <List sx={{ width: "100%" }}>
           {/* Recent Chats */}
-          {dummyChats.map((chat) => (
+          {recentChats.map((chat) => (
             <ListItem
               key={chat.id}
               disablePadding
               sx={{ borderRadius: 2, mb: 0.5 }}
             >
-              <ListItemButton sx={{ borderRadius: 2 }}>
+              <ListItemButton
+                sx={{ borderRadius: 2 }}
+                onClick={() => onSelectChat && onSelectChat(chat.id)}
+              >
                 <ListItemIcon>
                   <ChatIcon fontSize="small" />
                 </ListItemIcon>

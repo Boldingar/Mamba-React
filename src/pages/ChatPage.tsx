@@ -119,6 +119,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [updates, setUpdates] = useState<Update[]>([]);
   const [agentProcessing, setAgentProcessing] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [conversationId, setConversationId] = useState("1");
+  const [recentChats, setRecentChats] = useState<
+    { id: string; title: string }[]
+  >([]);
 
   // Function to fetch table data
   const fetchTableData = useCallback(async (tableId: string) => {
@@ -256,6 +260,21 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   // Handler to toggle the DataPanel
   const handleToggleCSVPanel = () => setShowDataPanel((open) => !open);
 
+  const handleNewChat = () => {
+    setRecentChats((prev) => [
+      ...prev,
+      { id: conversationId, title: `Conversation ${conversationId}` },
+    ]);
+    setConversationId((prev) => {
+      const nextId = (parseInt(prev, 10) + 1).toString();
+      return nextId;
+    });
+  };
+
+  const handleSelectChat = (id: string) => {
+    setConversationId(id);
+  };
+
   return (
     <>
       {showProfile && (
@@ -292,6 +311,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
         <UserPanel
           setIsAuthenticated={setIsAuthenticated}
           onProfileClick={() => setShowProfile(true)}
+          onNewChat={handleNewChat}
+          recentChats={recentChats}
+          onSelectChat={handleSelectChat}
         />
         <Box
           sx={{
@@ -309,6 +331,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
             updates={updates}
             agentProcessing={agentProcessing}
             showForm={showForm}
+            conversationId={conversationId}
           />
         </Box>
         {error && (

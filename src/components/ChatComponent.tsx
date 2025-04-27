@@ -6,7 +6,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import BusinessInfoForm from "./BusinessInfoForm";
 import { Box, Paper, TextField, Typography, Avatar, Button } from "./ui";
-import axios from "axios";
+import axiosInstance from "../utils/axios";
 import SendIcon from "@mui/icons-material/Send";
 import { API_BASE_URL } from "../utils/axios";
 
@@ -124,6 +124,7 @@ interface ChatComponentProps {
   updates: Update[];
   agentProcessing: boolean;
   showForm: boolean;
+  conversationId: string;
 }
 
 const ChatComponent: React.FC<ChatComponentProps> = ({
@@ -131,6 +132,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   updates,
   agentProcessing,
   showForm,
+  conversationId,
 }) => {
   const getFirstName = () => {
     try {
@@ -158,21 +160,17 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [processedUpdateIds] = useState<Set<string>>(new Set());
 
-  // Initialize connection with server
-  // useEffect(() => {
-  //   const initializeServer = async () => {
-  //     try {
-  //       const response = await axios.get(`${API_BASE_URL}/`);
-  //       if (response.status !== 200) {
-  //         console.warn("Server initialization failed");
-  //       }
-  //     } catch (error) {
-  //       console.error("Failed to connect to server:", error);
-  //     }
-  //   };
-
-  //   initializeServer();
-  // }, []); // Empty dependency array means this runs once on mount
+  useEffect(() => {
+    setMessages([
+      {
+        id: "1",
+        text: `Welcome ${getFirstName()}! I am Lily from Mamba. How can I help you today?`,
+        sender: "agent",
+        timestamp: new Date(),
+        type: "text",
+      },
+    ]);
+  }, [conversationId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -242,15 +240,26 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/send_message`, {
-        message: inputMessage,
-      });
+      const response = await axiosInstance.post(
+        `${API_BASE_URL}/chat/${conversationId}`,
+        { message: inputMessage }
+      );
 
       if (response.status !== 200) {
         throw new Error("Failed to send message");
       }
 
       const data = response.data;
+      if (data && data.response) {
+        const agentMessage: Message = {
+          id: Date.now().toString() + "-agent",
+          text: data.response,
+          sender: "agent",
+          timestamp: new Date(),
+          type: "text",
+        };
+        setMessages((prev) => [...prev, agentMessage]);
+      }
       setIsLoading(false);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -262,6 +271,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         type: "text",
       };
       setMessages((prev) => [...prev, errorMessage]);
+      setIsLoading(false);
     }
   };
 
@@ -269,7 +279,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         `${API_BASE_URL}/submit_data`,
         formData
       );
