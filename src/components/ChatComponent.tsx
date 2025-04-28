@@ -17,6 +17,7 @@ import {
 import axiosInstance from "../utils/axios";
 import SendIcon from "@mui/icons-material/Send";
 import { API_BASE_URL } from "../utils/axios";
+import MessageLoading from "./TypingIndicator";
 
 const ChatContainer = styled(Paper)(({ theme }) => ({
   width: "100%",
@@ -520,31 +521,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
               </MessageWrapper>
             ))
           )}
-          {(isLoading || agentProcessing) && (
-            <Typography
-              variant="caption"
-              sx={{
-                alignSelf: "center",
-                color: "text.secondary",
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              <Box
-                component="span"
-                sx={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  backgroundColor: "primary.main",
-                  display: "inline-block",
-                  animation: "pulse 1.5s infinite ease-in-out",
-                }}
-              />
-              {agentProcessing ? "Agent is thinking..." : "Processing..."}
-            </Typography>
-          )}
+          {(isLoading || agentProcessing) && <MessageLoading />}
           <div ref={messagesEndRef} />
         </MessageList>
 
