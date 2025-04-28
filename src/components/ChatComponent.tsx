@@ -452,6 +452,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             // Only show skeleton if we're loading messages
             // The parent component (ChatPage) now controls when to skip loading
             <>
+              {/* First message - Agent */}
               <MessageWrapper isUser={false}>
                 <Avatar
                   src="/agent.png"
@@ -465,11 +466,15 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                   <Skeleton variant="text" width={250} height={20} />
                 </MessageItem>
               </MessageWrapper>
+
+              {/* Second message - User */}
               <MessageWrapper isUser={true}>
                 <MessageItem isUser={true}>
                   <Skeleton variant="text" width={200} height={20} />
                 </MessageItem>
               </MessageWrapper>
+
+              {/* Third message - Agent */}
               <MessageWrapper isUser={false}>
                 <Avatar
                   src="/agent.png"
@@ -482,6 +487,56 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                 <MessageItem isUser={false}>
                   <Skeleton variant="text" width={300} height={20} />
                   <Skeleton variant="text" width={270} height={20} />
+                </MessageItem>
+              </MessageWrapper>
+
+              {/* Fourth message - User */}
+              <MessageWrapper isUser={true}>
+                <MessageItem isUser={true}>
+                  <Skeleton variant="text" width={180} height={20} />
+                  <Skeleton variant="text" width={150} height={20} />
+                </MessageItem>
+              </MessageWrapper>
+
+              {/* Fifth message - Agent */}
+              <MessageWrapper isUser={false}>
+                <Avatar
+                  src="/agent.png"
+                  sx={{
+                    width: 34,
+                    height: 34,
+                    mt: 1.3,
+                  }}
+                />
+                <MessageItem isUser={false}>
+                  <Skeleton variant="text" width={280} height={20} />
+                  <Skeleton variant="text" width={260} height={20} />
+                  <Skeleton variant="text" width={220} height={20} />
+                </MessageItem>
+              </MessageWrapper>
+
+              {/* Sixth message - User */}
+              <MessageWrapper isUser={true}>
+                <MessageItem isUser={true}>
+                  <Skeleton variant="text" width={170} height={20} />
+                </MessageItem>
+              </MessageWrapper>
+
+              {/* Seventh message - Agent (additional) */}
+              <MessageWrapper isUser={false}>
+                <Avatar
+                  src="/agent.png"
+                  sx={{
+                    width: 34,
+                    height: 34,
+                    mt: 1.3,
+                  }}
+                />
+                <MessageItem isUser={false}>
+                  <Skeleton variant="text" width={240} height={20} />
+                  <Skeleton variant="text" width={320} height={20} />
+                  <Skeleton variant="text" width={200} height={20} />
+                  <Skeleton variant="text" width={180} height={20} />
                 </MessageItem>
               </MessageWrapper>
             </>

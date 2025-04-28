@@ -65,7 +65,14 @@ const TypingIndicator: React.FC = () => {
             maxWidth: 80,
           }}
         >
-          <Box sx={{ display: "flex", justifyContent: "center", gap: 0.7, height:15 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 0.7,
+              height: 15,
+            }}
+          >
             <Box
               component="span"
               sx={{
@@ -90,7 +97,6 @@ const TypingIndicator: React.FC = () => {
                 animation: "bounce 1.4s infinite ease-in-out both",
                 animationDelay: "0.2s",
                 mt: 0.65,
-
               }}
             />
             <Box
