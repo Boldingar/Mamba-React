@@ -11,6 +11,7 @@ export {
   Button,
   MenuItem,
   Slider,
+  Skeleton,
 } from "@mui/material";
 
 export { Send as SendIcon } from "@mui/icons-material";

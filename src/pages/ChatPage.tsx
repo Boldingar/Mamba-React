@@ -203,8 +203,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
 
   const fetchMessages = async (convId: string) => {
     setIsLoading(true);
+    setIsAwaitingResponse(true);
+    console.log(`Fetching messages for conversation: ${convId}`);
+
     try {
-      console.log(`Fetching messages for conversation: ${convId}`);
       const response = await axiosInstance.get(
         `${API_BASE_URL}/messages/${convId}?limit=0&offset=0&order=asc`
       );
@@ -222,8 +224,20 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
 
         console.log("Formatted messages:", formattedMessages);
 
+        // Create a welcome message to add at the beginning
+        const welcomeMessage: Message = {
+          id: "welcome",
+          text: `Welcome! I am Lily from Mamba. How can I help you today?`,
+          sender: "agent",
+          timestamp: new Date(0), // Set to oldest timestamp so it appears first
+          type: "text",
+        };
+
+        // Add welcome message to the beginning of the conversation
         if (formattedMessages.length > 0) {
-          setMessages(formattedMessages);
+          setMessages([welcomeMessage, ...formattedMessages]);
+        } else {
+          setMessages([welcomeMessage]);
         }
       }
     } catch (error) {
@@ -231,32 +245,18 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
       setError("Failed to load conversation messages");
     } finally {
       setIsLoading(false);
+      setIsAwaitingResponse(false);
     }
   };
 
   const handleNewChat = async () => {
-    setIsAwaitingResponse(true);
-
-    // Get user's first name for welcome message
-    const getFirstName = () => {
-      try {
-        const stored =
-          localStorage.getItem("userData") ||
-          sessionStorage.getItem("userData");
-        if (stored) {
-          const user = JSON.parse(stored);
-          return user.first_name || "there";
-        }
-      } catch (error) {
-        console.error("Error getting user data:", error);
-      }
-      return "there";
-    };
+    // Don't set isAwaitingResponse to true yet, only when a message is sent
+    // setIsAwaitingResponse(true);
 
     // Set a welcome message for new chat
     const welcomeMsg: Message = {
       id: "welcome",
-      text: `Welcome ${getFirstName()}! I am Lily from Mamba. How can I help you today?`,
+      text: `Welcome! I am Lily from Mamba. How can I help you today?`,
       sender: "agent",
       timestamp: new Date(),
       type: "text",
@@ -269,7 +269,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   };
 
   const handleSelectChat = (id: string) => {
-    setConversationId(id);
+    // Only change if it's a different conversation
+    if (id !== conversationId) {
+      // We will set isAwaitingResponse to true in the fetchMessages function
+      // when we actually start loading messages
+      setConversationId(id);
+    }
   };
 
   // Add a new conversation to the recent chats list and select it
@@ -308,6 +313,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
 
   const handleDatasetSelect = (datasetId: string) => {
     setSelectedDatasetId(datasetId);
+  };
+
+  // Add a function to update messages state
+  const updateMessages = (newMessages: Message[]) => {
+    setMessages(newMessages);
   };
 
   return (
@@ -350,6 +360,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           recentChats={recentChats}
           onSelectChat={handleSelectChat}
           isAwaitingResponse={isAwaitingResponse}
+          selectedConversationId={conversationId}
         />
         <Box
           sx={{
@@ -371,6 +382,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
             onNewConversation={addNewConversation}
             setIsAwaitingResponse={setIsAwaitingResponse}
             messages={messages}
+            isLoadingMessages={isLoading}
+            updateMessages={updateMessages}
           />
         </Box>
         {error && (

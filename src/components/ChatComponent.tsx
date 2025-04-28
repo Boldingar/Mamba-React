@@ -5,7 +5,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import BusinessInfoForm from "./BusinessInfoForm";
-import { Box, Paper, TextField, Typography, Avatar, Button } from "./ui";
+import {
+  Box,
+  Paper,
+  TextField,
+  Typography,
+  Avatar,
+  Button,
+  Skeleton,
+} from "./ui";
 import axiosInstance from "../utils/axios";
 import SendIcon from "@mui/icons-material/Send";
 import { API_BASE_URL } from "../utils/axios";
@@ -128,6 +136,8 @@ interface ChatComponentProps {
   onNewConversation?: (id: string, name: string) => void;
   setIsAwaitingResponse?: (isAwaiting: boolean) => void;
   messages?: Message[];
+  isLoadingMessages?: boolean;
+  updateMessages?: (messages: Message[]) => void;
 }
 
 const ChatComponent: React.FC<ChatComponentProps> = ({
@@ -139,6 +149,8 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   onNewConversation,
   setIsAwaitingResponse,
   messages: parentMessages,
+  isLoadingMessages = false,
+  updateMessages,
 }) => {
   const getFirstName = () => {
     try {
@@ -167,17 +179,10 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       console.log("Setting messages from parent");
       setMessages(parentMessages);
     } else if (conversationId === "") {
-      // Reset to welcome message only for new chats
-      console.log("Setting default welcome message");
-      setMessages([
-        {
-          id: "1",
-          text: `Welcome ${getFirstName()}! I am Lily from Mamba. How can I help you today?`,
-          sender: "agent",
-          timestamp: new Date(),
-          type: "text",
-        },
-      ]);
+      // Reset to empty array for new chats
+      // (welcome message will be added by the parent component)
+      console.log("Setting empty message array for new chat");
+      setMessages([]);
     }
   }, [parentMessages, conversationId, getFirstName]);
 
@@ -244,9 +249,22 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       type: "text",
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    // Update local messages state
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
+
+    // Update parent component's messages state if callback exists
+    if (updateMessages) {
+      updateMessages(updatedMessages);
+    }
+
     setInputMessage("");
     setIsLoading(true);
+
+    // Explicitly set isAwaitingResponse to true when sending a message
+    if (setIsAwaitingResponse) {
+      setIsAwaitingResponse(true);
+    }
 
     try {
       let endpoint;
@@ -280,27 +298,38 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       }
 
       if (data) {
+        let agentMessage: Message | null = null;
+
         // Handle regular response format
         if (data.response) {
-          const agentMessage: Message = {
+          agentMessage = {
             id: Date.now().toString() + "-agent",
             text: data.response,
             sender: "agent",
             timestamp: new Date(),
             type: "text",
           };
-          setMessages((prev) => [...prev, agentMessage]);
         }
         // Handle is_from_agency format
         else if (data.content || data.is_from_agency !== undefined) {
-          const agentMessage: Message = {
+          agentMessage = {
             id: Date.now().toString() + "-agent",
             text: data.content || "",
             sender: data.is_from_agency ? "agent" : "user",
             timestamp: new Date(),
             type: "text",
           };
-          setMessages((prev) => [...prev, agentMessage]);
+        }
+
+        if (agentMessage) {
+          // Update local messages with agent's response
+          const messagesWithResponse = [...updatedMessages, agentMessage];
+          setMessages(messagesWithResponse);
+
+          // Update parent component's messages
+          if (updateMessages) {
+            updateMessages(messagesWithResponse);
+          }
         }
       }
 
@@ -317,7 +346,16 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         timestamp: new Date(),
         type: "text",
       };
-      setMessages((prev) => [...prev, errorMessage]);
+
+      // Update local messages with error
+      const messagesWithError = [...updatedMessages, errorMessage];
+      setMessages(messagesWithError);
+
+      // Update parent component's messages
+      if (updateMessages) {
+        updateMessages(messagesWithError);
+      }
+
       setIsLoading(false);
       if (setIsAwaitingResponse) {
         setIsAwaitingResponse(false);
@@ -408,9 +446,10 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     >
       <ChatContainer elevation={3}>
         <MessageList>
-          {messages.map((message) => (
-            <MessageWrapper key={message.id} isUser={message.sender === "user"}>
-              {message.sender !== "user" && (
+          {isLoadingMessages ? (
+            // Skeleton loading animation
+            <>
+              <MessageWrapper isUser={false}>
                 <Avatar
                   src="/agent.png"
                   sx={{
@@ -419,25 +458,66 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                     mt: 1.3,
                   }}
                 />
-              )}
-              <MessageItem
+                <MessageItem isUser={false}>
+                  <Skeleton variant="text" width={250} height={20} />
+                </MessageItem>
+              </MessageWrapper>
+              <MessageWrapper isUser={true}>
+                <MessageItem isUser={true}>
+                  <Skeleton variant="text" width={200} height={20} />
+                </MessageItem>
+              </MessageWrapper>
+              <MessageWrapper isUser={false}>
+                <Avatar
+                  src="/agent.png"
+                  sx={{
+                    width: 34,
+                    height: 34,
+                    mt: 1.3,
+                  }}
+                />
+                <MessageItem isUser={false}>
+                  <Skeleton variant="text" width={300} height={20} />
+                  <Skeleton variant="text" width={270} height={20} />
+                </MessageItem>
+              </MessageWrapper>
+            </>
+          ) : (
+            // Regular message display
+            messages.map((message) => (
+              <MessageWrapper
+                key={message.id}
                 isUser={message.sender === "user"}
-                className={message.type === "form" ? "form" : ""}
               >
-                {message.type === "form" ? (
-                  <BusinessInfoForm
-                    onSubmit={handleFormSubmit}
-                    onClose={() => {}}
-                    onFileClick={() => {}}
+                {message.sender !== "user" && (
+                  <Avatar
+                    src="/agent.png"
+                    sx={{
+                      width: 34,
+                      height: 34,
+                      mt: 1.3,
+                    }}
                   />
-                ) : (
-                  <Typography sx={{ fontSize: "17px" }}>
-                    {message.text}
-                  </Typography>
                 )}
-              </MessageItem>
-            </MessageWrapper>
-          ))}
+                <MessageItem
+                  isUser={message.sender === "user"}
+                  className={message.type === "form" ? "form" : ""}
+                >
+                  {message.type === "form" ? (
+                    <BusinessInfoForm
+                      onSubmit={handleFormSubmit}
+                      onClose={() => {}}
+                      onFileClick={() => {}}
+                    />
+                  ) : (
+                    <Typography sx={{ fontSize: "17px" }}>
+                      {message.text}
+                    </Typography>
+                  )}
+                </MessageItem>
+              </MessageWrapper>
+            ))
+          )}
           {(isLoading || agentProcessing) && (
             <Typography
               variant="caption"

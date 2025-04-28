@@ -39,6 +39,7 @@ interface UserPanelProps {
   recentChats?: { id: string; title: string }[];
   onSelectChat?: (id: string) => void;
   isAwaitingResponse?: boolean;
+  selectedConversationId?: string | null;
 }
 
 const UserPanel: React.FC<UserPanelProps> = ({
@@ -48,6 +49,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
   recentChats = [],
   onSelectChat,
   isAwaitingResponse = false,
+  selectedConversationId,
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -103,7 +105,10 @@ const UserPanel: React.FC<UserPanelProps> = ({
             <ListItemButton
               sx={{ borderRadius: 2 }}
               onClick={onNewChat}
-              disabled={isAwaitingResponse}
+              disabled={
+                (isAwaitingResponse && selectedConversationId !== "") ||
+                selectedConversationId === ""
+              }
             >
               <ListItemIcon>
                 <AddIcon />
@@ -123,28 +128,60 @@ const UserPanel: React.FC<UserPanelProps> = ({
         >
           Recent Chats
         </Typography>
-        <List sx={{ width: "100%" }}>
+        <List sx={{ width: "100%", overflow: "auto", maxHeight: "50vh" }}>
           {/* Recent Chats */}
-          {recentChats.map((chat) => (
-            <ListItem
-              key={chat.id}
-              disablePadding
-              sx={{ borderRadius: 2, mb: 0.5 }}
-            >
-              <ListItemButton
-                sx={{ borderRadius: 2 }}
-                onClick={() => onSelectChat && onSelectChat(chat.id)}
+          {recentChats.map((chat) => {
+            const isSelected = chat.id === selectedConversationId;
+
+            return (
+              <ListItem
+                key={chat.id}
+                disablePadding
+                sx={{ borderRadius: 2, mb: 0.5 }}
               >
-                <ListItemIcon>
-                  <ChatIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText
-                  primary={chat.title || `Chat ${chat.id}`}
-                  primaryTypographyProps={{ fontSize: 15 }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
+                <ListItemButton
+                  sx={{
+                    borderRadius: 2,
+                    bgcolor: isSelected
+                      ? "rgba(0, 120, 255, 0.1)"
+                      : "transparent",
+                    borderLeft: isSelected
+                      ? `3px solid ${theme.palette.primary.main}`
+                      : "none",
+                    paddingLeft: isSelected ? 1.7 : 2,
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      bgcolor: isSelected
+                        ? "rgba(0, 120, 255, 0.15)"
+                        : "rgba(255, 255, 255, 0.05)",
+                    },
+                    "&.Mui-disabled": {
+                      opacity: 0.5,
+                    },
+                  }}
+                  onClick={() => onSelectChat && onSelectChat(chat.id)}
+                  disabled={isAwaitingResponse && selectedConversationId !== ""}
+                >
+                  <ListItemIcon>
+                    <ChatIcon
+                      fontSize="small"
+                      color={isSelected ? "primary" : "inherit"}
+                    />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={chat.title || `Chat ${chat.id}`}
+                    primaryTypographyProps={{
+                      fontSize: 15,
+                      fontWeight: isSelected ? 600 : 400,
+                      color: isSelected
+                        ? theme.palette.primary.main
+                        : "inherit",
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
         </List>
         <Box sx={{ flexGrow: 1 }} />
         <Divider sx={{ my: 2, width: "100%", borderColor: "#292929" }} />
