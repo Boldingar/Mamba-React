@@ -134,8 +134,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
                 <AddIcon />
               </ListItemIcon>
               <ListItemText
-                primary="New Chat"
-                primaryTypographyProps={{ fontWeight: 600 }}
+                primary={<span style={{ fontWeight: 600 }}>New Chat</span>}
               />
             </ListItemButton>
           </ListItem>
@@ -200,14 +199,19 @@ const UserPanel: React.FC<UserPanelProps> = ({
                         />
                       </ListItemIcon>
                       <ListItemText
-                        primary={chat.title || `Chat ${chat.id}`}
-                        primaryTypographyProps={{
-                          fontSize: 15,
-                          fontWeight: isSelected ? 600 : 400,
-                          color: isSelected
-                            ? theme.palette.primary.main
-                            : "inherit",
-                        }}
+                        primary={
+                          <span
+                            style={{
+                              fontSize: 15,
+                              fontWeight: isSelected ? 600 : 400,
+                              color: isSelected
+                                ? theme.palette.primary.main
+                                : "inherit",
+                            }}
+                          >
+                            {chat.title || `Chat ${chat.id}`}
+                          </span>
+                        }
                       />
                     </ListItemButton>
                   </ListItem>
@@ -226,8 +230,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
                 <PersonIcon />
               </ListItemIcon>
               <ListItemText
-                primary="Profile"
-                primaryTypographyProps={{ fontWeight: 600 }}
+                primary={<span style={{ fontWeight: 600 }}>Profile</span>}
               />
             </ListItemButton>
           </ListItem>
@@ -235,11 +238,16 @@ const UserPanel: React.FC<UserPanelProps> = ({
           <ListItem disablePadding sx={{ borderRadius: 2 }}>
             <ListItemButton sx={{ borderRadius: 2 }} onClick={handleLogout}>
               <ListItemIcon>
-                <LogoutIcon />
+                <LogoutIcon sx={{ color: theme.palette.error.main }} />
               </ListItemIcon>
               <ListItemText
-                primary="Logout"
-                primaryTypographyProps={{ fontWeight: 600 }}
+                primary={
+                  <span
+                    style={{ fontWeight: 600, color: theme.palette.error.main }}
+                  >
+                    Logout
+                  </span>
+                }
               />
             </ListItemButton>
           </ListItem>
