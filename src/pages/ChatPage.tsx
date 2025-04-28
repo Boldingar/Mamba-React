@@ -134,6 +134,25 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [recentChats, setRecentChats] = useState<RecentChat[]>([]);
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
 
+  const handleNewChat = () => {
+    // Set a welcome message for new chat
+    const welcomeMsg: Message = {
+      id: "welcome",
+      text: `Welcome! I am Lily from Mamba. How can I help you today?`,
+      sender: "agent",
+      timestamp: new Date(),
+      type: "text",
+    };
+
+    setMessages([welcomeMsg]);
+
+    // Mark that we're in a new chat
+    localStorage.setItem("lastConversationWasNew", "true");
+
+    // We'll set the conversationId to empty string to indicate a new chat
+    setConversationId("");
+  };
+
   const fetchTableData = useCallback(async (tableId: string) => {
     try {
       const response = await axiosInstance.get(
@@ -184,13 +203,15 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           title: conv.name,
         }));
         setRecentChats(formattedChats);
-        // Select the first conversation if available
-        if (conversations.length > 0) {
-          setConversationId(conversations[0].id);
-        }
+
+        // Always start with a new chat instead of selecting the first conversation
+        handleNewChat();
       } catch (error) {
         console.error("Error parsing stored conversations:", error);
       }
+    } else {
+      // If there are no conversations, start with a new chat
+      handleNewChat();
     }
   }, []);
 
@@ -270,28 +291,6 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
       setIsLoading(false);
       setIsAwaitingResponse(false);
     }
-  };
-
-  const handleNewChat = async () => {
-    // Don't set isAwaitingResponse to true yet, only when a message is sent
-    // setIsAwaitingResponse(true);
-
-    // Set a welcome message for new chat
-    const welcomeMsg: Message = {
-      id: "welcome",
-      text: `Welcome! I am Lily from Mamba. How can I help you today?`,
-      sender: "agent",
-      timestamp: new Date(),
-      type: "text",
-    };
-
-    setMessages([welcomeMsg]);
-
-    // Mark that we're in a new chat
-    localStorage.setItem("lastConversationWasNew", "true");
-
-    // We'll set the conversationId to empty string to indicate a new chat
-    setConversationId("");
   };
 
   const handleSelectChat = (id: string) => {

@@ -140,69 +140,82 @@ const UserPanel: React.FC<UserPanelProps> = ({
             </ListItemButton>
           </ListItem>
         </List>
-        {/* Recent Chats Section Header */}
-        <Typography
-          variant="subtitle2"
-          color="text.secondary"
-          sx={{ mb: 1, mt: 2, fontWeight: 700, letterSpacing: 1 }}
-        >
-          Recent Chats
-        </Typography>
-        <List sx={{ width: "100%", overflow: "auto", maxHeight: "64vh" }}>
-          {/* Recent Chats */}
-          {recentChats.map((chat) => {
-            const isSelected = chat.id === selectedConversationId;
+        {/* Recent Chats Section Header and List */}
+        {recentChats.length > 0 && (
+          <>
+            <Typography
+              variant="subtitle2"
+              color="text.secondary"
+              sx={{ mb: 1, mt: 2, fontWeight: 700, letterSpacing: 1 }}
+            >
+              Recent Chats
+            </Typography>
+            <List
+              sx={{
+                width: "100%",
+                overflow: "auto",
+                maxHeight: "64vh",
+                ...chatScrollbarStyle,
+              }}
+            >
+              {/* Recent Chats */}
+              {recentChats.map((chat) => {
+                const isSelected = chat.id === selectedConversationId;
 
-            return (
-              <ListItem
-                key={chat.id}
-                disablePadding
-                sx={{ borderRadius: 2, mb: 0.5 }}
-              >
-                <ListItemButton
-                  sx={{
-                    borderRadius: 2,
-                    bgcolor: isSelected
-                      ? "rgba(0, 120, 255, 0.1)"
-                      : "transparent",
-                    borderLeft: isSelected
-                      ? `3px solid ${theme.palette.primary.main}`
-                      : "none",
-                    paddingLeft: isSelected ? 1.7 : 2,
-                    transition: "all 0.2s ease",
-                    "&:hover": {
-                      bgcolor: isSelected
-                        ? "rgba(0, 120, 255, 0.15)"
-                        : "rgba(255, 255, 255, 0.05)",
-                    },
-                    "&.Mui-disabled": {
-                      opacity: 0.5,
-                    },
-                  }}
-                  onClick={() => onSelectChat && onSelectChat(chat.id)}
-                  disabled={isAwaitingResponse && selectedConversationId !== ""}
-                >
-                  <ListItemIcon>
-                    <ChatIcon
-                      fontSize="small"
-                      color={isSelected ? "primary" : "inherit"}
-                    />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={chat.title || `Chat ${chat.id}`}
-                    primaryTypographyProps={{
-                      fontSize: 15,
-                      fontWeight: isSelected ? 600 : 400,
-                      color: isSelected
-                        ? theme.palette.primary.main
-                        : "inherit",
-                    }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            );
-          })}
-        </List>
+                return (
+                  <ListItem
+                    key={chat.id}
+                    disablePadding
+                    sx={{ borderRadius: 2, mb: 0.5 }}
+                  >
+                    <ListItemButton
+                      sx={{
+                        borderRadius: 2,
+                        bgcolor: isSelected
+                          ? "rgba(0, 120, 255, 0.1)"
+                          : "transparent",
+                        borderLeft: isSelected
+                          ? `3px solid ${theme.palette.primary.main}`
+                          : "none",
+                        paddingLeft: isSelected ? 1.7 : 2,
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          bgcolor: isSelected
+                            ? "rgba(0, 120, 255, 0.15)"
+                            : "rgba(255, 255, 255, 0.05)",
+                        },
+                        "&.Mui-disabled": {
+                          opacity: 0.5,
+                        },
+                      }}
+                      onClick={() => onSelectChat && onSelectChat(chat.id)}
+                      disabled={
+                        isAwaitingResponse && selectedConversationId !== ""
+                      }
+                    >
+                      <ListItemIcon>
+                        <ChatIcon
+                          fontSize="small"
+                          color={isSelected ? "primary" : "inherit"}
+                        />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={chat.title || `Chat ${chat.id}`}
+                        primaryTypographyProps={{
+                          fontSize: 15,
+                          fontWeight: isSelected ? 600 : 400,
+                          color: isSelected
+                            ? theme.palette.primary.main
+                            : "inherit",
+                        }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </List>
+          </>
+        )}
         <Box sx={{ flexGrow: 1 }} />
         <Divider sx={{ my: 2, width: "100%", borderColor: "#292929" }} />
         {/* Profile Button */}
