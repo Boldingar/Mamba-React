@@ -102,7 +102,7 @@ const TypingIndicator: React.FC = () => {
             <Box
               component="span"
               sx={{
-                width: 7,
+                width: 8,
                 height: 8,
                 borderRadius: "50%",
                 backgroundColor: "text.secondary",
