@@ -124,7 +124,10 @@ interface ChatComponentProps {
   updates: Update[];
   agentProcessing: boolean;
   showForm: boolean;
-  conversationId: string;
+  conversationId: string | null;
+  onNewConversation?: (id: string, name: string) => void;
+  setIsAwaitingResponse?: (isAwaiting: boolean) => void;
+  messages?: Message[];
 }
 
 const ChatComponent: React.FC<ChatComponentProps> = ({
@@ -133,6 +136,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   agentProcessing,
   showForm,
   conversationId,
+  onNewConversation,
+  setIsAwaitingResponse,
+  messages: parentMessages,
 }) => {
   const getFirstName = () => {
     try {
@@ -146,31 +152,34 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     return "there";
   };
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: `Welcome ${getFirstName()}! I am Lily from Mamba. How can I help you today?`,
-      sender: "agent",
-      timestamp: new Date(),
-      type: "text",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [processedUpdateIds] = useState<Set<string>>(new Set());
 
+  // Update messages when they're passed from parent component
   useEffect(() => {
-    setMessages([
-      {
-        id: "1",
-        text: `Welcome ${getFirstName()}! I am Lily from Mamba. How can I help you today?`,
-        sender: "agent",
-        timestamp: new Date(),
-        type: "text",
-      },
-    ]);
-  }, [conversationId]);
+    console.log("Parent messages received:", parentMessages);
+    console.log("Current conversation ID:", conversationId);
+
+    if (parentMessages && parentMessages.length > 0) {
+      console.log("Setting messages from parent");
+      setMessages(parentMessages);
+    } else if (conversationId === "") {
+      // Reset to welcome message only for new chats
+      console.log("Setting default welcome message");
+      setMessages([
+        {
+          id: "1",
+          text: `Welcome ${getFirstName()}! I am Lily from Mamba. How can I help you today?`,
+          sender: "agent",
+          timestamp: new Date(),
+          type: "text",
+        },
+      ]);
+    }
+  }, [parentMessages, conversationId, getFirstName]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -240,27 +249,65 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     setIsLoading(true);
 
     try {
-      const response = await axiosInstance.post(
-        `${API_BASE_URL}/chat/${conversationId}`,
-        { message: inputMessage }
-      );
+      let endpoint;
+      let data;
+
+      // If conversationId is empty/null, it's a new chat
+      if (!conversationId) {
+        endpoint = `${API_BASE_URL}/chat`;
+      } else {
+        endpoint = `${API_BASE_URL}/chat/${conversationId}`;
+      }
+
+      const response = await axiosInstance.post(endpoint, {
+        message: inputMessage,
+      });
 
       if (response.status !== 200) {
         throw new Error("Failed to send message");
       }
 
-      const data = response.data;
-      if (data && data.response) {
-        const agentMessage: Message = {
-          id: Date.now().toString() + "-agent",
-          text: data.response,
-          sender: "agent",
-          timestamp: new Date(),
-          type: "text",
-        };
-        setMessages((prev) => [...prev, agentMessage]);
+      data = response.data;
+
+      // For new chats, capture the conversation ID from the response
+      if (!conversationId && data && data.conversation_id) {
+        if (onNewConversation) {
+          onNewConversation(
+            data.conversation_id,
+            data.conversation_name || "New Chat"
+          );
+        }
       }
+
+      if (data) {
+        // Handle regular response format
+        if (data.response) {
+          const agentMessage: Message = {
+            id: Date.now().toString() + "-agent",
+            text: data.response,
+            sender: "agent",
+            timestamp: new Date(),
+            type: "text",
+          };
+          setMessages((prev) => [...prev, agentMessage]);
+        }
+        // Handle is_from_agency format
+        else if (data.content || data.is_from_agency !== undefined) {
+          const agentMessage: Message = {
+            id: Date.now().toString() + "-agent",
+            text: data.content || "",
+            sender: data.is_from_agency ? "agent" : "user",
+            timestamp: new Date(),
+            type: "text",
+          };
+          setMessages((prev) => [...prev, agentMessage]);
+        }
+      }
+
       setIsLoading(false);
+      if (setIsAwaitingResponse) {
+        setIsAwaitingResponse(false);
+      }
     } catch (error) {
       console.error("Error sending message:", error);
       const errorMessage: Message = {
@@ -272,6 +319,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       };
       setMessages((prev) => [...prev, errorMessage]);
       setIsLoading(false);
+      if (setIsAwaitingResponse) {
+        setIsAwaitingResponse(false);
+      }
     }
   };
 
@@ -342,6 +392,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       handleSendMessage(e as any);
     }
   };
+
+  // Debug message rendering
+  console.log("About to render messages:", messages);
 
   return (
     <Box

@@ -7,10 +7,10 @@ import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import DescriptionIcon from "@mui/icons-material/Description";
 import TableChartIcon from "@mui/icons-material/TableChart";
-import axios from "axios";
 import TopAppBar from "../components/TopAppBar";
 import { API_BASE_URL } from "../utils/axios";
 import UserProfile from "../components/UserProfile";
+import axiosInstance from "../utils/axios";
 
 interface Data {
   [key: string]: string | number;
@@ -58,8 +58,9 @@ interface APIResponse {
 interface Message {
   id: string;
   text: string;
-  sender: "user" | "agent";
-  type?: "text" | "form" | "form_submitted" | "csv_data";
+  sender: "user" | "agent" | "system";
+  timestamp: Date;
+  type: "text" | "form" | "form_submitted" | "csv_data";
   csvData?: CSVData;
 }
 
@@ -80,7 +81,17 @@ interface Dataset {
 }
 
 interface ChatPageProps {
-  setIsAuthenticated?: (auth: boolean) => void;
+  setIsAuthenticated: (auth: boolean) => void;
+}
+
+interface ConversationData {
+  id: string;
+  name: string;
+}
+
+interface RecentChat {
+  id: string;
+  title: string;
 }
 
 const ScrollbarStyle = {
@@ -119,15 +130,13 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [updates, setUpdates] = useState<Update[]>([]);
   const [agentProcessing, setAgentProcessing] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [conversationId, setConversationId] = useState("1");
-  const [recentChats, setRecentChats] = useState<
-    { id: string; title: string }[]
-  >([]);
+  const [conversationId, setConversationId] = useState<string | null>("");
+  const [recentChats, setRecentChats] = useState<RecentChat[]>([]);
+  const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
 
-  // Function to fetch table data
   const fetchTableData = useCallback(async (tableId: string) => {
     try {
-      const response = await axios.get(
+      const response = await axiosInstance.get(
         `${API_BASE_URL}/get_table_data?table_id=${tableId}`,
         {
           headers: { "Content-Type": "application/json" },
@@ -160,99 +169,136 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     }
   }, []);
 
-  // Start polling when component mounts
+  // Load conversations from storage when component mounts
   useEffect(() => {
-    let isPolling = true;
-    let retryCount = 0;
-    const maxRetries = 3;
-    let pollInterval = 3000; // Start with 3 seconds
+    const storedConversations =
+      localStorage.getItem("conversations") ||
+      sessionStorage.getItem("conversations");
+    if (storedConversations) {
+      try {
+        const conversations: ConversationData[] =
+          JSON.parse(storedConversations);
+        // Convert ConversationData to RecentChat format
+        const formattedChats: RecentChat[] = conversations.map((conv) => ({
+          id: conv.id,
+          title: conv.name,
+        }));
+        setRecentChats(formattedChats);
+        // Select the first conversation if available
+        if (conversations.length > 0) {
+          setConversationId(conversations[0].id);
+        }
+      } catch (error) {
+        console.error("Error parsing stored conversations:", error);
+      }
+    }
+  }, []);
 
-    // const pollForUpdates = async () => {
-    //   if (!isPolling) return;
+  // Fetch messages for the selected conversation
+  useEffect(() => {
+    if (conversationId) {
+      fetchMessages(conversationId);
+    }
+  }, [conversationId]);
 
-    //   try {
-    //     const response = await axios.get(`${API_BASE_URL}/get_updates`, {
-    //       headers: { "Content-Type": "application/json" },
-    //     });
+  const fetchMessages = async (convId: string) => {
+    setIsLoading(true);
+    try {
+      console.log(`Fetching messages for conversation: ${convId}`);
+      const response = await axiosInstance.get(
+        `${API_BASE_URL}/messages/${convId}?limit=0&offset=0&order=asc`
+      );
 
-    //     if (response.status !== 200) throw new Error("Failed to fetch updates");
-    //     const data: APIResponse = response.data;
+      if (response.status === 200 && response.data.messages) {
+        console.log("Messages received:", response.data.messages);
+        // Transform backend message format to our app's message format
+        const formattedMessages = response.data.messages.map((msg: any) => ({
+          id: msg.id,
+          text: msg.content,
+          sender: msg.is_from_agency ? "agent" : "user",
+          timestamp: new Date(msg.timestamp),
+          type: "text",
+        }));
 
-    //     // Reset retry count and interval on successful request
-    //     retryCount = 0;
-    //     pollInterval = 3000;
+        console.log("Formatted messages:", formattedMessages);
 
-    //     // Update agent processing state
-    //     setAgentProcessing(data.agent_processing || false);
+        if (formattedMessages.length > 0) {
+          setMessages(formattedMessages);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      setError("Failed to load conversation messages");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    //     // Update form visibility
-    //     setShowForm(data.show_form || false);
+  const handleNewChat = async () => {
+    setIsAwaitingResponse(true);
 
-    //     // Process updates
-    //     if (data.updates && data.updates.length > 0) {
-    //       setUpdates(data.updates);
-    //     }
-    //   } catch (error) {
-    //     console.error("Error polling for updates:", error);
-    //     retryCount++;
-
-    //     // If we've failed maxRetries times, stop polling
-    //     if (retryCount >= maxRetries) {
-    //       console.log("Max retries reached, stopping polling");
-    //       isPolling = false;
-    //       return;
-    //     }
-
-    //     // Exponential backoff: double the interval each time
-    //     pollInterval = Math.min(pollInterval * 2, 30000); // Max 30 seconds
-    //   }
-
-    //   // Schedule next poll
-    //   if (isPolling) {
-    //     setTimeout(pollForUpdates, pollInterval);
-    //   }
-    // };
-
-    // // Initial poll
-    // pollForUpdates();
-
-    // Cleanup on unmount
-    return () => {
-      isPolling = false;
+    // Get user's first name for welcome message
+    const getFirstName = () => {
+      try {
+        const stored =
+          localStorage.getItem("userData") ||
+          sessionStorage.getItem("userData");
+        if (stored) {
+          const user = JSON.parse(stored);
+          return user.first_name || "there";
+        }
+      } catch (error) {
+        console.error("Error getting user data:", error);
+      }
+      return "there";
     };
-  }, []);
 
-  useEffect(() => {
-    // Add two dummy CSV datasets on mount for testing
-    setDatasets([
-      {
-        id: "dummy1",
-        name: "Dummy Dataset",
-        displayName: "Dummy Dataset",
-        data: [
-          { Name: "Alice", Email: "alice@example.com", Age: 25 },
-          { Name: "Bob", Email: "bob@example.com", Age: 30 },
-          { Name: "Charlie", Email: "charlie@example.com", Age: 22 },
-        ],
-        timestamp: new Date(),
-      },
-      {
-        id: "dummy2",
-        name: "Sales Data",
-        displayName: "Sales Data",
-        data: [
-          { Product: "Widget", Region: "North", Sales: 120 },
-          { Product: "Gadget", Region: "South", Sales: 95 },
-          { Product: "Doohickey", Region: "East", Sales: 150 },
-        ],
-        timestamp: new Date(),
-      },
-    ]);
-    setSelectedDatasetId("dummy1");
-  }, []);
+    // Set a welcome message for new chat
+    const welcomeMsg: Message = {
+      id: "welcome",
+      text: `Welcome ${getFirstName()}! I am Lily from Mamba. How can I help you today?`,
+      sender: "agent",
+      timestamp: new Date(),
+      type: "text",
+    };
 
-  const handleDatasetSelect = (datasetId: string) => {
-    setSelectedDatasetId(datasetId);
+    setMessages([welcomeMsg]);
+
+    // We'll set the conversationId to empty string to indicate a new chat
+    setConversationId("");
+  };
+
+  const handleSelectChat = (id: string) => {
+    setConversationId(id);
+  };
+
+  // Add a new conversation to the recent chats list and select it
+  const addNewConversation = (id: string, name: string) => {
+    const newChat: RecentChat = { id, title: name };
+    // Update in-memory state
+    setRecentChats((prev) => [newChat, ...prev]);
+    setConversationId(id);
+
+    // Update storage
+    const storage = localStorage.getItem("authToken")
+      ? localStorage
+      : sessionStorage;
+    try {
+      const storedConversations = storage.getItem("conversations");
+      const conversations: ConversationData[] = storedConversations
+        ? JSON.parse(storedConversations)
+        : [];
+      const newConversation: ConversationData = { id, name };
+      storage.setItem(
+        "conversations",
+        JSON.stringify([newConversation, ...conversations])
+      );
+    } catch (error) {
+      console.error("Error updating stored conversations:", error);
+    }
+
+    // No longer waiting for a response
+    setIsAwaitingResponse(false);
   };
 
   const selectedDataset = datasets.find((ds) => ds.id === selectedDatasetId);
@@ -260,19 +306,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   // Handler to toggle the DataPanel
   const handleToggleCSVPanel = () => setShowDataPanel((open) => !open);
 
-  const handleNewChat = () => {
-    setRecentChats((prev) => [
-      ...prev,
-      { id: conversationId, title: `Conversation ${conversationId}` },
-    ]);
-    setConversationId((prev) => {
-      const nextId = (parseInt(prev, 10) + 1).toString();
-      return nextId;
-    });
-  };
-
-  const handleSelectChat = (id: string) => {
-    setConversationId(id);
+  const handleDatasetSelect = (datasetId: string) => {
+    setSelectedDatasetId(datasetId);
   };
 
   return (
@@ -314,6 +349,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           onNewChat={handleNewChat}
           recentChats={recentChats}
           onSelectChat={handleSelectChat}
+          isAwaitingResponse={isAwaitingResponse}
         />
         <Box
           sx={{
@@ -332,6 +368,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
             agentProcessing={agentProcessing}
             showForm={showForm}
             conversationId={conversationId}
+            onNewConversation={addNewConversation}
+            setIsAwaitingResponse={setIsAwaitingResponse}
+            messages={messages}
           />
         </Box>
         {error && (
@@ -383,14 +422,16 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
             </Box>
           </Box>
         )}
-        <DataPanel
-          open={showDataPanel}
-          onClose={() => setShowDataPanel(false)}
-          datasets={datasets}
-          selectedDatasetId={selectedDatasetId}
-          onDatasetSelect={handleDatasetSelect}
-          data={selectedDataset?.data || []}
-        />
+        {showDataPanel && (
+          <DataPanel
+            open={showDataPanel}
+            onClose={() => setShowDataPanel(false)}
+            datasets={datasets}
+            selectedDatasetId={selectedDatasetId}
+            onDatasetSelect={handleDatasetSelect}
+            data={selectedDataset?.data || []}
+          />
+        )}
       </Box>
     </>
   );

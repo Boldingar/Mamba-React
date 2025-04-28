@@ -39,17 +39,25 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
         password,
       });
 
-      const { access_token, user } = response.data;
+      const { access_token, user, conversations, token_type } = response.data;
 
-      // Store the token and user data only if remember me is checked
+      // Store the token, user data, and conversations if remember me is checked
       if (rememberMe) {
         localStorage.setItem("authToken", access_token);
         localStorage.setItem("userData", JSON.stringify(user));
+        localStorage.setItem(
+          "conversations",
+          JSON.stringify(conversations || [])
+        );
       } else {
         // For non-remember-me sessions, store in sessionStorage instead
         // This will be cleared when the browser/tab is closed
         sessionStorage.setItem("authToken", access_token);
         sessionStorage.setItem("userData", JSON.stringify(user));
+        sessionStorage.setItem(
+          "conversations",
+          JSON.stringify(conversations || [])
+        );
       }
 
       // Redirect to chat page after successful login

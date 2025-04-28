@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Drawer,
@@ -23,11 +23,12 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
 import { useNavigate } from "react-router-dom";
 
-const dummyChats = [
-  { id: 1, title: "Chat with Alice" },
-  { id: 2, title: "Project Discussion" },
-  { id: 3, title: "Support Bot" },
-];
+// Remove dummy chats
+// const dummyChats = [
+//   { id: 1, title: "Chat with Alice" },
+//   { id: 2, title: "Project Discussion" },
+//   { id: 3, title: "Support Bot" },
+// ];
 
 const panelWidth = 300;
 
@@ -37,6 +38,7 @@ interface UserPanelProps {
   onNewChat?: () => void;
   recentChats?: { id: string; title: string }[];
   onSelectChat?: (id: string) => void;
+  isAwaitingResponse?: boolean;
 }
 
 const UserPanel: React.FC<UserPanelProps> = ({
@@ -45,6 +47,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
   onNewChat,
   recentChats = [],
   onSelectChat,
+  isAwaitingResponse = false,
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -53,14 +56,12 @@ const UserPanel: React.FC<UserPanelProps> = ({
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userData");
+    localStorage.removeItem("conversations");
     sessionStorage.removeItem("authToken");
     sessionStorage.removeItem("userData");
+    sessionStorage.removeItem("conversations");
     if (setIsAuthenticated) setIsAuthenticated(false);
     navigate("/login");
-  };
-
-  const handleNewChat = () => {
-    alert("New chat feature coming soon!");
   };
 
   return (
@@ -99,7 +100,11 @@ const UserPanel: React.FC<UserPanelProps> = ({
         <List sx={{ width: "100%" }}>
           {/* New Chat Button */}
           <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
-            <ListItemButton sx={{ borderRadius: 2 }} onClick={onNewChat}>
+            <ListItemButton
+              sx={{ borderRadius: 2 }}
+              onClick={onNewChat}
+              disabled={isAwaitingResponse}
+            >
               <ListItemIcon>
                 <AddIcon />
               </ListItemIcon>
@@ -134,7 +139,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
                   <ChatIcon fontSize="small" />
                 </ListItemIcon>
                 <ListItemText
-                  primary={chat.title}
+                  primary={chat.title || `Chat ${chat.id}`}
                   primaryTypographyProps={{ fontSize: 15 }}
                 />
               </ListItemButton>
@@ -148,31 +153,23 @@ const UserPanel: React.FC<UserPanelProps> = ({
           <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
             <ListItemButton sx={{ borderRadius: 2 }} onClick={onProfileClick}>
               <ListItemIcon>
-                <PersonIcon fontSize="medium" />
+                <PersonIcon />
               </ListItemIcon>
               <ListItemText
                 primary="Profile"
-                primaryTypographyProps={{
-                  fontWeight: 600,
-                  color: "text.primary",
-                }}
+                primaryTypographyProps={{ fontWeight: 600 }}
               />
             </ListItemButton>
           </ListItem>
-        </List>
-        {/* Logout Button */}
-        <List sx={{ width: "100%" }}>
-          <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
+          {/* Logout Button */}
+          <ListItem disablePadding sx={{ borderRadius: 2 }}>
             <ListItemButton sx={{ borderRadius: 2 }} onClick={handleLogout}>
               <ListItemIcon>
-                <LogoutIcon color="error" />
+                <LogoutIcon />
               </ListItemIcon>
               <ListItemText
                 primary="Logout"
-                primaryTypographyProps={{
-                  fontWeight: 600,
-                  color: "error.main",
-                }}
+                primaryTypographyProps={{ fontWeight: 600 }}
               />
             </ListItemButton>
           </ListItem>
