@@ -32,6 +32,26 @@ import { useNavigate } from "react-router-dom";
 
 const panelWidth = 300;
 
+// Add a scrollbar style similar to ChatComponent
+const chatScrollbarStyle = {
+  "&::-webkit-scrollbar": {
+    width: "8px",
+    background: "transparent",
+  },
+  "&::-webkit-scrollbar-thumb": {
+    background: "#444",
+    borderRadius: "8px",
+    "&:hover": {
+      background: "#555",
+    },
+  },
+  "&::-webkit-scrollbar-track": {
+    background: "transparent",
+  },
+  scrollbarWidth: "thin",
+  scrollbarColor: "#444 transparent", // For Firefox
+};
+
 interface UserPanelProps {
   setIsAuthenticated?: (auth: boolean) => void;
   onProfileClick?: () => void;
@@ -128,7 +148,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
         >
           Recent Chats
         </Typography>
-        <List sx={{ width: "100%", overflow: "auto", maxHeight: "50vh" }}>
+        <List sx={{ width: "100%", overflow: "auto", maxHeight: "64vh" }}>
           {/* Recent Chats */}
           {recentChats.map((chat) => {
             const isSelected = chat.id === selectedConversationId;
