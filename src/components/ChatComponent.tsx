@@ -174,6 +174,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   useEffect(() => {
     console.log("Parent messages received:", parentMessages);
     console.log("Current conversation ID:", conversationId);
+    console.log("isLoadingMessages:", isLoadingMessages);
 
     if (parentMessages && parentMessages.length > 0) {
       console.log("Setting messages from parent");
@@ -184,7 +185,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       console.log("Setting empty message array for new chat");
       setMessages([]);
     }
-  }, [parentMessages, conversationId, getFirstName]);
+  }, [parentMessages, conversationId, isLoadingMessages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -447,7 +448,8 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       <ChatContainer elevation={3}>
         <MessageList>
           {isLoadingMessages ? (
-            // Skeleton loading animation
+            // Only show skeleton if we're loading messages
+            // The parent component (ChatPage) now controls when to skip loading
             <>
               <MessageWrapper isUser={false}>
                 <Avatar

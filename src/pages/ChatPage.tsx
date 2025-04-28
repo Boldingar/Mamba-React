@@ -197,11 +197,27 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   // Fetch messages for the selected conversation
   useEffect(() => {
     if (conversationId) {
-      fetchMessages(conversationId);
+      // Only skip loading when we're coming from an empty conversationId (new chat)
+      // to a newly created conversation with the same messages
+      const isNewConversationFromNewChat =
+        messages.length > 0 &&
+        messages.some((msg) => msg.sender === "user") &&
+        messages[0].id === "welcome" &&
+        // This is the critical part - only skip if we're coming directly from a new chat
+        localStorage.getItem("lastConversationWasNew") === "true";
+
+      // Always fetch messages unless it's a direct transition from new chat to created conversation
+      if (!isNewConversationFromNewChat) {
+        fetchMessages(conversationId);
+      } else {
+        // Clear the flag after we've used it
+        localStorage.removeItem("lastConversationWasNew");
+      }
     }
   }, [conversationId]);
 
   const fetchMessages = async (convId: string) => {
+    // Always show loading state when fetching messages
     setIsLoading(true);
     setIsAwaitingResponse(true);
     console.log(`Fetching messages for conversation: ${convId}`);
@@ -233,17 +249,24 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           type: "text",
         };
 
-        // Add welcome message to the beginning of the conversation
-        if (formattedMessages.length > 0) {
-          setMessages([welcomeMessage, ...formattedMessages]);
-        } else {
-          setMessages([welcomeMessage]);
-        }
+        // Clear existing messages first to ensure loading shows
+        setMessages([]);
+
+        // Then add welcome message and fetched messages
+        setTimeout(() => {
+          // Add welcome message to the beginning of the conversation
+          if (formattedMessages.length > 0) {
+            setMessages([welcomeMessage, ...formattedMessages]);
+          } else {
+            setMessages([welcomeMessage]);
+          }
+          setIsLoading(false);
+          setIsAwaitingResponse(false);
+        }, 100); // Small delay to ensure UI updates properly
       }
     } catch (error) {
       console.error("Error fetching messages:", error);
       setError("Failed to load conversation messages");
-    } finally {
       setIsLoading(false);
       setIsAwaitingResponse(false);
     }
@@ -264,6 +287,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
 
     setMessages([welcomeMsg]);
 
+    // Mark that we're in a new chat
+    localStorage.setItem("lastConversationWasNew", "true");
+
     // We'll set the conversationId to empty string to indicate a new chat
     setConversationId("");
   };
@@ -271,6 +297,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const handleSelectChat = (id: string) => {
     // Only change if it's a different conversation
     if (id !== conversationId) {
+      // Clear any "new chat" flag since we're explicitly selecting a conversation
+      localStorage.removeItem("lastConversationWasNew");
       // We will set isAwaitingResponse to true in the fetchMessages function
       // when we actually start loading messages
       setConversationId(id);
@@ -282,6 +310,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     const newChat: RecentChat = { id, title: name };
     // Update in-memory state
     setRecentChats((prev) => [newChat, ...prev]);
+
+    // We're still in the same flow from a new chat to a created conversation
+    // Make sure the flag is set so we don't reload messages
+    localStorage.setItem("lastConversationWasNew", "true");
+
+    // Set the conversation ID after setting the flag
     setConversationId(id);
 
     // Update storage
@@ -304,6 +338,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
 
     // No longer waiting for a response
     setIsAwaitingResponse(false);
+    // Ensure loading is false for the new conversation
+    setIsLoading(false);
   };
 
   const selectedDataset = datasets.find((ds) => ds.id === selectedDatasetId);
