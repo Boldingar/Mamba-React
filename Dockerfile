@@ -1,23 +1,23 @@
 # Builder stage
-FROM node:18-alpine as build
+FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# Install required build dependencies for Vite
+# Add dependencies Vite needs to build properly (like you did manually)
 RUN apk add --no-cache bash curl
 
-# Copy package files and install dependencies
+# Copy and install node dependencies
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Copy the rest of the application and build it
+# Copy the rest of the app and build it
 COPY . .
 RUN npm run build
 
 # Production stage
 FROM nginx:alpine
 
-# Copy built assets from previous stage
+# Copy build output to nginx
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copy nginx config
