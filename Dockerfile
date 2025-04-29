@@ -6,15 +6,14 @@ WORKDIR /app
 # Add dependencies Vite needs to build properly (like you did manually)
 RUN apk add --no-cache bash curl
 
-# Copy and install node dependencies
+# Copy package files and install dependencies
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 
-# Install axios explicitly
-RUN npm install axios
-
-# Copy the rest of the app and build it
+# Copy the rest of the app
 COPY . .
+
+# Run build with more verbose output if it fails
 RUN npm run build || (echo "=== BUILD FAILED - SHOWING DEBUG INFO ===" && npm run build --verbose && exit 1)
 
 # Production stage

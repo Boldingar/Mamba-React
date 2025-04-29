@@ -16,11 +16,8 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Install axios explicitly
-        run: npm install axios
+      - name: Install dependencies and update package-lock.json
+        run: npm install
         
       - name: List files in directory
         run: ls -la
