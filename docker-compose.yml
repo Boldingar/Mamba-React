@@ -9,16 +9,18 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      # Uncomment to use SSL certificates
-      # - ./ssl:/etc/nginx/ssl
-      # - ./certbot/conf:/etc/letsencrypt
-      # - ./certbot/www:/var/www/certbot
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    # Uncomment for production settings
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
   # Uncomment to enable SSL certificates with Let's Encrypt
   # certbot:
   #   image: certbot/certbot
-  #   container_name: certbot
+  #   container_name: certbot-${DEPLOY_ID:-latest}
   #   volumes:
   #     - ./certbot/conf:/etc/letsencrypt
   #     - ./certbot/www:/var/www/certbot

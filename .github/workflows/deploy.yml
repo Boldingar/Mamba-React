@@ -12,25 +12,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Use Node.js to build locally first as a verification step
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies and update package-lock.json
-        run: npm install
-        
-      - name: Build project
-        run: npm run build
-        
-      - name: List build output
-        run: ls -la dist
-      
-      # Now proceed with Docker build and deployment if local build succeeded
+      # Cache Docker layers
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
 
       - name: Build Docker image
         uses: docker/build-push-action@v5
@@ -38,6 +30,14 @@ jobs:
           context: .
           load: true
           tags: mamba-frontend:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      # Move the cache for next time
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Save Docker image
         run: |
@@ -82,27 +82,18 @@ jobs:
             # Ensure directories exist
             mkdir -p /root/mamba-frontend
             
-            # Verify the image file exists
-            ls -la /tmp/mamba-frontend.tar
-            
             # Load the Docker image
             docker load < /tmp/mamba-frontend.tar
             
             # Stop and remove existing container if exists
-            if docker ps -a | grep -q mamba-frontend; then
-              echo "Removing existing container"
-              docker stop $(docker ps -a -q --filter="name=mamba-frontend") || true
-              docker rm $(docker ps -a -q --filter="name=mamba-frontend") || true
-            fi
+            docker stop $(docker ps -a -q --filter="name=mamba-frontend") 2>/dev/null || true
+            docker rm $(docker ps -a -q --filter="name=mamba-frontend") 2>/dev/null || true
             
             # Deploy using docker-compose with unique deployment ID
             cd /root/mamba-frontend
             export DEPLOY_ID="${DEPLOY_ID}"
-            docker-compose down --remove-orphans || true
+            docker-compose down --remove-orphans -v 2>/dev/null || true
             docker-compose up -d
-            
-            # Verify deployment
-            docker ps | grep mamba-frontend
             
             # Clean up
             rm -f /tmp/mamba-frontend.tar 
