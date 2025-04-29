@@ -8,12 +8,10 @@ import {
   Box,
   FormControlLabel,
   Checkbox,
-  Divider,
   Alert,
   Link,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import GoogleIcon from "@mui/icons-material/Google";
 import axiosInstance, { API_BASE_URL } from "../utils/axios";
 
 interface LoginPageProps {
@@ -63,16 +61,28 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
       // Redirect to chat page after successful login
       if (setIsAuthenticated) setIsAuthenticated(true);
       navigate("/chat");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+    } catch (err: any) {
+      // Handle different types of errors
+      if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        if (err.response.status === 401) {
+          setError("Invalid username or password");
+        } else if (err.response.data && err.response.data.detail) {
+          setError(err.response.data.detail);
+        } else {
+          setError(`Login failed: ${err.response.status}`);
+        }
+      } else if (err.request) {
+        // The request was made but no response was received
+        setError("No response from server. Please try again later.");
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        setError(err.message || "An error occurred during login");
+      }
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleGoogleLogin = () => {
-    // Redirect to Google OAuth endpoint
-    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   return (
@@ -164,23 +174,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               disabled={isLoading}
             >
               {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
-
-            <Divider sx={{ my: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                OR
-              </Typography>
-            </Divider>
-
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<GoogleIcon />}
-              onClick={handleGoogleLogin}
-              sx={{ mb: 2 }}
-              disabled={isLoading}
-            >
-              Sign in with Google
             </Button>
 
             <Box sx={{ textAlign: "center", mt: 2 }}>

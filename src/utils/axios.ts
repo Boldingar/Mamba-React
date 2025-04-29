@@ -6,6 +6,7 @@ const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
 });
 
+
 // Add a request interceptor to add the auth token to requests
 axiosInstance.interceptors.request.use(
   (config) => {
@@ -26,7 +27,11 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Skip the redirection for login and auth endpoints
+    const isLoginRequest = error.config?.url === "/login";
+    const isAuthRequest = error.config?.url?.startsWith("/auth/");
+
+    if (error.response?.status === 401 && !isLoginRequest && !isAuthRequest) {
       // Clear both storage locations
       localStorage.removeItem("authToken");
       localStorage.removeItem("userData");

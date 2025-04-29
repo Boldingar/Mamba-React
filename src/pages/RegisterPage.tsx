@@ -6,15 +6,16 @@ import {
   TextField,
   Button,
   Box,
-  FormControlLabel,
-  Checkbox,
-  Divider,
   Alert,
   Link,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import GoogleIcon from "@mui/icons-material/Google";
 import axiosInstance, { API_BASE_URL } from "../utils/axios";
+
+interface FieldError {
+  field: string;
+  message: string;
+}
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,20 +28,35 @@ const RegisterPage: React.FC = () => {
     confirmPassword: "",
   });
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldError[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear field-specific error when user types
+    setFieldErrors(fieldErrors.filter((err) => err.field !== name));
+  };
+
+  const getFieldError = (fieldName: string): string | undefined => {
+    const error = fieldErrors.find((err) => err.field === fieldName);
+    return error?.message;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors([]);
     setIsLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      setFieldErrors([
+        {
+          field: "confirmPassword",
+          message: "Passwords do not match",
+        },
+      ]);
       setIsLoading(false);
       return;
     }
@@ -56,16 +72,50 @@ const RegisterPage: React.FC = () => {
 
       // Navigate to login page after successful registration
       navigate("/login");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+    } catch (err: any) {
+      if (err.response?.data?.detail) {
+        // Handle FastAPI validation errors
+        if (Array.isArray(err.response.data.detail)) {
+          const validationErrors = err.response.data.detail.map(
+            (detail: any) => {
+              // Extract the field name from the location path
+              const fieldPath = detail.loc.filter(
+                (item: any) => item !== "body"
+              );
+              const fieldName = fieldPath[0] || "";
+
+              return {
+                field: fieldName,
+                message: detail.msg.replace("Value error, ", ""), // Remove prefix for cleaner messages
+              };
+            }
+          );
+
+          setFieldErrors(validationErrors);
+
+          // Set a general error if there are multiple issues
+          if (validationErrors.length > 1) {
+            setError("Please fix the validation errors below");
+          } else if (validationErrors.length === 1) {
+            setError(validationErrors[0].message);
+          }
+        } else {
+          // Handle string error messages
+          setError(err.response.data.detail);
+        }
+      } else if (err.response) {
+        // Handle other response errors
+        setError(`Registration failed: ${err.response.status}`);
+      } else if (err.request) {
+        // The request was made but no response was received
+        setError("No response from server. Please try again later.");
+      } else {
+        // Something happened in setting up the request
+        setError(err.message || "An error occurred during registration");
+      }
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleGoogleRegister = () => {
-    // Redirect to Google OAuth endpoint
-    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   return (
@@ -90,7 +140,7 @@ const RegisterPage: React.FC = () => {
             </Alert>
           )}
 
-          <Box sx={{ mt: 1 }}>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
             <TextField
               margin="normal"
               required
@@ -102,6 +152,8 @@ const RegisterPage: React.FC = () => {
               value={formData.username}
               onChange={handleInputChange}
               disabled={isLoading}
+              error={!!getFieldError("username")}
+              helperText={getFieldError("username")}
             />
             <TextField
               margin="normal"
@@ -114,6 +166,8 @@ const RegisterPage: React.FC = () => {
               value={formData.first_name}
               onChange={handleInputChange}
               disabled={isLoading}
+              error={!!getFieldError("first_name")}
+              helperText={getFieldError("first_name")}
             />
             <TextField
               margin="normal"
@@ -126,6 +180,8 @@ const RegisterPage: React.FC = () => {
               value={formData.last_name}
               onChange={handleInputChange}
               disabled={isLoading}
+              error={!!getFieldError("last_name")}
+              helperText={getFieldError("last_name")}
             />
             <TextField
               margin="normal"
@@ -138,6 +194,8 @@ const RegisterPage: React.FC = () => {
               value={formData.email}
               onChange={handleInputChange}
               disabled={isLoading}
+              error={!!getFieldError("email")}
+              helperText={getFieldError("email")}
             />
             <TextField
               margin="normal"
@@ -151,6 +209,8 @@ const RegisterPage: React.FC = () => {
               value={formData.password}
               onChange={handleInputChange}
               disabled={isLoading}
+              error={!!getFieldError("password")}
+              helperText={getFieldError("password")}
             />
             <TextField
               margin="normal"
@@ -164,33 +224,18 @@ const RegisterPage: React.FC = () => {
               value={formData.confirmPassword}
               onChange={handleInputChange}
               disabled={isLoading}
+              error={!!getFieldError("confirmPassword")}
+              helperText={getFieldError("confirmPassword")}
             />
 
             <Button
+              type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
               disabled={isLoading}
-              onClick={handleSubmit}
             >
               {isLoading ? "Registering..." : "Register"}
-            </Button>
-
-            <Divider sx={{ my: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                OR
-              </Typography>
-            </Divider>
-
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<GoogleIcon />}
-              onClick={handleGoogleRegister}
-              sx={{ mb: 2 }}
-              disabled={isLoading}
-            >
-              Register with Google
             </Button>
 
             <Box sx={{ textAlign: "center", mt: 2 }}>
