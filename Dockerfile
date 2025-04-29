@@ -12,7 +12,7 @@ RUN npm ci
 
 # Copy the rest of the app and build it
 COPY . .
-RUN npm run build
+RUN npm run build || (echo "=== BUILD FAILED - SHOWING DEBUG INFO ===" && npm run build --verbose && exit 1)
 
 # Production stage
 FROM nginx:alpine
