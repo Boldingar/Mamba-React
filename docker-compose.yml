@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  mamba-frontend:
+    image: mamba-frontend:latest
+    container_name: mamba-frontend
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      # Uncomment to use SSL certificates
+      # - ./ssl:/etc/nginx/ssl
+      # - ./certbot/conf:/etc/letsencrypt
+      # - ./certbot/www:/var/www/certbot
+
+  # Uncomment to enable SSL certificates with Let's Encrypt
+  # certbot:
+  #   image: certbot/certbot
+  #   container_name: certbot
+  #   volumes:
+  #     - ./certbot/conf:/etc/letsencrypt
+  #     - ./certbot/www:/var/www/certbot
+  #   command: certonly --webroot -w /var/www/certbot --force-renewal --email your-email@example.com -d your-domain.com --agree-tos
+    # Uncomment for development mode
+    # command: npm run dev
+    # volumes:
+    #   - ./:/app
+    #   - /app/node_modules
+    # ports:
+    #   - "5173:5173" 
