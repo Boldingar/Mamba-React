@@ -135,6 +135,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
 
   const handleNewChat = () => {
+    // Don't allow new chat if we're waiting for a response
+    if (isAwaitingResponse) return;
+
     // Set a welcome message for new chat
     const welcomeMsg: Message = {
       id: "welcome",
@@ -294,13 +297,22 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   };
 
   const handleSelectChat = (id: string) => {
+    // Don't allow switching conversations if we're waiting for a response
+    if (isAwaitingResponse && conversationId !== "") return;
+
     // Only change if it's a different conversation
     if (id !== conversationId) {
+      // Set isAwaitingResponse to true when switching conversations
+      setIsAwaitingResponse(true);
+
       // Clear any "new chat" flag since we're explicitly selecting a conversation
       localStorage.removeItem("lastConversationWasNew");
-      // We will set isAwaitingResponse to true in the fetchMessages function
-      // when we actually start loading messages
+
+      // Set the new conversation ID
       setConversationId(id);
+
+      // Note: isAwaitingResponse will be set to false in fetchMessages
+      // when the messages are successfully loaded
     }
   };
 

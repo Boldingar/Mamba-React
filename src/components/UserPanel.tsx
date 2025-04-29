@@ -125,10 +125,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
             <ListItemButton
               sx={{ borderRadius: 2 }}
               onClick={onNewChat}
-              disabled={
-                (isAwaitingResponse && selectedConversationId !== "") ||
-                selectedConversationId === ""
-              }
+              disabled={isAwaitingResponse || selectedConversationId === ""}
             >
               <ListItemIcon>
                 <AddIcon />
@@ -188,9 +185,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
                         },
                       }}
                       onClick={() => onSelectChat && onSelectChat(chat.id)}
-                      disabled={
-                        isAwaitingResponse && selectedConversationId !== ""
-                      }
+                      disabled={isAwaitingResponse}
                     >
                       <ListItemIcon>
                         <ChatIcon
