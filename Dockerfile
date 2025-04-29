@@ -10,6 +10,9 @@ RUN apk add --no-cache bash curl
 COPY package.json package-lock.json ./
 RUN npm ci
 
+# Install axios explicitly
+RUN npm install axios
+
 # Copy the rest of the app and build it
 COPY . .
 RUN npm run build || (echo "=== BUILD FAILED - SHOWING DEBUG INFO ===" && npm run build --verbose && exit 1)
