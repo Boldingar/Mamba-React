@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mamba-frontend:
     image: mamba-frontend:latest
-    container_name: mamba-frontend
+    container_name: mamba-frontend-${DEPLOY_ID:-latest}
     restart: always
     ports:
       - "80:80"

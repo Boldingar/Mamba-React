@@ -40,7 +40,9 @@ jobs:
           tags: mamba-frontend:latest
 
       - name: Save Docker image
-        run: docker save -o /tmp/mamba-frontend.tar mamba-frontend:latest
+        run: |
+          docker save mamba-frontend:latest > /tmp/mamba-frontend.tar
+          ls -la /tmp/mamba-frontend.tar
 
       # Deploy to DigitalOcean
       - name: Upload configuration files to droplet
@@ -51,6 +53,7 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_KEY }}
           source: "docker-compose.yml,nginx.conf"
           target: "/root/mamba-frontend"
+          strip_components: 0
 
       - name: Upload Docker image to droplet
         uses: appleboy/scp-action@master
@@ -60,6 +63,13 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_KEY }}
           source: "/tmp/mamba-frontend.tar"
           target: "/tmp"
+          strip_components: 0
+          timeout: 300s
+          overwrite: true
+
+      - name: Generate deployment ID
+        id: deploy_id
+        run: echo "DEPLOY_ID=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
       - name: Deploy on droplet
         uses: appleboy/ssh-action@master
@@ -67,17 +77,32 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USERNAME }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
+          envs: DEPLOY_ID=${{ steps.deploy_id.outputs.DEPLOY_ID }}
           script: |
             # Ensure directories exist
             mkdir -p /root/mamba-frontend
             
+            # Verify the image file exists
+            ls -la /tmp/mamba-frontend.tar
+            
             # Load the Docker image
             docker load < /tmp/mamba-frontend.tar
             
-            # Deploy using docker-compose
+            # Stop and remove existing container if exists
+            if docker ps -a | grep -q mamba-frontend; then
+              echo "Removing existing container"
+              docker stop $(docker ps -a -q --filter="name=mamba-frontend") || true
+              docker rm $(docker ps -a -q --filter="name=mamba-frontend") || true
+            fi
+            
+            # Deploy using docker-compose with unique deployment ID
             cd /root/mamba-frontend
-            docker-compose down || true
+            export DEPLOY_ID="${DEPLOY_ID}"
+            docker-compose down --remove-orphans || true
             docker-compose up -d
             
+            # Verify deployment
+            docker ps | grep mamba-frontend
+            
             # Clean up
-            rm /tmp/mamba-frontend.tar 
+            rm -f /tmp/mamba-frontend.tar 
