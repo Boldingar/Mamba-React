@@ -74,11 +74,10 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USERNAME }}
           key: ${{ secrets.DROPLET_SSH_KEY }} # Key still needed for the ssh-action connection itself
-          # Pass GITHUB_WORKSPACE explicitly as an environment variable
-          envs: GITHUB_WORKSPACE=${{ github.workspace }}
+          # REMOVED envs: GITHUB_WORKSPACE=${{ github.workspace }}
+          # Embed the workspace path directly into the script string
           script: |
-            # Use the passed environment variable
-            IMAGE_PATH="${GITHUB_WORKSPACE}/mamba-frontend.tar"
+            IMAGE_PATH="${{ github.workspace }}/mamba-frontend.tar"
             echo "Checking for source file ${IMAGE_PATH} on runner before SCP..."
             ls -la "${IMAGE_PATH}"
             if [ ! -f "${IMAGE_PATH}" ]; then
