@@ -168,6 +168,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isFormVisible, setIsFormVisible] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [processedUpdateIds] = useState<Set<string>>(new Set());
 
@@ -239,9 +240,15 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   }, [updates, onTableReady]);
 
+  // Add an effect to check if a form is currently visible in messages
+  useEffect(() => {
+    const hasForm = messages.some((msg) => msg.type === "form");
+    setIsFormVisible(hasForm);
+  }, [messages]);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || isFormVisible) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -311,6 +318,43 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             timestamp: new Date(),
             type: "text",
           };
+
+          // Check if there's an action in the response
+          if (data.action === "collect_business_info") {
+            // Add a form message
+            const formMessage: Message = {
+              id: Date.now().toString() + "-form",
+              text: "",
+              sender: "agent",
+              timestamp: new Date(),
+              type: "form",
+            };
+
+            // Update with both the text response and the form
+            const messagesWithForm = [
+              ...updatedMessages,
+              agentMessage,
+              formMessage,
+            ];
+            setMessages(messagesWithForm);
+
+            // Update parent component's messages
+            if (updateMessages) {
+              updateMessages(messagesWithForm);
+            }
+
+            // Set form visible flag
+            setIsFormVisible(true);
+          } else {
+            // Regular text response without a form
+            const messagesWithResponse = [...updatedMessages, agentMessage];
+            setMessages(messagesWithResponse);
+
+            // Update parent component's messages
+            if (updateMessages) {
+              updateMessages(messagesWithResponse);
+            }
+          }
         }
         // Handle is_from_agency format
         else if (data.content || data.is_from_agency !== undefined) {
@@ -321,9 +365,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             timestamp: new Date(),
             type: "text",
           };
-        }
 
-        if (agentMessage) {
           // Update local messages with agent's response
           const messagesWithResponse = [...updatedMessages, agentMessage];
           setMessages(messagesWithResponse);
@@ -369,10 +411,20 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     setIsLoading(true);
 
     try {
-      const response = await axiosInstance.post(
-        `${API_BASE_URL}/submit_data`,
-        formData
-      );
+      // Make sure we have a conversation ID before submitting the form
+      if (!conversationId) {
+        throw new Error("Missing conversation ID. Please try again.");
+      }
+
+      // Use the correct endpoint with conversation ID
+      const endpoint = `${API_BASE_URL}/submit_form/${conversationId}`;
+
+      // Format the form data according to the required structure
+      const formattedData = {
+        form_data: formData,
+      };
+
+      const response = await axiosInstance.post(endpoint, formattedData);
 
       if (response.status !== 200) {
         throw new Error("Failed to submit form");
@@ -389,21 +441,43 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         type: "form_submitted",
       };
 
-      // Add the agent's response message
+      // Add the agent's response message (or use one from the response if available)
       const agentMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "Thank you for providing your business information. I'll analyze this and provide recommendations shortly.",
+        text:
+          data?.response ||
+          "Thank you for providing your business information. I'll analyze this and provide recommendations shortly.",
         sender: "agent",
         timestamp: new Date(),
         type: "text",
       };
 
-      setMessages((prev) => [...prev, formSubmittedMessage, agentMessage]);
+      // Remove any form messages from the list
+      const messagesWithoutForm = messages.filter((msg) => msg.type !== "form");
+
+      // Add the form submitted message and agent response
+      const updatedMessages = [
+        ...messagesWithoutForm,
+        formSubmittedMessage,
+        agentMessage,
+      ];
+      setMessages(updatedMessages);
+
+      // Update parent component
+      if (updateMessages) {
+        updateMessages(updatedMessages);
+      }
+
+      // Form is no longer visible
+      setIsFormVisible(false);
     } catch (error) {
       console.error("Error submitting form:", error);
       const errorMessage: Message = {
         id: Date.now().toString(),
-        text: "Error submitting form. Please try again.",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Error submitting form. Please try again.",
         sender: "system",
         timestamp: new Date(),
         type: "text",
@@ -411,6 +485,41 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleFormCancel = async () => {
+    try {
+      // Make sure we have a conversation ID before cancelling the form
+      if (!conversationId) {
+        throw new Error("Missing conversation ID");
+      }
+
+      // Use the correct endpoint with conversation ID
+      const endpoint = `${API_BASE_URL}/submit_form/${conversationId}`;
+
+      // Send the cancellation action
+      const cancellationData = {
+        form_data: {
+          action: "cancel_form",
+        },
+      };
+
+      await axiosInstance.post(endpoint, cancellationData);
+
+      // Remove any form messages from the list
+      const messagesWithoutForm = messages.filter((msg) => msg.type !== "form");
+      setMessages(messagesWithoutForm);
+
+      // Update parent component
+      if (updateMessages) {
+        updateMessages(messagesWithoutForm);
+      }
+
+      // Form is no longer visible
+      setIsFormVisible(false);
+    } catch (error) {
+      console.error("Error cancelling form:", error);
     }
   };
 
@@ -566,6 +675,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                       onSubmit={handleFormSubmit}
                       onClose={() => {}}
                       onFileClick={() => {}}
+                      onCancel={handleFormCancel}
                     />
                   ) : (
                     <Typography sx={{ fontSize: "17px" }}>
@@ -609,8 +719,12 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={isLoading}
-            placeholder="Type your message..."
+            disabled={isLoading || isFormVisible}
+            placeholder={
+              isFormVisible
+                ? "Please complete the form above..."
+                : "Type your message..."
+            }
             multiline
             maxRows={4}
             sx={{
@@ -624,7 +738,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           <Button
             type="submit"
             variant="contained"
-            disabled={isLoading || !inputMessage.trim()}
+            disabled={isLoading || !inputMessage.trim() || isFormVisible}
             sx={{
               borderRadius: 2,
               fontWeight: 600,

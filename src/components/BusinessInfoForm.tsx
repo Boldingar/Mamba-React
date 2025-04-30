@@ -11,6 +11,7 @@ import {
   CloseIcon,
   AddIcon,
 } from "./ui";
+import { Alert } from "@mui/material";
 import Grid from "./Grid";
 import { API_BASE_URL } from "../utils/axios";
 
@@ -19,7 +20,7 @@ interface ProductService {
   url: string;
   description: string;
   target_persona: string;
-  priority: number;
+  priority: number | string;
 }
 
 interface BusinessInfoFormProps {
@@ -30,6 +31,7 @@ interface BusinessInfoFormProps {
     rows: any[][];
   }) => void;
   onSubmit: (formData: any) => void;
+  onCancel: () => void;
 }
 
 const locations = [
@@ -226,6 +228,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
   onClose,
   onFileClick,
   onSubmit,
+  onCancel,
 }) => {
   const [formData, setFormData] = useState({
     company_name: "",
@@ -247,11 +250,24 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
     },
   ]);
 
+  const [validationErrors, setValidationErrors] = useState<{
+    [key: string]: string;
+  }>({});
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear validation error for this field when user types
+    if (validationErrors[name]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleProductServiceChange = (
@@ -267,6 +283,16 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
       };
       return newProductsServices;
     });
+
+    // Clear validation error for this product/service field when user types
+    const errorKey = `productsServices[${index}].${field}`;
+    if (validationErrors[errorKey]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[errorKey];
+        return newErrors;
+      });
+    }
   };
 
   const addProductService = () => {
@@ -286,8 +312,59 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
     setProductsServices((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {};
+
+    // Required main fields
+    if (!formData.company_name.trim()) {
+      errors.company_name = "Company name is required";
+    }
+    if (!formData.niche.trim()) {
+      errors.niche = "Niche is required";
+    }
+    if (!formData.location) {
+      errors.location = "Location is required";
+    }
+    if (!formData.target_personas.trim()) {
+      errors.target_personas = "Target personas are required";
+    }
+    if (!formData.market_geo) {
+      errors.market_geo = "Market/Geo targeting is required";
+    }
+    if (!formData.value_props.trim()) {
+      errors.value_props = "Value propositions are required";
+    }
+
+    // Required product/service fields
+    productsServices.forEach((product, index) => {
+      if (!product.name.trim()) {
+        errors[`productsServices[${index}].name`] = "Name is required";
+      }
+      if (!product.description.trim()) {
+        errors[`productsServices[${index}].description`] =
+          "Description is required";
+      }
+      if (!product.target_persona.trim()) {
+        errors[`productsServices[${index}].target_persona`] =
+          "Target persona is required";
+      }
+    });
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleCancelForm = () => {
+    onCancel();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
 
     // Just pass the data to parent component through onSubmit
     onSubmit({
@@ -300,6 +377,34 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
       value_props: formData.value_props,
       products_services: productsServices,
     });
+  };
+
+  // Helper to get error for a field
+  const getFieldError = (fieldName: string) => {
+    return validationErrors[fieldName] || "";
+  };
+
+  // Helper to get error state for a field
+  const hasFieldError = (fieldName: string) => {
+    return !!validationErrors[fieldName];
+  };
+
+  // Helper to get error for a product/service field
+  const getProductServiceError = (
+    index: number,
+    field: keyof ProductService
+  ) => {
+    const errorKey = `productsServices[${index}].${field}`;
+    return validationErrors[errorKey] || "";
+  };
+
+  // Helper to get error state for a product/service field
+  const hasProductServiceError = (
+    index: number,
+    field: keyof ProductService
+  ) => {
+    const errorKey = `productsServices[${index}].${field}`;
+    return !!validationErrors[errorKey];
   };
 
   return (
@@ -323,10 +428,16 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
         <Typography variant="h6" color="primary">
           Business Information
         </Typography>
-        <IconButton onClick={onClose} size="small" color="primary">
+        <IconButton onClick={handleCancelForm} size="small" color="primary">
           <CloseIcon />
         </IconButton>
       </Box>
+
+      {Object.keys(validationErrors).length > 0 && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Please correct the highlighted fields before submitting.
+        </Alert>
+      )}
 
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -337,7 +448,10 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             value={formData.company_name}
             onChange={handleInputChange}
             required
-            helperText="Enter your company's legal name"
+            error={hasFieldError("company_name")}
+            helperText={
+              getFieldError("company_name") || "Enter your company's legal name"
+            }
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -358,7 +472,11 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             name="niche"
             value={formData.niche}
             onChange={handleInputChange}
-            helperText="e.g., E-commerce, SaaS, Healthcare"
+            required
+            error={hasFieldError("niche")}
+            helperText={
+              getFieldError("niche") || "e.g., E-commerce, SaaS, Healthcare"
+            }
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -370,7 +488,10 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             value={formData.location}
             onChange={handleInputChange}
             required
-            helperText="Primary business location"
+            error={hasFieldError("location")}
+            helperText={
+              getFieldError("location") || "Primary business location"
+            }
           >
             {locations.map((option) => (
               <MenuItem key={option} value={option}>
@@ -388,7 +509,12 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             name="target_personas"
             value={formData.target_personas}
             onChange={handleInputChange}
-            helperText="Describe your ideal customers (e.g., Small business owners, Tech-savvy millennials)"
+            required
+            error={hasFieldError("target_personas")}
+            helperText={
+              getFieldError("target_personas") ||
+              "Describe your ideal customers (e.g., Small business owners, Tech-savvy millennials)"
+            }
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -400,7 +526,10 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             value={formData.market_geo}
             onChange={handleInputChange}
             required
-            helperText="Select your target market scope"
+            error={hasFieldError("market_geo")}
+            helperText={
+              getFieldError("market_geo") || "Select your target market scope"
+            }
           >
             {marketGeoOptions.map((option) => (
               <MenuItem key={option} value={option}>
@@ -418,42 +547,52 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             name="value_props"
             value={formData.value_props}
             onChange={handleInputChange}
-            helperText="What makes your business unique? List your key advantages"
+            required
+            error={hasFieldError("value_props")}
+            helperText={
+              getFieldError("value_props") ||
+              "What makes your business unique? List your key advantages"
+            }
           />
         </Grid>
       </Grid>
 
-      <Box mt={4} mb={2}>
-        <Typography variant="subtitle1" color="primary">
-          Products/Services
-        </Typography>
-        <Typography variant="body2" color="text.secondary" mt={1}>
-          Add your main products or services below
-        </Typography>
-      </Box>
+      <Typography variant="h6" sx={{ mt: 4, mb: 1 }}>
+        Products & Services
+      </Typography>
 
       {productsServices.map((product, index) => (
         <Paper
           key={index}
-          sx={{
-            p: 2,
-            mt: 2,
-            backgroundColor: "background.default",
-            "&:hover": {
-              backgroundColor: "action.hover",
-            },
-          }}
-          elevation={0}
+          elevation={1}
+          sx={{ p: 2, mb: 3, bgcolor: "background.paper", borderRadius: 2 }}
         >
-          <Box display="flex" justifyContent="flex-end" mb={2}>
-            <IconButton
-              onClick={() => removeProductService(index)}
-              size="small"
-              color="error"
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              mb: 2,
+            }}
+          >
+            <Typography
+              variant="subtitle1"
+              fontWeight="medium"
+              color="primary.main"
             >
-              <CloseIcon />
-            </IconButton>
+              Product/Service #{index + 1}
+            </Typography>
+            {productsServices.length > 1 && (
+              <Button
+                size="small"
+                color="error"
+                onClick={() => removeProductService(index)}
+                variant="outlined"
+              >
+                Remove
+              </Button>
+            )}
           </Box>
+
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
@@ -464,7 +603,11 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                   handleProductServiceChange(index, "name", e.target.value)
                 }
                 required
-                helperText="Name of your product or service"
+                error={hasProductServiceError(index, "name")}
+                helperText={
+                  getProductServiceError(index, "name") ||
+                  "Name of your product or service"
+                }
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -493,14 +636,17 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                     e.target.value
                   )
                 }
-                helperText="Brief description of features and benefits"
+                required
+                error={hasProductServiceError(index, "description")}
+                helperText={
+                  getProductServiceError(index, "description") ||
+                  "Brief description of features and benefits"
+                }
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
-                multiline
-                rows={2}
                 label="Target Persona"
                 value={product.target_persona}
                 onChange={(e) =>
@@ -510,48 +656,67 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                     e.target.value
                   )
                 }
-                helperText="Who is this product/service designed for?"
+                required
+                error={hasProductServiceError(index, "target_persona")}
+                helperText={
+                  getProductServiceError(index, "target_persona") ||
+                  "Who is this product/service for?"
+                }
               />
             </Grid>
             <Grid size={{ xs: 12 }}>
-              <Typography gutterBottom color="text.secondary">
-                Priority Level
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                gutterBottom
+                sx={{ mt: 1 }}
+              >
+                Priority Level (1-10)
               </Typography>
               <Slider
-                value={product.priority}
-                onChange={(_, value) =>
-                  handleProductServiceChange(index, "priority", value as number)
+                value={
+                  typeof product.priority === "string"
+                    ? parseInt(product.priority)
+                    : product.priority
+                }
+                onChange={(_, newValue) =>
+                  handleProductServiceChange(
+                    index,
+                    "priority",
+                    newValue as number
+                  )
                 }
                 min={1}
                 max={10}
+                step={1}
                 marks
                 valueLabelDisplay="auto"
               />
-              <Typography variant="caption" color="text.secondary">
-                Set the priority level from 1 (lowest) to 10 (highest)
-              </Typography>
             </Grid>
           </Grid>
         </Paper>
       ))}
 
-      <Box mt={3} display="flex" gap={2} justifyContent="space-between">
-        <Button
-          startIcon={<AddIcon />}
-          onClick={addProductService}
-          variant="outlined"
-          color="primary"
-        >
-          Add Product/Service
+      <Button
+        startIcon={<AddIcon />}
+        onClick={addProductService}
+        variant="outlined"
+        sx={{ mb: 4, mt: 1 }}
+      >
+        Add Another Product/Service
+      </Button>
+
+      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+        <Button variant="outlined" color="secondary" onClick={handleCancelForm}>
+          Cancel
         </Button>
         <Button
-          fullWidth
           variant="contained"
           color="primary"
-          size="large"
           onClick={handleSubmit}
+          type="button"
         >
-          Submit Information
+          Submit
         </Button>
       </Box>
     </Box>
