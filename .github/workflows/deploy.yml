@@ -74,7 +74,10 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USERNAME }}
           key: ${{ secrets.DROPLET_SSH_KEY }} # Key still needed for the ssh-action connection itself
+          # Pass GITHUB_WORKSPACE explicitly as an environment variable
+          envs: GITHUB_WORKSPACE=${{ github.workspace }}
           script: |
+            # Use the passed environment variable
             IMAGE_PATH="${GITHUB_WORKSPACE}/mamba-frontend.tar"
             echo "Checking for source file ${IMAGE_PATH} on runner before SCP..."
             ls -la "${IMAGE_PATH}"
@@ -160,6 +163,11 @@ jobs:
             docker image prune -af
 
             echo "Deployment script finished."
+
+      # Add a final cleanup step for the workspace tar file
+      - name: Clean up workspace tar file
+        if: always()
+        run: rm -f "${{ github.workspace }}/mamba-frontend.tar" # Use context here for cleanup
 
       # Add a final cleanup step for the workspace tar file
       - name: Clean up workspace tar file
