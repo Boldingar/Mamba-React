@@ -319,6 +319,11 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
     if (!formData.company_name.trim()) {
       errors.company_name = "Company name is required";
     }
+    if (!formData.website.trim()) {
+      errors.website = "Website URL is required";
+    } else if (!isValidUrl(formData.website)) {
+      errors.website = "Please enter a valid URL (e.g., https://example.com)";
+    }
     if (!formData.niche.trim()) {
       errors.niche = "Niche is required";
     }
@@ -352,6 +357,16 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  // Helper function to validate URL format
+  const isValidUrl = (url: string) => {
+    try {
+      new URL(url);
+      return true;
+    } catch (e) {
+      return false;
+    }
   };
 
   const handleCancelForm = () => {
@@ -462,7 +477,12 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             type="url"
             value={formData.website}
             onChange={handleInputChange}
-            helperText="Optional: Your company's website URL"
+            required
+            error={hasFieldError("website")}
+            helperText={
+              getFieldError("website") ||
+              "Enter your company's website URL (e.g., https://example.com)"
+            }
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
