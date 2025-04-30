@@ -76,7 +76,7 @@ jobs:
           # Define paths and options
           SSH_KEY_PATH="/tmp/deploy_key"
           LOCAL_IMAGE_PATH="${GITHUB_WORKSPACE}/mamba-frontend.tar"
-          REMOTE_IMAGE_PATH="/tmp/mamba-frontend.tar"
+          REMOTE_IMAGE_PATH="/root/mamba-frontend.tar"
           REMOTE_PROJECT_PATH="/root/Mamba-React"
           SSH_OPTIONS="-i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
@@ -92,22 +92,22 @@ jobs:
           echo "${DROPLET_SSH_KEY}" > "${SSH_KEY_PATH}"
           chmod 600 "${SSH_KEY_PATH}"
 
-          # 3. SCP image from runner to droplet
+          # 3. SCP image from runner to droplet (with verbose output)
           echo "Transferring image via SCP..."
-          scp ${SSH_OPTIONS} \
+          scp -v ${SSH_OPTIONS} \
             "${LOCAL_IMAGE_PATH}" \
             "${DROPLET_USERNAME}@${DROPLET_HOST}:${REMOTE_IMAGE_PATH}"
           if [ $? -ne 0 ]; then echo "ERROR: SCP failed!" >&2; exit 1; fi
           echo "SCP finished."
 
-          # 4. Execute remote deployment commands via SSH
+          # 4. Execute remote deployment commands via SSH (updated paths)
           echo "Executing remote deployment commands via SSH..."
           ssh ${SSH_OPTIONS} "${DROPLET_USERNAME}@${DROPLET_HOST}" " \
             echo '--- Starting deployment on droplet ---'; \
             mkdir -p ${REMOTE_PROJECT_PATH}; \
-            echo 'Verifying uploaded tar file...'; \
+            echo 'Verifying uploaded tar file at ${REMOTE_IMAGE_PATH}...'; \
             ls -la ${REMOTE_IMAGE_PATH}; \
-            if [ ! -f ${REMOTE_IMAGE_PATH} ]; then echo 'ERROR: Tar file not found on droplet!' >&2; exit 1; fi; \
+            if [ ! -f ${REMOTE_IMAGE_PATH} ]; then echo 'ERROR: Tar file not found on droplet at ${REMOTE_IMAGE_PATH}!' >&2; exit 1; fi; \
             echo 'Stopping/Removing old containers...'; \
             docker stop $(docker ps -a -q --filter='name=mamba-frontend') 2>/dev/null || true; \
             docker rm $(docker ps -a -q --filter='name=mamba-frontend') 2>/dev/null || true; \
