@@ -3,6 +3,7 @@ version: '3.8'
 services:
   mamba-frontend:
     image: mamba-frontend:latest
+    pull_policy: never
     container_name: mamba-frontend-${DEPLOY_ID:-latest}
     restart: always
     ports:
@@ -20,6 +21,7 @@ services:
   # Uncomment to enable SSL certificates with Let's Encrypt
   # certbot:
   #   image: certbot/certbot
+  #   pull_policy: if_not_present
   #   container_name: certbot-${DEPLOY_ID:-latest}
   #   volumes:
   #     - ./certbot/conf:/etc/letsencrypt
