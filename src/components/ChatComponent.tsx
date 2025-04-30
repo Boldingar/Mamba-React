@@ -498,11 +498,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       // Use the correct endpoint with conversation ID
       const endpoint = `${API_BASE_URL}/submit_form/${conversationId}`;
 
-      // Send the cancellation action
+      // Send the cancellation action in the correct format
       const cancellationData = {
-        form_data: {
-          action: "cancel_form",
-        },
+        action: "cancel_form",
       };
 
       await axiosInstance.post(endpoint, cancellationData);
