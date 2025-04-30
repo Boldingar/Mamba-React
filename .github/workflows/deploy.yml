@@ -39,10 +39,17 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      - name: Save Docker image
+      - name: Save Docker image to Workspace
         run: |
-          docker save mamba-frontend:latest > /tmp/mamba-frontend.tar
-          ls -la /tmp/mamba-frontend.tar
+          IMAGE_PATH="${GITHUB_WORKSPACE}/mamba-frontend.tar"
+          echo "Saving Docker image to ${IMAGE_PATH}..."
+          docker save -o "${IMAGE_PATH}" mamba-frontend:latest
+          echo "Verifying saved file on runner..."
+          ls -la "${IMAGE_PATH}"
+          if [ ! -f "${IMAGE_PATH}" ]; then
+            echo "ERROR: Failed to save Docker image to tar file on runner!"
+            exit 1
+          fi
 
       # Deploy to DigitalOcean
       - name: Upload configuration files to droplet
@@ -52,89 +59,85 @@ jobs:
           username: ${{ secrets.DROPLET_USERNAME }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           source: "docker-compose.yml,nginx.conf"
-          target: "/root/mamba-frontend"
-          # strip_components: 0 <-- Keep this for config files if needed, or remove if causing issues
-
-      - name: Upload Docker image to droplet
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.DROPLET_HOST }}
-          username: ${{ secrets.DROPLET_USERNAME }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          source: "/tmp/mamba-frontend.tar"      # Source file path on runner
-          target: "/tmp/mamba-frontend.tar"      # Explicit target file path on server
-          # REMOVED strip_components: 0
-          timeout: 300s
-          overwrite: true
+          target: "/root/Mamba-React"
 
       - name: Generate deployment ID
         id: deploy_id
         run: echo "DEPLOY_ID=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
-      - name: Deploy on droplet
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DROPLET_HOST }}
-          username: ${{ secrets.DROPLET_USERNAME }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          envs: DEPLOY_ID=${{ steps.deploy_id.outputs.DEPLOY_ID }}
-          script: |
-            echo "Starting deployment on droplet..."
-            # Ensure directories exist
-            mkdir -p /root/mamba-frontend
+      # --- Consolidated Save, Transfer, and Deploy Step ---
+      - name: Save Image, Transfer, and Deploy
+        env:
+          DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+          DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+          DROPLET_USERNAME: ${{ secrets.DROPLET_USERNAME }}
+          DEPLOY_ID: ${{ steps.deploy_id.outputs.DEPLOY_ID }}
+        run: |
+          # Define paths and options
+          SSH_KEY_PATH="/tmp/deploy_key"
+          LOCAL_IMAGE_PATH="${GITHUB_WORKSPACE}/mamba-frontend.tar"
+          REMOTE_IMAGE_PATH="/root/mamba-frontend.tar"
+          REMOTE_PROJECT_PATH="/root/Mamba-React"
+          SSH_OPTIONS="-i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-            # Verify the uploaded image file exists
-            echo "Verifying uploaded tar file..."
-            if [ ! -f /tmp/mamba-frontend.tar ]; then
-              echo "ERROR: Docker image tar file not found at /tmp/mamba-frontend.tar!"
-              ls -la /tmp/ # List contents of /tmp for debugging
-              exit 1 # Exit the script if file not found
-            fi
-            ls -la /tmp/mamba-frontend.tar
+          # 1. Save image locally on runner
+          echo "Saving Docker image to ${LOCAL_IMAGE_PATH}..."
+          docker save -o "${LOCAL_IMAGE_PATH}" mamba-frontend:latest
+          echo "Verifying saved file on runner..."
+          ls -la "${LOCAL_IMAGE_PATH}"
+          if [ ! -f "${LOCAL_IMAGE_PATH}" ]; then echo "ERROR: Failed to save image!" >&2; exit 1; fi
 
-            # Stop and remove any containers using the mamba-frontend image or name pattern
-            echo "Stopping and removing existing containers..."
-            CONTAINER_IDS=$(docker ps -a -q --filter="name=mamba-frontend")
-            if [ ! -z "$CONTAINER_IDS" ]; then
-              docker stop $CONTAINER_IDS || true
-              docker rm $CONTAINER_IDS || true
-            else
-              echo "No running containers found with name pattern mamba-frontend."
-            fi
+          # 2. Setup SSH Key
+          echo "Setting up SSH key..."
+          echo "${DROPLET_SSH_KEY}" > "${SSH_KEY_PATH}"
+          chmod 600 "${SSH_KEY_PATH}"
 
-            # Remove the existing 'latest' image tag to prevent caching issues
-            echo "Removing existing 'latest' Docker image tag..."
-            docker rmi mamba-frontend:latest 2>/dev/null || true
+          # 3. SCP image from runner to droplet (with verbose output)
+          echo "Transferring image via SCP..."
+          scp -v ${SSH_OPTIONS} \
+            "${LOCAL_IMAGE_PATH}" \
+            "${DROPLET_USERNAME}@${DROPLET_HOST}:${REMOTE_IMAGE_PATH}"
+          if [ $? -ne 0 ]; then echo "ERROR: SCP failed!" >&2; exit 1; fi
+          echo "SCP finished."
 
-            # Load the new Docker image from the tar file
-            echo "Loading new Docker image..."
-            docker load < /tmp/mamba-frontend.tar
-            # Verify image loaded successfully
-            if ! docker images | grep -q mamba-frontend; then
-              echo "ERROR: Failed to load Docker image from tar file!"
-              exit 1
-            fi
-            echo "Image loaded successfully."
+          # 4. Execute remote deployment commands via SSH (updated paths)
+          echo "Executing remote deployment commands via SSH..."
+          ssh ${SSH_OPTIONS} "${DROPLET_USERNAME}@${DROPLET_HOST}" " \
+            echo '--- Starting deployment on droplet ---'; \
+            mkdir -p ${REMOTE_PROJECT_PATH}; \
+            echo 'Verifying uploaded tar file at ${REMOTE_IMAGE_PATH}...'; \
+            ls -la ${REMOTE_IMAGE_PATH}; \
+            if [ ! -f ${REMOTE_IMAGE_PATH} ]; then echo 'ERROR: Tar file not found on droplet at ${REMOTE_IMAGE_PATH}!' >&2; exit 1; fi; \
+            echo 'Stopping/Removing old containers...'; \
+            docker stop $(docker ps -a -q --filter='name=mamba-frontend') 2>/dev/null || true; \
+            docker rm $(docker ps -a -q --filter='name=mamba-frontend') 2>/dev/null || true; \
+            echo 'Removing old image tag...'; \
+            docker rmi mamba-frontend:latest 2>/dev/null || true; \
+            echo 'Loading new image...'; \
+            docker load -i ${REMOTE_IMAGE_PATH}; \
+            if ! docker images | grep -q mamba-frontend; then echo 'ERROR: Failed to load image!' >&2; exit 1; fi; \
+            echo 'Image loaded.'; \
+            echo 'Running compose down...'; \
+            cd ${REMOTE_PROJECT_PATH}; \
+            export DEPLOY_ID='${DEPLOY_ID}'; \
+            docker-compose down --remove-orphans -v --timeout 10 2>/dev/null || true; \
+            echo 'Running compose up...'; \
+            docker-compose up -d --force-recreate; \
+            echo 'Verifying deployment...'; \
+            docker ps | grep mamba-frontend; \
+            echo 'Cleaning up tar file...'; \
+            rm -f ${REMOTE_IMAGE_PATH}; \
+            echo 'Pruning images...'; \
+            docker image prune -af; \
+            echo '--- Deployment on droplet finished ---'; \
+          "
+          if [ $? -ne 0 ]; then echo "ERROR: Remote SSH command execution failed!" >&2; exit 1; fi
+          echo "SSH deployment command finished."
 
-            # Deploy using docker-compose
-            echo "Running docker-compose down..."
-            cd /root/mamba-frontend
-            export DEPLOY_ID="${DEPLOY_ID}"
-            docker-compose down --remove-orphans -v --timeout 10 2>/dev/null || true
+          # 5. Cleanup local key file (always run)
+          echo "Cleaning up local SSH key..."
+          rm -f "${SSH_KEY_PATH}"
 
-            echo "Running docker-compose up..."
-            docker-compose up -d --force-recreate
-
-            # Verify deployment
-            echo "Verifying deployment..."
-            docker ps | grep mamba-frontend
-
-            # Clean up uploaded tar file
-            echo "Cleaning up uploaded tar file..."
-            rm -f /tmp/mamba-frontend.tar
-
-            # Prune unused Docker images (optional, but good practice)
-            echo "Pruning unused Docker images..."
-            docker image prune -af
-
-            echo "Deployment script finished." 
+      - name: Clean up workspace tar file
+        if: always()
+        run: rm -f "${{ github.workspace }}/mamba-frontend.tar" 
