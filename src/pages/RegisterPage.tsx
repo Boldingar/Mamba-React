@@ -8,9 +8,13 @@ import {
   Box,
   Alert,
   Link,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axiosInstance, { API_BASE_URL } from "../utils/axios";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 interface FieldError {
   field: string;
@@ -20,13 +24,14 @@ interface FieldError {
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: "",
     first_name: "",
     last_name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldError[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +42,16 @@ const RegisterPage: React.FC = () => {
 
     // Clear field-specific error when user types
     setFieldErrors(fieldErrors.filter((err) => err.field !== name));
+
+    // Additional validation for email field when typing
+    if (name === "email" && value && !value.includes("@")) {
+      setFieldErrors((prev) => [
+        ...prev.filter((err) => err.field !== "email"),
+        { field: "email", message: "Email must contain an @ symbol" },
+      ]);
+    } else if (name === "email" && value && value.includes("@")) {
+      setFieldErrors((prev) => prev.filter((err) => err.field !== "email"));
+    }
   };
 
   const getFieldError = (fieldName: string): string | undefined => {
@@ -44,11 +59,31 @@ const RegisterPage: React.FC = () => {
     return error?.message;
   };
 
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleToggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setFieldErrors([]);
     setIsLoading(true);
+
+    // Validate email contains @
+    if (!formData.email.includes("@")) {
+      setFieldErrors([
+        {
+          field: "email",
+          message: "Email must contain an @ symbol",
+        },
+      ]);
+      setIsLoading(false);
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setFieldErrors([
@@ -63,7 +98,6 @@ const RegisterPage: React.FC = () => {
 
     try {
       const response = await axiosInstance.post(`/register`, {
-        username: formData.username,
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,
@@ -145,20 +179,6 @@ const RegisterPage: React.FC = () => {
               margin="normal"
               required
               fullWidth
-              id="username"
-              label="Username"
-              name="username"
-              autoComplete="username"
-              value={formData.username}
-              onChange={handleInputChange}
-              disabled={isLoading}
-              error={!!getFieldError("username")}
-              helperText={getFieldError("username")}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
               id="firstName"
               label="First Name"
               name="first_name"
@@ -203,7 +223,7 @@ const RegisterPage: React.FC = () => {
               fullWidth
               name="password"
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               autoComplete="new-password"
               value={formData.password}
@@ -211,6 +231,23 @@ const RegisterPage: React.FC = () => {
               disabled={isLoading}
               error={!!getFieldError("password")}
               helperText={getFieldError("password")}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleTogglePasswordVisibility}
+                      edge="end"
+                    >
+                      {showPassword ? (
+                        <VisibilityOffIcon />
+                      ) : (
+                        <VisibilityIcon />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             <TextField
               margin="normal"
@@ -218,7 +255,7 @@ const RegisterPage: React.FC = () => {
               fullWidth
               name="confirmPassword"
               label="Confirm Password"
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               id="confirmPassword"
               autoComplete="new-password"
               value={formData.confirmPassword}
@@ -226,6 +263,23 @@ const RegisterPage: React.FC = () => {
               disabled={isLoading}
               error={!!getFieldError("confirmPassword")}
               helperText={getFieldError("confirmPassword")}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle confirm password visibility"
+                      onClick={handleToggleConfirmPasswordVisibility}
+                      edge="end"
+                    >
+                      {showConfirmPassword ? (
+                        <VisibilityOffIcon />
+                      ) : (
+                        <VisibilityIcon />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
 
             <Button

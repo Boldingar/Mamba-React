@@ -156,23 +156,33 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     setConversationId("");
   };
 
-  const fetchTableData = useCallback(async (tableId: string) => {
+  const fetchTableData = useCallback(async (tableData: any) => {
     try {
-      const response = await axiosInstance.get(
-        `${API_BASE_URL}/get_table_data?table_id=${tableId}`,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      console.log(`Processing table data:`, tableData);
 
-      if (response.status !== 200)
-        throw new Error("Failed to fetch table data");
-      const result: TableResponse = response.data;
+      // First update UI state
+      setError(null);
 
-      if (result.status === "success" && result.data) {
-        const tableData = result.data;
+      // Check if we received a table object directly or just an ID
+      if (typeof tableData === "string") {
+        // This is the old format - just an ID was passed
+        // We no longer need to fetch data in this case, but log a warning
+        console.warn("Received just a table ID. This format is deprecated.");
+        return;
+      }
 
-        // Create dataset from table data
+      // Check if this data came from the chat (showPanel = true)
+      // or from loading a conversation (showPanel not set)
+      const fromChat = tableData.showPanel === true;
+
+      // Check if we have valid data
+      if (
+        tableData &&
+        tableData.id &&
+        Array.isArray(tableData.rows) &&
+        tableData.rows.length > 0
+      ) {
+        // Create dataset from keywords data
         const newDataset: Dataset = {
           id: tableData.id,
           name: tableData.id,
@@ -181,13 +191,35 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           timestamp: new Date(),
         };
 
-        setDatasets((prev) => [...prev, newDataset]);
+        console.log("Created dataset:", newDataset, "from chat:", fromChat);
+
+        // Update state with the new dataset
+        setDatasets((prev) => {
+          // Check if dataset already exists to prevent duplicates
+          const exists = prev.some((ds) => ds.id === newDataset.id);
+          if (exists) {
+            return prev.map((ds) =>
+              ds.id === newDataset.id ? newDataset : ds
+            );
+          }
+          return [...prev, newDataset];
+        });
+
         setSelectedDatasetId(newDataset.id);
-        setShowDataPanel(true);
+
+        // Only show the panel if data is from chat
+        if (fromChat) {
+          console.log("Showing data panel for data received during chat");
+          setShowDataPanel(true);
+        } else {
+          console.log("Not showing panel for data from conversation switch");
+        }
+      } else {
+        throw new Error("Invalid table data format");
       }
     } catch (error) {
-      console.error("Error fetching table data:", error);
-      setError(`Failed to load table data: ${error.message}`);
+      console.error("Error processing table data:", error);
+      setError(`Failed to process keywords data: ${error.message}`);
     }
   }, []);
 
@@ -221,6 +253,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   // Fetch messages for the selected conversation
   useEffect(() => {
     if (conversationId) {
+      // Reset showForm when switching conversations
+      setShowForm(false);
+
       // Only skip loading when we're coming from an empty conversationId (new chat)
       // to a newly created conversation with the same messages
       const isNewConversationFromNewChat =
@@ -246,47 +281,177 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     setIsAwaitingResponse(true);
     console.log(`Fetching messages for conversation: ${convId}`);
 
+    // Reset datasets when loading a new conversation
+    setDatasets([]);
+    setSelectedDatasetId(null);
+
+    // Initially set form visibility to false when loading any conversation
+    setShowForm(false);
+
     try {
       const response = await axiosInstance.get(
         `${API_BASE_URL}/messages/${convId}?limit=0&offset=0&order=asc`
       );
 
-      if (response.status === 200 && response.data.messages) {
-        console.log("Messages received:", response.data.messages);
-        // Transform backend message format to our app's message format
-        const formattedMessages = response.data.messages.map((msg: any) => ({
-          id: msg.id,
-          text: msg.content,
-          sender: msg.is_from_agency ? "agent" : "user",
-          timestamp: new Date(msg.timestamp),
-          type: "text",
-        }));
+      if (response.status === 200) {
+        console.log("Messages response:", response.data);
 
-        console.log("Formatted messages:", formattedMessages);
+        // Initialize form state as false by default
+        let hasBusinessInfoForm = false;
 
-        // Create a welcome message to add at the beginning
-        const welcomeMessage: Message = {
-          id: "welcome",
-          text: `Welcome! I am Lily from Mamba. How can I help you today?`,
-          sender: "agent",
-          timestamp: new Date(0), // Set to oldest timestamp so it appears first
-          type: "text",
-        };
+        // Process regular messages
+        if (response.data.messages) {
+          console.log("Messages received:", response.data.messages);
+          // Transform backend message format to our app's message format
+          const formattedMessages = response.data.messages.map((msg: any) => {
+            // Check if this message has an action
+            let messageType = "text";
 
-        // Clear existing messages first to ensure loading shows
-        setMessages([]);
+            // For the last message, check if there's an action
+            if (msg.action && typeof msg.action === "object") {
+              if (msg.action["action-type"] === "collect_business_info") {
+                console.log("Found collect_business_info action");
+                // Set flag to indicate business form should be shown
+                hasBusinessInfoForm = true;
+                // This message will be of type "form" - commented out to prevent auto form creation
+                // messageType = "form";
+              }
+            }
 
-        // Then add welcome message and fetched messages
-        setTimeout(() => {
-          // Add welcome message to the beginning of the conversation
-          if (formattedMessages.length > 0) {
-            setMessages([welcomeMessage, ...formattedMessages]);
-          } else {
-            setMessages([welcomeMessage]);
+            return {
+              id: msg.id,
+              text: msg.content,
+              sender: msg.is_from_agency ? "agent" : "user",
+              timestamp: new Date(msg.timestamp),
+              type: messageType,
+            };
+          });
+
+          console.log("Formatted messages:", formattedMessages);
+
+          // Create a welcome message to add at the beginning
+          const welcomeMessage: Message = {
+            id: "welcome",
+            text: `Welcome! I am Lily from Mamba. How can I help you today?`,
+            sender: "agent",
+            timestamp: new Date(0), // Set to oldest timestamp so it appears first
+            type: "text",
+          };
+
+          // Clear existing messages first to ensure loading shows
+          setMessages([]);
+
+          // Then add welcome message and fetched messages
+          setTimeout(() => {
+            // Always filter out any form messages initially - we'll add a form message
+            // only if we find the collect_business_info action
+            // Don't filter if we found the business info action
+            const messagesToDisplay = hasBusinessInfoForm
+              ? formattedMessages
+              : formattedMessages.filter((msg) => msg.type !== "form");
+
+            // Add welcome message to the beginning of the conversation
+            if (messagesToDisplay.length > 0) {
+              setMessages([welcomeMessage, ...messagesToDisplay]);
+            } else {
+              setMessages([welcomeMessage]);
+            }
+
+            // Only set showForm to true after messages are loaded and filtered
+            setShowForm(hasBusinessInfoForm);
+
+            setIsLoading(false);
+            setIsAwaitingResponse(false);
+          }, 100); // Small delay to ensure UI updates properly
+        }
+
+        // Check for action in the response data directly
+        if (response.data.action && typeof response.data.action === "object") {
+          if (response.data.action["action-type"] === "collect_business_info") {
+            console.log("Found collect_business_info action in response data");
+            // Set flag to indicate business form should be shown
+            hasBusinessInfoForm = true;
+
+            // Add this as an update to be processed by ChatComponent
+            const businessInfoUpdate: Update = {
+              sender: "System",
+              data: {
+                type: "form",
+                action: "show_form",
+              },
+            };
+
+            setUpdates((prev) => [...prev, businessInfoUpdate]);
+
+            // Directly trigger form display after a slight delay
+            setTimeout(() => {
+              console.log("Directly setting showForm to true");
+              setShowForm(true);
+            }, 300);
           }
-          setIsLoading(false);
-          setIsAwaitingResponse(false);
-        }, 100); // Small delay to ensure UI updates properly
+        }
+
+        // Only set showForm at the end after checking all possible sources
+        // This ensures we don't reset it too early
+        setShowForm(hasBusinessInfoForm);
+
+        // Process generated content (keyword tables)
+        if (
+          response.data.generated_content &&
+          response.data.generated_content.keyword_tables
+        ) {
+          console.log(
+            "Generated content with keyword tables found:",
+            response.data.generated_content.keyword_tables
+          );
+
+          const keywordTables = response.data.generated_content.keyword_tables;
+
+          // Process each keyword table in the response
+          Object.keys(keywordTables).forEach((tableId) => {
+            const tableData = keywordTables[tableId];
+
+            if (
+              tableData &&
+              tableData.id &&
+              Array.isArray(tableData.rows) &&
+              tableData.rows.length > 0
+            ) {
+              // Create dataset from keywords data
+              const newDataset: Dataset = {
+                id: tableData.id,
+                name: tableData.id,
+                displayName: tableData.id,
+                data: tableData.rows,
+                timestamp: new Date(),
+              };
+
+              console.log(
+                "Created dataset from generated content:",
+                newDataset
+              );
+
+              // Add this dataset to our state
+              setDatasets((prev) => {
+                // Check if dataset already exists to prevent duplicates
+                const exists = prev.some((ds) => ds.id === newDataset.id);
+                if (exists) {
+                  return prev.map((ds) =>
+                    ds.id === newDataset.id ? newDataset : ds
+                  );
+                }
+                return [...prev, newDataset];
+              });
+
+              // Select the first dataset we find but don't automatically show the panel
+              setSelectedDatasetId(tableData.id);
+              console.log(
+                "Not showing panel for data from conversation loading"
+              );
+              // Don't open the panel when loading conversation data
+            }
+          });
+        }
       }
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -356,7 +521,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const selectedDataset = datasets.find((ds) => ds.id === selectedDatasetId);
 
   // Handler to toggle the DataPanel
-  const handleToggleCSVPanel = () => setShowDataPanel((open) => !open);
+  const handleToggleCSVPanel = () => {
+    // Only allow opening the panel if there's data to show
+    if (!showDataPanel && datasets.length === 0) {
+      // Don't open the panel if there's no data
+      return;
+    }
+    setShowDataPanel((open) => !open);
+  };
 
   const handleDatasetSelect = (datasetId: string) => {
     setSelectedDatasetId(datasetId);
@@ -366,6 +538,64 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const updateMessages = (newMessages: Message[]) => {
     setMessages(newMessages);
   };
+
+  // Add an event listener to handle form cancellation from the ChatComponent
+  useEffect(() => {
+    const handleFormCancelled = (event: any) => {
+      // We don't need to check for conversation ID, any form cancellation should be processed
+      console.log("Form cancelled event received, setting showForm to false");
+      setShowForm(false);
+
+      // Also force-update the messages to remove any form messages
+      setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
+    };
+
+    // Add the event listener
+    window.addEventListener("formCancelled", handleFormCancelled);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener("formCancelled", handleFormCancelled);
+    };
+  }, []);
+
+  // Add an event listener to handle form request from the ChatComponent
+  useEffect(() => {
+    const handleFormRequested = (event: any) => {
+      // Check if this is for the current conversation
+      if (event.detail.conversationId === conversationId) {
+        console.log("Form requested event received, setting showForm to true");
+        setShowForm(true);
+      }
+    };
+
+    // Add the event listener
+    window.addEventListener("formRequested", handleFormRequested);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener("formRequested", handleFormRequested);
+    };
+  }, [conversationId]);
+
+  // Add an event listener to handle form submission from the ChatComponent
+  useEffect(() => {
+    const handleFormSubmitted = (event: any) => {
+      console.log("Form submitted event received, setting showForm to false");
+      setShowForm(false);
+
+      // Also force remove any form messages to be extra safe
+      setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
+    };
+
+    // Add the event listener
+    window.addEventListener("formSubmitted", handleFormSubmitted);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener("formSubmitted", handleFormSubmitted);
+    };
+  }, []);
 
   return (
     <>
@@ -388,6 +618,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
       <TopAppBar
         csvPanelOpen={showDataPanel}
         onToggleCSVPanel={handleToggleCSVPanel}
+        hasDataToShow={datasets.length > 0}
       />
       <Box
         sx={{

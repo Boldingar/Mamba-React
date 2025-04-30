@@ -98,8 +98,8 @@ const DataPanel: React.FC<DataPanelProps> = ({
       (ds) => ds.id === selectedDatasetId
     );
     const fileName = currentDataset
-      ? `${currentDataset.name.toLowerCase().replace(/\s+/g, "_")}_filtered.csv`
-      : "filtered_data.csv";
+      ? `${currentDataset.id}.csv`
+      : "keywords_data.csv";
 
     link.setAttribute("href", url);
     link.setAttribute("download", fileName);
@@ -171,7 +171,31 @@ const DataPanel: React.FC<DataPanelProps> = ({
         </Box>
 
         <Box sx={{ flex: 1, overflow: "auto" }}>
-          <BusinessDataTable data={data} onDataFilter={setFilteredData} />
+          {data.length > 0 ? (
+            <BusinessDataTable data={data} onDataFilter={setFilteredData} />
+          ) : (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                p: 3,
+              }}
+            >
+              <Typography variant="h6" sx={{ mb: 2, color: "text.secondary" }}>
+                No data available
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ color: "text.secondary", textAlign: "center" }}
+              >
+                There is currently no data to display. When keyword data is
+                generated, it will appear here.
+              </Typography>
+            </Box>
+          )}
         </Box>
 
         <Box
