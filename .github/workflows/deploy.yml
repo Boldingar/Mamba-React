@@ -53,7 +53,7 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_KEY }}
           source: "docker-compose.yml,nginx.conf"
           target: "/root/mamba-frontend"
-          strip_components: 0
+          # strip_components: 0 <-- Keep this for config files if needed, or remove if causing issues
 
       - name: Upload Docker image to droplet
         uses: appleboy/scp-action@master
@@ -61,9 +61,9 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USERNAME }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          source: "/tmp/mamba-frontend.tar"
-          target: "/tmp"
-          strip_components: 0
+          source: "/tmp/mamba-frontend.tar"  # Source file path
+          target: "/tmp/"                   # Target directory path
+          # REMOVED strip_components: 0 - This is likely causing the tar behavior for single files
           timeout: 300s
           overwrite: true
 
@@ -85,7 +85,7 @@ jobs:
 
             # Verify the uploaded image file exists
             echo "Verifying uploaded tar file..."
-            ls -la /tmp/mamba-frontend.tar
+            ls -la /tmp/mamba-frontend.tar # Now this should work
 
             # Stop and remove any containers using the mamba-frontend image or name pattern
             echo "Stopping and removing existing containers..."
@@ -103,18 +103,15 @@ jobs:
 
             # Load the new Docker image from the tar file
             echo "Loading new Docker image..."
-            docker load < /tmp/mamba-frontend.tar
+            docker load < /tmp/mamba-frontend.tar # Now this should work
 
             # Deploy using docker-compose
             echo "Running docker-compose down..."
             cd /root/mamba-frontend
             export DEPLOY_ID="${DEPLOY_ID}"
-            # Use --force-recreate to ensure new containers are made from the new image
-            # Use --timeout 10 to prevent hanging if a container doesn't stop quickly
             docker-compose down --remove-orphans -v --timeout 10 2>/dev/null || true
 
             echo "Running docker-compose up..."
-            # Use --force-recreate here as well for extra safety
             docker-compose up -d --force-recreate
 
             # Verify deployment
