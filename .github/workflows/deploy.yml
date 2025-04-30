@@ -41,8 +41,14 @@ jobs:
 
       - name: Save Docker image
         run: |
-          docker save mamba-frontend:latest > /tmp/mamba-frontend.tar
+          echo "Saving Docker image to /tmp/mamba-frontend.tar..."
+          docker save -o /tmp/mamba-frontend.tar mamba-frontend:latest
+          echo "Verifying saved file on runner..."
           ls -la /tmp/mamba-frontend.tar
+          if [ ! -f /tmp/mamba-frontend.tar ]; then
+            echo "ERROR: Failed to save Docker image to tar file on runner!"
+            exit 1
+          fi
 
       # Deploy to DigitalOcean
       - name: Upload configuration files to droplet
@@ -68,10 +74,17 @@ jobs:
           username: ${{ secrets.DROPLET_USERNAME }}
           key: ${{ secrets.DROPLET_SSH_KEY }} # Key still needed for the ssh-action connection itself
           script: |
-            # This script runs on the runner, executing scp to the target
+            echo "Checking for source file /tmp/mamba-frontend.tar on runner before SCP..."
+            ls -la /tmp/mamba-frontend.tar
+            if [ ! -f /tmp/mamba-frontend.tar ]; then
+              echo "ERROR: Source file /tmp/mamba-frontend.tar not found on runner before SCP!"
+              exit 1
+            fi
+            echo "Starting SCP transfer..."
             scp -i /tmp/deploy_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
               /tmp/mamba-frontend.tar \
               ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_HOST }}:/tmp/mamba-frontend.tar
+            echo "SCP transfer finished."
           
       - name: Remove SSH key file from runner
         if: always() # Ensure key is removed even if scp fails
