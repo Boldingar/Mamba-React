@@ -495,7 +495,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
-            label="Company Name *"
+            label="Company Name"
             name="company_name"
             value={formData.company_name}
             onChange={handleInputChange}
@@ -514,7 +514,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
-            label="Website *"
+            label="Website"
             name="website"
             type="url"
             value={formData.website}
@@ -535,7 +535,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
-            label="Niche *"
+            label="Niche"
             name="niche"
             value={formData.niche}
             onChange={handleInputChange}
@@ -555,7 +555,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
           <TextField
             fullWidth
             select
-            label="Location *"
+            label="Location"
             name="location"
             value={formData.location}
             onChange={handleInputChange}
@@ -582,7 +582,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             fullWidth
             multiline
             rows={2}
-            label="Target Personas *"
+            label="Target Personas"
             name="target_personas"
             value={formData.target_personas}
             onChange={handleInputChange}
@@ -603,7 +603,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
           <TextField
             fullWidth
             select
-            label="Market/Geo Targeting *"
+            label="Market/Geo Targeting"
             name="market_geo"
             value={formData.market_geo}
             onChange={handleInputChange}
@@ -630,7 +630,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             fullWidth
             multiline
             rows={2}
-            label="Unique Value Propositions *"
+            label="Unique Value Propositions"
             name="value_props"
             value={formData.value_props}
             onChange={handleInputChange}
@@ -716,7 +716,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
-                label="Product/Service Name *"
+                label="Product/Service Name"
                 value={product.name}
                 onChange={(e) =>
                   handleProductServiceChange(index, "name", e.target.value)
@@ -752,11 +752,11 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
+              <TextField sx = {{height : "100px"}}
                 fullWidth
                 multiline
                 rows={2}
-                label="Description *"
+                label="Description"
                 value={product.description}
                 onChange={(e) =>
                   handleProductServiceChange(
@@ -781,7 +781,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
-                label="Target Persona *"
+                label="Target Persona"
                 value={product.target_persona}
                 onChange={(e) =>
                   handleProductServiceChange(
