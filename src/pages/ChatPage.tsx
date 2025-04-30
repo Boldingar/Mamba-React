@@ -313,8 +313,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
                 console.log("Found collect_business_info action");
                 // Set flag to indicate business form should be shown
                 hasBusinessInfoForm = true;
-                // This message will be of type "form"
-                messageType = "form";
+                // This message will be of type "form" - commented out to prevent auto form creation
+                // messageType = "form";
               }
             }
 
@@ -345,9 +345,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           setTimeout(() => {
             // Always filter out any form messages initially - we'll add a form message
             // only if we find the collect_business_info action
-            const messagesToDisplay = formattedMessages.filter(
-              (msg) => msg.type !== "form"
-            );
+            // Don't filter if we found the business info action
+            const messagesToDisplay = hasBusinessInfoForm
+              ? formattedMessages
+              : formattedMessages.filter((msg) => msg.type !== "form");
 
             // Add welcome message to the beginning of the conversation
             if (messagesToDisplay.length > 0) {
@@ -381,6 +382,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
             };
 
             setUpdates((prev) => [...prev, businessInfoUpdate]);
+
+            // Directly trigger form display after a slight delay
+            setTimeout(() => {
+              console.log("Directly setting showForm to true");
+              setShowForm(true);
+            }, 300);
           }
         }
 
@@ -531,6 +538,64 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const updateMessages = (newMessages: Message[]) => {
     setMessages(newMessages);
   };
+
+  // Add an event listener to handle form cancellation from the ChatComponent
+  useEffect(() => {
+    const handleFormCancelled = (event: any) => {
+      // We don't need to check for conversation ID, any form cancellation should be processed
+      console.log("Form cancelled event received, setting showForm to false");
+      setShowForm(false);
+
+      // Also force-update the messages to remove any form messages
+      setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
+    };
+
+    // Add the event listener
+    window.addEventListener("formCancelled", handleFormCancelled);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener("formCancelled", handleFormCancelled);
+    };
+  }, []);
+
+  // Add an event listener to handle form request from the ChatComponent
+  useEffect(() => {
+    const handleFormRequested = (event: any) => {
+      // Check if this is for the current conversation
+      if (event.detail.conversationId === conversationId) {
+        console.log("Form requested event received, setting showForm to true");
+        setShowForm(true);
+      }
+    };
+
+    // Add the event listener
+    window.addEventListener("formRequested", handleFormRequested);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener("formRequested", handleFormRequested);
+    };
+  }, [conversationId]);
+
+  // Add an event listener to handle form submission from the ChatComponent
+  useEffect(() => {
+    const handleFormSubmitted = (event: any) => {
+      console.log("Form submitted event received, setting showForm to false");
+      setShowForm(false);
+
+      // Also force remove any form messages to be extra safe
+      setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
+    };
+
+    // Add the event listener
+    window.addEventListener("formSubmitted", handleFormSubmitted);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener("formSubmitted", handleFormSubmitted);
+    };
+  }, []);
 
   return (
     <>

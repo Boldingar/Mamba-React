@@ -415,6 +415,10 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
             // Handle different action types
             if (actionType === "collect_business_info") {
+              console.log(
+                "Found collect_business_info action in response",
+                actionType
+              );
               // Add a form message
               const formMessage: Message = {
                 id: Date.now().toString() + "-form",
@@ -437,8 +441,14 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                 updateMessages(messagesWithForm);
               }
 
-              // Set form visible flag
+              // Set form visible flag - this is critical to ensure the form shows
               setIsFormVisible(true);
+
+              // Force window event to ensure parent component knows form should be shown
+              const parentUpdateEvent = new CustomEvent("formRequested", {
+                detail: { conversationId, timestamp: Date.now() },
+              });
+              window.dispatchEvent(parentUpdateEvent);
             }
             // Handle keywords_ready action type
             else if (actionType === "keywords_ready") {
@@ -639,6 +649,12 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     // Form is no longer visible
     setIsFormVisible(false);
 
+    // Emit event to ensure parent component knows the form is submitted
+    const parentUpdateEvent = new CustomEvent("formSubmitted", {
+      detail: { conversationId, timestamp: Date.now() },
+    });
+    window.dispatchEvent(parentUpdateEvent);
+
     // Now make the API call in the background
     setIsLoading(true);
 
@@ -720,7 +736,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     // Remove any form messages from the list
     const messagesWithoutForm = messages.filter((msg) => msg.type !== "form");
 
-    // Add a form cancelled message to give user feedback
+    // Add a form cancelled message immediately to give user feedback
     const formCancelledMessage: Message = {
       id: Date.now().toString(),
       text: "Form Cancelled",
@@ -751,8 +767,20 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       updateMessages(updatedMessages);
     }
 
-    // Form is no longer visible
+    // Form is no longer visible - make sure to update this state
     setIsFormVisible(false);
+
+    // Also inform parent component that form should be hidden
+    if (setIsAwaitingResponse) {
+      setIsAwaitingResponse(false);
+    }
+
+    // Force the showForm prop to be updated
+    // This is a temporary workaround to ensure the parent component knows the form is cancelled
+    const parentUpdateEvent = new CustomEvent("formCancelled", {
+      detail: { conversationId },
+    });
+    window.dispatchEvent(parentUpdateEvent);
 
     // Now make the API call and wait for response
     setIsLoading(true);
@@ -996,58 +1024,45 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
               </MessageWrapper>
             </>
           ) : (
-            // Regular message display
-            messages.map((message) => (
-              <MessageWrapper
-                key={message.id}
-                isUser={message.sender === "user"}
-              >
-                {message.sender !== "user" && (
-                  <Avatar
-                    src="/agent.png"
-                    sx={{
-                      width: 34,
-                      height: 34,
-                      mt: 1.3,
-                    }}
-                  />
-                )}
-                <MessageItem
+            // Regular message display - Filter out form messages when isFormVisible is false
+            messages
+              .filter((message) =>
+                isFormVisible ? true : message.type !== "form"
+              )
+              .map((message) => (
+                <MessageWrapper
+                  key={message.id}
                   isUser={message.sender === "user"}
-                  className={message.type === "form" ? "form" : ""}
                 >
-                  {message.type === "form" ? (
-                    <BusinessInfoForm
-                      onSubmit={handleFormSubmit}
-                      onClose={() => {}}
-                      onFileClick={() => {}}
-                      onCancel={handleFormCancel}
+                  {message.sender !== "user" && (
+                    <Avatar
+                      src="/agent.png"
+                      sx={{
+                        width: 34,
+                        height: 34,
+                        mt: 1.3,
+                      }}
                     />
-                  ) : message.text === "show form" ? (
-                    <Box sx={{ textAlign: "center" }}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleShowForm}
-                        sx={{
-                          borderRadius: 2,
-                          px: 3,
-                          py: 1,
-                          fontWeight: 600,
-                          textTransform: "none",
-                        }}
-                      >
-                        Fill Out Business Information
-                      </Button>
-                    </Box>
-                  ) : (
-                    <Typography sx={{ fontSize: "17px" }}>
-                      {message.text}
-                    </Typography>
                   )}
-                </MessageItem>
-              </MessageWrapper>
-            ))
+                  <MessageItem
+                    isUser={message.sender === "user"}
+                    className={message.type === "form" ? "form" : ""}
+                  >
+                    {message.type === "form" && isFormVisible ? (
+                      <BusinessInfoForm
+                        onSubmit={handleFormSubmit}
+                        onClose={() => {}}
+                        onFileClick={() => {}}
+                        onCancel={handleFormCancel}
+                      />
+                    ) : (
+                      <Typography sx={{ fontSize: "17px" }}>
+                        {message.text}
+                      </Typography>
+                    )}
+                  </MessageItem>
+                </MessageWrapper>
+              ))
           )}
           {(isLoading || agentProcessing) && <MessageLoading />}
           <div ref={messagesEndRef} />

@@ -370,7 +370,16 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
   };
 
   const handleCancelForm = () => {
+    // Call the onCancel callback from props immediately
     onCancel();
+
+    // Also dispatch an event as a backup to ensure the form disappears
+    const parentUpdateEvent = new CustomEvent("formCancelled", {
+      detail: {
+        timestamp: Date.now(),
+      },
+    });
+    window.dispatchEvent(parentUpdateEvent);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
