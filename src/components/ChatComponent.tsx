@@ -408,6 +408,45 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   };
 
   const handleFormSubmit = async (formData: any) => {
+    // Remove form immediately, before the API call
+    // Remove any form messages from the list
+    const messagesWithoutForm = messages.filter((msg) => msg.type !== "form");
+
+    // Add a form submitted message immediately to give user feedback
+    const formSubmittedMessage: Message = {
+      id: Date.now().toString(),
+      text: "Business Information Form Submitted",
+      sender: "user",
+      timestamp: new Date(),
+      type: "form_submitted",
+    };
+
+    // Add temporary loading message (will be replaced with response)
+    const loadingMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      text: "Processing your business information...",
+      sender: "agent",
+      timestamp: new Date(),
+      type: "text",
+    };
+
+    // Update UI immediately with form removal and loading message
+    const updatedMessages = [
+      ...messagesWithoutForm,
+      formSubmittedMessage,
+      loadingMessage,
+    ];
+    setMessages(updatedMessages);
+
+    // Update parent component
+    if (updateMessages) {
+      updateMessages(updatedMessages);
+    }
+
+    // Form is no longer visible
+    setIsFormVisible(false);
+
+    // Now make the API call in the background
     setIsLoading(true);
 
     try {
@@ -432,18 +471,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
       const data = response.data;
 
-      // Add a form submitted message
-      const formSubmittedMessage: Message = {
-        id: Date.now().toString(),
-        text: "Business Information Form Submitted",
-        sender: "user",
-        timestamp: new Date(),
-        type: "form_submitted",
-      };
-
       // Add the agent's response message (or use one from the response if available)
       const agentMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: (Date.now() + 2).toString(),
         text:
           data?.response ||
           "Thank you for providing your business information. I'll analyze this and provide recommendations shortly.",
@@ -452,24 +482,17 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         type: "text",
       };
 
-      // Remove any form messages from the list
-      const messagesWithoutForm = messages.filter((msg) => msg.type !== "form");
+      // Replace the loading message with the actual response
+      const finalMessages = messagesWithoutForm
+        .concat(formSubmittedMessage)
+        .concat(agentMessage);
 
-      // Add the form submitted message and agent response
-      const updatedMessages = [
-        ...messagesWithoutForm,
-        formSubmittedMessage,
-        agentMessage,
-      ];
-      setMessages(updatedMessages);
+      setMessages(finalMessages);
 
       // Update parent component
       if (updateMessages) {
-        updateMessages(updatedMessages);
+        updateMessages(finalMessages);
       }
-
-      // Form is no longer visible
-      setIsFormVisible(false);
     } catch (error) {
       console.error("Error submitting form:", error);
       const errorMessage: Message = {
@@ -482,13 +505,65 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         timestamp: new Date(),
         type: "text",
       };
-      setMessages((prev) => [...prev, errorMessage]);
+
+      // Add error message but keep the form removal
+      const messagesWithError = [
+        ...messagesWithoutForm,
+        formSubmittedMessage,
+        errorMessage,
+      ];
+      setMessages(messagesWithError);
+
+      if (updateMessages) {
+        updateMessages(messagesWithError);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleFormCancel = async () => {
+    // Remove form immediately, before the API call
+    // Remove any form messages from the list
+    const messagesWithoutForm = messages.filter((msg) => msg.type !== "form");
+
+    // Add a form cancelled message to give user feedback
+    const formCancelledMessage: Message = {
+      id: Date.now().toString(),
+      text: "Form Cancelled",
+      sender: "user",
+      timestamp: new Date(),
+      type: "text",
+    };
+
+    // Add temporary loading message (will be replaced with response)
+    const loadingMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      text: "Processing cancellation...",
+      sender: "agent",
+      timestamp: new Date(),
+      type: "text",
+    };
+
+    // Update UI immediately with form removal and cancellation message
+    const updatedMessages = [
+      ...messagesWithoutForm,
+      formCancelledMessage,
+      loadingMessage,
+    ];
+    setMessages(updatedMessages);
+
+    // Update parent component
+    if (updateMessages) {
+      updateMessages(updatedMessages);
+    }
+
+    // Form is no longer visible
+    setIsFormVisible(false);
+
+    // Now make the API call and wait for response
+    setIsLoading(true);
+
     try {
       // Make sure we have a conversation ID before cancelling the form
       if (!conversationId) {
@@ -503,21 +578,61 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         action: "cancel_form",
       };
 
-      await axiosInstance.post(endpoint, cancellationData);
+      // Wait for the response like we do with form submission
+      const response = await axiosInstance.post(endpoint, cancellationData);
 
-      // Remove any form messages from the list
-      const messagesWithoutForm = messages.filter((msg) => msg.type !== "form");
-      setMessages(messagesWithoutForm);
+      // Handle the response
+      const data = response.data;
+
+      // Add the agent's response message (or use one from the response if available)
+      const agentMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        text:
+          data?.response || "Form cancelled. How else can I help you today?",
+        sender: "agent",
+        timestamp: new Date(),
+        type: "text",
+      };
+
+      // Replace the loading message with the actual response
+      const finalMessages = messagesWithoutForm
+        .concat(formCancelledMessage)
+        .concat(agentMessage);
+
+      setMessages(finalMessages);
 
       // Update parent component
       if (updateMessages) {
-        updateMessages(messagesWithoutForm);
+        updateMessages(finalMessages);
       }
-
-      // Form is no longer visible
-      setIsFormVisible(false);
     } catch (error) {
       console.error("Error cancelling form:", error);
+
+      // Even if there's an error, keep the form cancelled
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        text:
+          error instanceof Error
+            ? error.message
+            : "Error processing cancellation, but form was removed.",
+        sender: "system",
+        timestamp: new Date(),
+        type: "text",
+      };
+
+      // Add error message but keep the form removal
+      const messagesWithError = [
+        ...messagesWithoutForm,
+        formCancelledMessage,
+        errorMessage,
+      ];
+      setMessages(messagesWithError);
+
+      if (updateMessages) {
+        updateMessages(messagesWithError);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
