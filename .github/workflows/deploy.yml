@@ -59,82 +59,84 @@ jobs:
           username: ${{ secrets.DROPLET_USERNAME }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           source: "docker-compose.yml,nginx.conf"
-          target: "/root/mamba-frontend"
-
-      - name: Create temporary SSH key file
-        run: |
-          echo "${{ secrets.DROPLET_SSH_KEY }}" > /tmp/deploy_key
-          chmod 600 /tmp/deploy_key
+          target: "/root/Mamba-React"
 
       - name: Generate deployment ID
         id: deploy_id
         run: echo "DEPLOY_ID=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
-      - name: Transfer Image and Deploy via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DROPLET_HOST }}
-          username: ${{ secrets.DROPLET_USERNAME }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          script: |
-            # Define paths
-            SSH_KEY_PATH="/tmp/deploy_key"
-            LOCAL_IMAGE_PATH="${{ github.workspace }}/mamba-frontend.tar"
-            REMOTE_USER="${{ secrets.DROPLET_USERNAME }}"
-            REMOTE_HOST="${{ secrets.DROPLET_HOST }}"
-            REMOTE_IMAGE_PATH="/tmp/mamba-frontend.tar"
-            REMOTE_PROJECT_PATH="/root/Mamba-React"
-            DEPLOY_ID="${{ steps.deploy_id.outputs.DEPLOY_ID }}"
-            SSH_OPTIONS="-i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+      # --- Consolidated Save, Transfer, and Deploy Step ---
+      - name: Save Image, Transfer, and Deploy
+        env:
+          DROPLET_SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+          DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+          DROPLET_USERNAME: ${{ secrets.DROPLET_USERNAME }}
+          DEPLOY_ID: ${{ steps.deploy_id.outputs.DEPLOY_ID }}
+        run: |
+          # Define paths and options
+          SSH_KEY_PATH="/tmp/deploy_key"
+          LOCAL_IMAGE_PATH="${GITHUB_WORKSPACE}/mamba-frontend.tar"
+          REMOTE_IMAGE_PATH="/tmp/mamba-frontend.tar"
+          REMOTE_PROJECT_PATH="/root/Mamba-React"
+          SSH_OPTIONS="-i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-            # 1. Verify local tar file exists on runner
-            echo "Verifying local image file: ${LOCAL_IMAGE_PATH}"
-            ls -la "${LOCAL_IMAGE_PATH}"
-            if [ ! -f "${LOCAL_IMAGE_PATH}" ]; then echo "ERROR: Local image file not found!"; exit 1; fi
+          # 1. Save image locally on runner
+          echo "Saving Docker image to ${LOCAL_IMAGE_PATH}..."
+          docker save -o "${LOCAL_IMAGE_PATH}" mamba-frontend:latest
+          echo "Verifying saved file on runner..."
+          ls -la "${LOCAL_IMAGE_PATH}"
+          if [ ! -f "${LOCAL_IMAGE_PATH}" ]; then echo "ERROR: Failed to save image!" >&2; exit 1; fi
 
-            # 2. SCP the image file from runner to droplet
-            echo "Transferring image file via SCP..."
-            scp ${SSH_OPTIONS} \
-              "${LOCAL_IMAGE_PATH}" \
-              ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_IMAGE_PATH}
-            echo "SCP transfer finished."
+          # 2. Setup SSH Key
+          echo "Setting up SSH key..."
+          echo "${DROPLET_SSH_KEY}" > "${SSH_KEY_PATH}"
+          chmod 600 "${SSH_KEY_PATH}"
 
-            # 3. SSH into droplet and execute deployment commands
-            echo "Connecting to droplet via SSH to perform deployment..."
-            ssh ${SSH_OPTIONS} ${REMOTE_USER}@${REMOTE_HOST} " \
-              echo '--- Starting deployment on droplet ---'; \
-              mkdir -p ${REMOTE_PROJECT_PATH}; \
-              echo 'Verifying uploaded tar file...'; \
-              ls -la ${REMOTE_IMAGE_PATH}; \
-              if [ ! -f ${REMOTE_IMAGE_PATH} ]; then echo 'ERROR: Tar file not found on droplet!'; exit 1; fi; \
-              echo 'Stopping/Removing old containers...'; \
-              docker stop $(docker ps -a -q --filter='name=mamba-frontend') 2>/dev/null || true; \
-              docker rm $(docker ps -a -q --filter='name=mamba-frontend') 2>/dev/null || true; \
-              echo 'Removing old image tag...'; \
-              docker rmi mamba-frontend:latest 2>/dev/null || true; \
-              echo 'Loading new image...'; \
-              docker load -i ${REMOTE_IMAGE_PATH}; \
-              if ! docker images | grep -q mamba-frontend; then echo 'ERROR: Failed to load image!'; exit 1; fi; \
-              echo 'Image loaded.'; \
-              echo 'Running compose down...'; \
-              cd ${REMOTE_PROJECT_PATH}; \
-              export DEPLOY_ID='${DEPLOY_ID}'; \
-              docker-compose down --remove-orphans -v --timeout 10 2>/dev/null || true; \
-              echo 'Running compose up...'; \
-              docker-compose up -d --force-recreate; \
-              echo 'Verifying deployment...'; \
-              docker ps | grep mamba-frontend; \
-              echo 'Cleaning up tar file...'; \
-              rm -f ${REMOTE_IMAGE_PATH}; \
-              echo 'Pruning images...'; \
-              docker image prune -af; \
-              echo '--- Deployment on droplet finished ---'; \
-            "
-            echo "SSH deployment command finished."
+          # 3. SCP image from runner to droplet
+          echo "Transferring image via SCP..."
+          scp ${SSH_OPTIONS} \
+            "${LOCAL_IMAGE_PATH}" \
+            "${DROPLET_USERNAME}@${DROPLET_HOST}:${REMOTE_IMAGE_PATH}"
+          if [ $? -ne 0 ]; then echo "ERROR: SCP failed!" >&2; exit 1; fi
+          echo "SCP finished."
 
-      - name: Remove temporary SSH key file
-        if: always()
-        run: rm -f /tmp/deploy_key
+          # 4. Execute remote deployment commands via SSH
+          echo "Executing remote deployment commands via SSH..."
+          ssh ${SSH_OPTIONS} "${DROPLET_USERNAME}@${DROPLET_HOST}" " \
+            echo '--- Starting deployment on droplet ---'; \
+            mkdir -p ${REMOTE_PROJECT_PATH}; \
+            echo 'Verifying uploaded tar file...'; \
+            ls -la ${REMOTE_IMAGE_PATH}; \
+            if [ ! -f ${REMOTE_IMAGE_PATH} ]; then echo 'ERROR: Tar file not found on droplet!' >&2; exit 1; fi; \
+            echo 'Stopping/Removing old containers...'; \
+            docker stop $(docker ps -a -q --filter='name=mamba-frontend') 2>/dev/null || true; \
+            docker rm $(docker ps -a -q --filter='name=mamba-frontend') 2>/dev/null || true; \
+            echo 'Removing old image tag...'; \
+            docker rmi mamba-frontend:latest 2>/dev/null || true; \
+            echo 'Loading new image...'; \
+            docker load -i ${REMOTE_IMAGE_PATH}; \
+            if ! docker images | grep -q mamba-frontend; then echo 'ERROR: Failed to load image!' >&2; exit 1; fi; \
+            echo 'Image loaded.'; \
+            echo 'Running compose down...'; \
+            cd ${REMOTE_PROJECT_PATH}; \
+            export DEPLOY_ID='${DEPLOY_ID}'; \
+            docker-compose down --remove-orphans -v --timeout 10 2>/dev/null || true; \
+            echo 'Running compose up...'; \
+            docker-compose up -d --force-recreate; \
+            echo 'Verifying deployment...'; \
+            docker ps | grep mamba-frontend; \
+            echo 'Cleaning up tar file...'; \
+            rm -f ${REMOTE_IMAGE_PATH}; \
+            echo 'Pruning images...'; \
+            docker image prune -af; \
+            echo '--- Deployment on droplet finished ---'; \
+          "
+          if [ $? -ne 0 ]; then echo "ERROR: Remote SSH command execution failed!" >&2; exit 1; fi
+          echo "SSH deployment command finished."
+
+          # 5. Cleanup local key file (always run)
+          echo "Cleaning up local SSH key..."
+          rm -f "${SSH_KEY_PATH}"
 
       - name: Clean up workspace tar file
         if: always()
