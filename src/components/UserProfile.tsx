@@ -12,7 +12,6 @@ import {
   ListItemText,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import EditIcon from "@mui/icons-material/Edit";
 import axiosInstance from "../utils/axios";
 
 interface UserProfileProps {
@@ -20,7 +19,6 @@ interface UserProfileProps {
 }
 
 interface UserData {
-  username: string;
   first_name?: string;
   last_name?: string;
   email?: string;
@@ -32,9 +30,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingUsername, setEditingUsername] = useState(false);
-  const [usernameInput, setUsernameInput] = useState("");
-  const [savingUsername, setSavingUsername] = useState(false);
 
   useEffect(() => {
     // Try to get user data from storage first
@@ -43,7 +38,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     if (stored) {
       const parsed = JSON.parse(stored);
       setUser(parsed);
-      setUsernameInput(parsed.username);
       setLoading(false);
     } else {
       // Optionally, fetch from backend if not in storage
@@ -51,7 +45,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
         .get("/me")
         .then((res) => {
           setUser(res.data);
-          setUsernameInput(res.data.username);
           setLoading(false);
         })
         .catch(() => {
@@ -60,41 +53,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
         });
     }
   }, []);
-
-  const handleEditUsername = () => {
-    setEditingUsername(true);
-  };
-
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsernameInput(e.target.value);
-  };
-
-  const handleUsernameSave = async () => {
-    if (!user) return;
-    setSavingUsername(true);
-    try {
-      // Show popup instead of API call
-      alert("Function coming soon!");
-      setEditingUsername(false);
-      setUser({ ...user, username: usernameInput });
-    } catch (e) {
-      // Optionally show error
-    } finally {
-      setSavingUsername(false);
-    }
-  };
-
-  const handleUsernameInputKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === "Enter") {
-      handleUsernameSave();
-    }
-    if (e.key === "Escape") {
-      setEditingUsername(false);
-      setUsernameInput(user?.username || "");
-    }
-  };
 
   if (loading) return null;
   if (error)
@@ -145,46 +103,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
           <Typography variant="h5" fontWeight={700} gutterBottom>
             {user.first_name || ""} {user.last_name || ""}
           </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-            {editingUsername ? (
-              <input
-                value={usernameInput}
-                onChange={handleUsernameChange}
-                onBlur={handleUsernameSave}
-                onKeyDown={handleUsernameInputKeyDown}
-                disabled={savingUsername}
-                style={{
-                  fontSize: 16,
-                  fontWeight: 500,
-                  background: "transparent",
-                  border: "1px solid #555",
-                  borderRadius: 4,
-                  color: "inherit",
-                  padding: "2px 8px",
-                  minWidth: 90,
-                  outline: "none",
-                }}
-                autoFocus
-              />
-            ) : (
-              <>
-                <Typography
-                  variant="subtitle1"
-                  color="text.secondary"
-                  sx={{ fontWeight: 500 }}
-                >
-                  @{user.username}
-                </Typography>
-                <IconButton
-                  size="small"
-                  sx={{ ml: 0.5, p: 0.5 }}
-                  onClick={handleEditUsername}
-                >
-                  <EditIcon fontSize="inherit" style={{ fontSize: 18 }} />
-                </IconButton>
-              </>
-            )}
-          </Box>
+          <Typography variant="subtitle1" color="text.secondary">
+            {user.email || ""}
+          </Typography>
         </Box>
         <Divider sx={{ my: 2 }} />
         <List sx={{ mb: 2, width: "100%" }}>

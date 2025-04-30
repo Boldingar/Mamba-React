@@ -20,7 +20,7 @@ interface LoginPageProps {
 
 const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +33,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
 
     try {
       const response = await axiosInstance.post(`/login`, {
-        username,
+        email,
         password,
       });
 
@@ -67,7 +67,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
         if (err.response.status === 401) {
-          setError("Invalid username or password");
+          setError("Invalid email or password");
         } else if (err.response.data && err.response.data.detail) {
           setError(err.response.data.detail);
         } else {
@@ -112,13 +112,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               margin="normal"
               required
               fullWidth
-              id="username"
-              label="Username"
-              name="username"
-              autoComplete="username"
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
               autoFocus
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
               sx={{
                 "& .MuiOutlinedInput-root": {

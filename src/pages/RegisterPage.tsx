@@ -20,7 +20,6 @@ interface FieldError {
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: "",
     first_name: "",
     last_name: "",
     email: "",
@@ -63,7 +62,6 @@ const RegisterPage: React.FC = () => {
 
     try {
       const response = await axiosInstance.post(`/register`, {
-        username: formData.username,
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,
@@ -141,20 +139,6 @@ const RegisterPage: React.FC = () => {
           )}
 
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="username"
-              label="Username"
-              name="username"
-              autoComplete="username"
-              value={formData.username}
-              onChange={handleInputChange}
-              disabled={isLoading}
-              error={!!getFieldError("username")}
-              helperText={getFieldError("username")}
-            />
             <TextField
               margin="normal"
               required
