@@ -127,15 +127,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
               }
             />
           </ListItem>
-          <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
-            <ListItemText
-              primary={
-                <>
-                  <b>Email:</b> {user.email || "-"}
-                </>
-              }
-            />
-          </ListItem>
         </List>
         {/* Add more user details here as needed */}
       </Paper>
