@@ -79,21 +79,54 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_KEY }}
           envs: DEPLOY_ID=${{ steps.deploy_id.outputs.DEPLOY_ID }}
           script: |
+            echo "Starting deployment on droplet..."
             # Ensure directories exist
             mkdir -p /root/mamba-frontend
-            
-            # Load the Docker image
+
+            # Verify the uploaded image file exists
+            echo "Verifying uploaded tar file..."
+            ls -la /tmp/mamba-frontend.tar
+
+            # Stop and remove any containers using the mamba-frontend image or name pattern
+            echo "Stopping and removing existing containers..."
+            CONTAINER_IDS=$(docker ps -a -q --filter="name=mamba-frontend")
+            if [ ! -z "$CONTAINER_IDS" ]; then
+              docker stop $CONTAINER_IDS || true
+              docker rm $CONTAINER_IDS || true
+            else
+              echo "No running containers found with name pattern mamba-frontend."
+            fi
+
+            # Remove the existing 'latest' image tag to prevent caching issues
+            echo "Removing existing 'latest' Docker image tag..."
+            docker rmi mamba-frontend:latest 2>/dev/null || true
+
+            # Load the new Docker image from the tar file
+            echo "Loading new Docker image..."
             docker load < /tmp/mamba-frontend.tar
-            
-            # Stop and remove existing container if exists
-            docker stop $(docker ps -a -q --filter="name=mamba-frontend") 2>/dev/null || true
-            docker rm $(docker ps -a -q --filter="name=mamba-frontend") 2>/dev/null || true
-            
-            # Deploy using docker-compose with unique deployment ID
+
+            # Deploy using docker-compose
+            echo "Running docker-compose down..."
             cd /root/mamba-frontend
             export DEPLOY_ID="${DEPLOY_ID}"
-            docker-compose down --remove-orphans -v 2>/dev/null || true
-            docker-compose up -d
-            
-            # Clean up
-            rm -f /tmp/mamba-frontend.tar 
+            # Use --force-recreate to ensure new containers are made from the new image
+            # Use --timeout 10 to prevent hanging if a container doesn't stop quickly
+            docker-compose down --remove-orphans -v --timeout 10 2>/dev/null || true
+
+            echo "Running docker-compose up..."
+            # Use --force-recreate here as well for extra safety
+            docker-compose up -d --force-recreate
+
+            # Verify deployment
+            echo "Verifying deployment..."
+            docker ps | grep mamba-frontend
+
+            # Clean up uploaded tar file
+            echo "Cleaning up uploaded tar file..."
+            rm -f /tmp/mamba-frontend.tar
+
+            # Prune unused Docker images (optional, but good practice)
+            echo "Pruning unused Docker images..."
+            docker image prune -af
+
+            echo "Deployment script finished." 
