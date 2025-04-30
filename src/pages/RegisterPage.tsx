@@ -8,9 +8,13 @@ import {
   Box,
   Alert,
   Link,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axiosInstance, { API_BASE_URL } from "../utils/axios";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 interface FieldError {
   field: string;
@@ -26,6 +30,8 @@ const RegisterPage: React.FC = () => {
     password: "",
     confirmPassword: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldError[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +47,14 @@ const RegisterPage: React.FC = () => {
   const getFieldError = (fieldName: string): string | undefined => {
     const error = fieldErrors.find((err) => err.field === fieldName);
     return error?.message;
+  };
+
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleToggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -187,7 +201,7 @@ const RegisterPage: React.FC = () => {
               fullWidth
               name="password"
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               autoComplete="new-password"
               value={formData.password}
@@ -195,6 +209,23 @@ const RegisterPage: React.FC = () => {
               disabled={isLoading}
               error={!!getFieldError("password")}
               helperText={getFieldError("password")}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleTogglePasswordVisibility}
+                      edge="end"
+                    >
+                      {showPassword ? (
+                        <VisibilityOffIcon />
+                      ) : (
+                        <VisibilityIcon />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             <TextField
               margin="normal"
@@ -202,7 +233,7 @@ const RegisterPage: React.FC = () => {
               fullWidth
               name="confirmPassword"
               label="Confirm Password"
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               id="confirmPassword"
               autoComplete="new-password"
               value={formData.confirmPassword}
@@ -210,6 +241,23 @@ const RegisterPage: React.FC = () => {
               disabled={isLoading}
               error={!!getFieldError("confirmPassword")}
               helperText={getFieldError("confirmPassword")}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle confirm password visibility"
+                      onClick={handleToggleConfirmPasswordVisibility}
+                      edge="end"
+                    >
+                      {showConfirmPassword ? (
+                        <VisibilityOffIcon />
+                      ) : (
+                        <VisibilityIcon />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
 
             <Button
