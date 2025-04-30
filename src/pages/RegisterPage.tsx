@@ -42,6 +42,16 @@ const RegisterPage: React.FC = () => {
 
     // Clear field-specific error when user types
     setFieldErrors(fieldErrors.filter((err) => err.field !== name));
+
+    // Additional validation for email field when typing
+    if (name === "email" && value && !value.includes("@")) {
+      setFieldErrors((prev) => [
+        ...prev.filter((err) => err.field !== "email"),
+        { field: "email", message: "Email must contain an @ symbol" },
+      ]);
+    } else if (name === "email" && value && value.includes("@")) {
+      setFieldErrors((prev) => prev.filter((err) => err.field !== "email"));
+    }
   };
 
   const getFieldError = (fieldName: string): string | undefined => {
@@ -62,6 +72,18 @@ const RegisterPage: React.FC = () => {
     setError(null);
     setFieldErrors([]);
     setIsLoading(true);
+
+    // Validate email contains @
+    if (!formData.email.includes("@")) {
+      setFieldErrors([
+        {
+          field: "email",
+          message: "Email must contain an @ symbol",
+        },
+      ]);
+      setIsLoading(false);
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setFieldErrors([

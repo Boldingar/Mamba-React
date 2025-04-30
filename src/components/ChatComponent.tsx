@@ -211,6 +211,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         if (update.data.action === "table_ready" && update.data.id) {
           onTableReady(update.data.id);
         } else if (update.data.action === "show_form") {
+          console.log("Received show_form action, adding form message");
           const formMessage: Message = {
             id: Date.now().toString(),
             text: "",
@@ -219,9 +220,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             type: "form",
           };
           setMessages((prev) => [...prev, formMessage]);
+          setIsFormVisible(true);
         } else if (update.data.action === "hide_form") {
           // Remove any form messages from the list
           setMessages((prev) => prev.filter((msg) => msg.type !== "form"));
+          setIsFormVisible(false);
         }
       } else if (
         update.sender === "Agent" &&
@@ -240,11 +243,65 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   }, [updates, onTableReady, conversationId]);
 
+  // Add direct effect for showForm changes to immediately respond
+  useEffect(() => {
+    console.log("showForm prop changed:", showForm);
+    if (!showForm) {
+      // Immediately clear form visibility when prop changes to false
+      setIsFormVisible(false);
+    }
+  }, [showForm]);
+
   // Add an effect to check if a form is currently visible in messages
   useEffect(() => {
-    const hasForm = messages.some((msg) => msg.type === "form");
-    setIsFormVisible(hasForm);
-  }, [messages]);
+    // First priority: if showForm is false, make sure no forms are visible
+    if (!showForm) {
+      // Remove any form messages from the messages array
+      const hasFormMessages = messages.some((msg) => msg.type === "form");
+      if (hasFormMessages) {
+        console.log("Removing form messages because showForm is false");
+        const messagesWithoutForm = messages.filter(
+          (msg) => msg.type !== "form"
+        );
+        setMessages(messagesWithoutForm);
+
+        if (updateMessages) {
+          updateMessages(messagesWithoutForm);
+        }
+      }
+      setIsFormVisible(false);
+    } else {
+      // If showForm is true, check if there's already a form in messages
+      const hasForm = messages.some((msg) => msg.type === "form");
+      setIsFormVisible(hasForm || showForm);
+    }
+  }, [showForm, messages, updateMessages]);
+
+  // Remove the old useEffect that added form messages, and create a simpler one
+  useEffect(() => {
+    // Only add a form if showForm is true, no form exists yet, and we have messages
+    if (
+      showForm &&
+      !messages.some((msg) => msg.type === "form") &&
+      messages.length > 0
+    ) {
+      console.log("Adding form message because showForm is true");
+      const formMessage: Message = {
+        id: Date.now().toString(),
+        text: "",
+        sender: "agent",
+        timestamp: new Date(),
+        type: "form",
+      };
+
+      const updatedMessages = [...messages, formMessage];
+      setMessages(updatedMessages);
+
+      if (updateMessages) {
+        updateMessages(updatedMessages);
+      }
+    }
+  }, [showForm, messages, updateMessages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -809,6 +866,28 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   };
 
+  // Function to handle showing the form directly
+  const handleShowForm = () => {
+    console.log("handleShowForm called - adding form message");
+    // Add a form message to the chat
+    const formMessage: Message = {
+      id: Date.now().toString(),
+      text: "",
+      sender: "agent",
+      timestamp: new Date(),
+      type: "form",
+    };
+
+    const updatedMessages = [...messages, formMessage];
+    setMessages(updatedMessages);
+
+    if (updateMessages) {
+      updateMessages(updatedMessages);
+    }
+
+    setIsFormVisible(true);
+  };
+
   // Debug message rendering
   console.log("About to render messages:", messages);
 
@@ -944,6 +1023,23 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                       onFileClick={() => {}}
                       onCancel={handleFormCancel}
                     />
+                  ) : message.text === "show form" ? (
+                    <Box sx={{ textAlign: "center" }}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleShowForm}
+                        sx={{
+                          borderRadius: 2,
+                          px: 3,
+                          py: 1,
+                          fontWeight: 600,
+                          textTransform: "none",
+                        }}
+                      >
+                        Fill Out Business Information
+                      </Button>
+                    </Box>
                   ) : (
                     <Typography sx={{ fontSize: "17px" }}>
                       {message.text}

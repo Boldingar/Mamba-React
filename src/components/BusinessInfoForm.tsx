@@ -425,8 +425,10 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
   return (
     <Box
       sx={{
-        p: 2,
-        backgroundColor: "transparent",
+        p: 3,
+        backgroundColor: "background.paper",
+        borderRadius: 2,
+        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
       }}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
@@ -440,25 +442,51 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
         alignItems="center"
         mb={3}
       >
-        <Typography variant="h6" color="primary">
+        <Typography
+          variant="h6"
+          color="primary"
+          sx={{
+            fontWeight: 600,
+            letterSpacing: 0.5,
+          }}
+        >
           Business Information
         </Typography>
-        <IconButton onClick={handleCancelForm} size="small" color="primary">
+        <IconButton
+          onClick={handleCancelForm}
+          size="small"
+          sx={{
+            color: "text.secondary",
+            "&:hover": {
+              color: "primary.main",
+              backgroundColor: "rgba(0, 120, 255, 0.08)",
+            },
+          }}
+        >
           <CloseIcon />
         </IconButton>
       </Box>
 
       {Object.keys(validationErrors).length > 0 && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert
+          severity="error"
+          sx={{
+            mb: 3,
+            borderRadius: 1.5,
+            "& .MuiAlert-icon": {
+              alignItems: "center",
+            },
+          }}
+        >
           Please correct the highlighted fields before submitting.
         </Alert>
       )}
 
-      <Grid container spacing={2}>
+      <Grid container spacing={2.5}>
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
-            label="Company Name"
+            label="Company Name *"
             name="company_name"
             value={formData.company_name}
             onChange={handleInputChange}
@@ -467,12 +495,17 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             helperText={
               getFieldError("company_name") || "Enter your company's legal name"
             }
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 1.5,
+              },
+            }}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
-            label="Website"
+            label="Website *"
             name="website"
             type="url"
             value={formData.website}
@@ -483,12 +516,17 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
               getFieldError("website") ||
               "Enter your company's website URL (e.g., https://example.com)"
             }
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 1.5,
+              },
+            }}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
-            label="Niche"
+            label="Niche *"
             name="niche"
             value={formData.niche}
             onChange={handleInputChange}
@@ -497,13 +535,18 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             helperText={
               getFieldError("niche") || "e.g., E-commerce, SaaS, Healthcare"
             }
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 1.5,
+              },
+            }}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
             select
-            label="Location"
+            label="Location *"
             name="location"
             value={formData.location}
             onChange={handleInputChange}
@@ -512,6 +555,11 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             helperText={
               getFieldError("location") || "Primary business location"
             }
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 1.5,
+              },
+            }}
           >
             {locations.map((option) => (
               <MenuItem key={option} value={option}>
@@ -525,7 +573,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             fullWidth
             multiline
             rows={2}
-            label="Target Personas"
+            label="Target Personas *"
             name="target_personas"
             value={formData.target_personas}
             onChange={handleInputChange}
@@ -535,13 +583,18 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
               getFieldError("target_personas") ||
               "Describe your ideal customers (e.g., Small business owners, Tech-savvy millennials)"
             }
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 1.5,
+              },
+            }}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
             select
-            label="Market/Geo Targeting"
+            label="Market/Geo Targeting *"
             name="market_geo"
             value={formData.market_geo}
             onChange={handleInputChange}
@@ -550,6 +603,11 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             helperText={
               getFieldError("market_geo") || "Select your target market scope"
             }
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 1.5,
+              },
+            }}
           >
             {marketGeoOptions.map((option) => (
               <MenuItem key={option} value={option}>
@@ -563,7 +621,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             fullWidth
             multiline
             rows={2}
-            label="Unique Value Propositions"
+            label="Unique Value Propositions *"
             name="value_props"
             value={formData.value_props}
             onChange={handleInputChange}
@@ -573,39 +631,71 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
               getFieldError("value_props") ||
               "What makes your business unique? List your key advantages"
             }
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 1.5,
+              },
+            }}
           />
         </Grid>
       </Grid>
 
-      <Typography variant="h6" sx={{ mt: 4, mb: 1 }}>
+      <Typography
+        variant="h6"
+        sx={{
+          mt: 4,
+          mb: 2,
+          fontWeight: 600,
+          color: "primary.main",
+          letterSpacing: 0.5,
+        }}
+      >
         Products & Services
       </Typography>
 
       {productsServices.map((product, index) => (
         <Paper
           key={index}
-          elevation={1}
-          sx={{ p: 2, mb: 3, bgcolor: "background.paper", borderRadius: 2 }}
+          elevation={0}
+          sx={{
+            p: 2.5,
+            mb: 3,
+            bgcolor: "background.default",
+            borderRadius: 2,
+            border: "1px solid",
+            borderColor: "divider",
+          }}
         >
           <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
+              alignItems: "center",
               mb: 2,
             }}
           >
             <Typography
               variant="subtitle1"
-              fontWeight="medium"
-              color="primary.main"
+              fontWeight="600"
+              color="text.primary"
             >
               Product/Service #{index + 1}
             </Typography>
             {productsServices.length > 1 && (
               <Button
                 size="small"
-                color="error"
                 onClick={() => removeProductService(index)}
+                sx={{
+                  minWidth: 0,
+                  borderRadius: 2,
+                  color: "error.main",
+                  px: 1.5,
+                  py: 0.5,
+                  borderColor: "error.main",
+                  "&:hover": {
+                    backgroundColor: "rgba(211, 47, 47, 0.08)",
+                  },
+                }}
                 variant="outlined"
               >
                 Remove
@@ -613,11 +703,11 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
             )}
           </Box>
 
-          <Grid container spacing={2}>
+          <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
-                label="Product/Service Name"
+                label="Product/Service Name *"
                 value={product.name}
                 onChange={(e) =>
                   handleProductServiceChange(index, "name", e.target.value)
@@ -628,6 +718,11 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                   getProductServiceError(index, "name") ||
                   "Name of your product or service"
                 }
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                  },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -640,6 +735,11 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                   handleProductServiceChange(index, "url", e.target.value)
                 }
                 helperText="Optional: Link to product page or documentation"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                  },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -647,7 +747,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                 fullWidth
                 multiline
                 rows={2}
-                label="Description"
+                label="Description *"
                 value={product.description}
                 onChange={(e) =>
                   handleProductServiceChange(
@@ -662,12 +762,17 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                   getProductServiceError(index, "description") ||
                   "Brief description of features and benefits"
                 }
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                  },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
-                label="Target Persona"
+                label="Target Persona *"
                 value={product.target_persona}
                 onChange={(e) =>
                   handleProductServiceChange(
@@ -682,6 +787,11 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                   getProductServiceError(index, "target_persona") ||
                   "Who is this product/service for?"
                 }
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                  },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12 }}>
@@ -689,7 +799,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                 variant="body2"
                 color="text.secondary"
                 gutterBottom
-                sx={{ mt: 1 }}
+                sx={{ mt: 1, fontWeight: 500 }}
               >
                 Priority Level (1-10)
               </Typography>
@@ -711,6 +821,13 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                 step={1}
                 marks
                 valueLabelDisplay="auto"
+                sx={{
+                  color: "primary.main",
+                  "& .MuiSlider-thumb": {
+                    width: 14,
+                    height: 14,
+                  },
+                }}
               />
             </Grid>
           </Grid>
@@ -721,20 +838,65 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
         startIcon={<AddIcon />}
         onClick={addProductService}
         variant="outlined"
-        sx={{ mb: 4, mt: 1 }}
+        sx={{
+          mb: 4,
+          mt: 1,
+          borderRadius: 2,
+          px: 2,
+          py: 1,
+          textTransform: "none",
+          fontWeight: 600,
+          borderColor: "primary.main",
+          "&:hover": {
+            backgroundColor: "rgba(0, 120, 255, 0.08)",
+          },
+        }}
       >
         Add Another Product/Service
       </Button>
 
-      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-        <Button variant="outlined" color="secondary" onClick={handleCancelForm}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          mt: 2,
+          gap: 2,
+        }}
+      >
+        <Button
+          variant="outlined"
+          onClick={handleCancelForm}
+          sx={{
+            borderRadius: 2,
+            px: 4,
+            py: 1,
+            fontWeight: 600,
+            textTransform: "none",
+            borderColor: "divider",
+            color: "text.secondary",
+            "&:hover": {
+              backgroundColor: "rgba(0, 0, 0, 0.05)",
+              borderColor: "text.secondary",
+            },
+          }}
+        >
           Cancel
         </Button>
         <Button
           variant="contained"
-          color="primary"
           onClick={handleSubmit}
           type="button"
+          sx={{
+            borderRadius: 2,
+            px: 4,
+            py: 1,
+            fontWeight: 600,
+            textTransform: "none",
+            boxShadow: 2,
+            "&:hover": {
+              boxShadow: 4,
+            },
+          }}
         >
           Submit
         </Button>

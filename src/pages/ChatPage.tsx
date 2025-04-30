@@ -253,6 +253,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   // Fetch messages for the selected conversation
   useEffect(() => {
     if (conversationId) {
+      // Reset showForm when switching conversations
+      setShowForm(false);
+
       // Only skip loading when we're coming from an empty conversationId (new chat)
       // to a newly created conversation with the same messages
       const isNewConversationFromNewChat =
@@ -281,8 +284,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     // Reset datasets when loading a new conversation
     setDatasets([]);
     setSelectedDatasetId(null);
-    // Don't automatically show data panel when switching conversations
-    // setShowDataPanel(false); - We keep this to preserve current panel state
+
+    // Initially set form visibility to false when loading any conversation
+    setShowForm(false);
 
     try {
       const response = await axiosInstance.get(
@@ -292,17 +296,36 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
       if (response.status === 200) {
         console.log("Messages response:", response.data);
 
+        // Initialize form state as false by default
+        let hasBusinessInfoForm = false;
+
         // Process regular messages
         if (response.data.messages) {
           console.log("Messages received:", response.data.messages);
           // Transform backend message format to our app's message format
-          const formattedMessages = response.data.messages.map((msg: any) => ({
-            id: msg.id,
-            text: msg.content,
-            sender: msg.is_from_agency ? "agent" : "user",
-            timestamp: new Date(msg.timestamp),
-            type: "text",
-          }));
+          const formattedMessages = response.data.messages.map((msg: any) => {
+            // Check if this message has an action
+            let messageType = "text";
+
+            // For the last message, check if there's an action
+            if (msg.action && typeof msg.action === "object") {
+              if (msg.action["action-type"] === "collect_business_info") {
+                console.log("Found collect_business_info action");
+                // Set flag to indicate business form should be shown
+                hasBusinessInfoForm = true;
+                // This message will be of type "form"
+                messageType = "form";
+              }
+            }
+
+            return {
+              id: msg.id,
+              text: msg.content,
+              sender: msg.is_from_agency ? "agent" : "user",
+              timestamp: new Date(msg.timestamp),
+              type: messageType,
+            };
+          });
 
           console.log("Formatted messages:", formattedMessages);
 
@@ -320,16 +343,50 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
 
           // Then add welcome message and fetched messages
           setTimeout(() => {
+            // Always filter out any form messages initially - we'll add a form message
+            // only if we find the collect_business_info action
+            const messagesToDisplay = formattedMessages.filter(
+              (msg) => msg.type !== "form"
+            );
+
             // Add welcome message to the beginning of the conversation
-            if (formattedMessages.length > 0) {
-              setMessages([welcomeMessage, ...formattedMessages]);
+            if (messagesToDisplay.length > 0) {
+              setMessages([welcomeMessage, ...messagesToDisplay]);
             } else {
               setMessages([welcomeMessage]);
             }
+
+            // Only set showForm to true after messages are loaded and filtered
+            setShowForm(hasBusinessInfoForm);
+
             setIsLoading(false);
             setIsAwaitingResponse(false);
           }, 100); // Small delay to ensure UI updates properly
         }
+
+        // Check for action in the response data directly
+        if (response.data.action && typeof response.data.action === "object") {
+          if (response.data.action["action-type"] === "collect_business_info") {
+            console.log("Found collect_business_info action in response data");
+            // Set flag to indicate business form should be shown
+            hasBusinessInfoForm = true;
+
+            // Add this as an update to be processed by ChatComponent
+            const businessInfoUpdate: Update = {
+              sender: "System",
+              data: {
+                type: "form",
+                action: "show_form",
+              },
+            };
+
+            setUpdates((prev) => [...prev, businessInfoUpdate]);
+          }
+        }
+
+        // Only set showForm at the end after checking all possible sources
+        // This ensures we don't reset it too early
+        setShowForm(hasBusinessInfoForm);
 
         // Process generated content (keyword tables)
         if (

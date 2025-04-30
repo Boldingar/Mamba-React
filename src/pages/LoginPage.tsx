@@ -30,14 +30,40 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
+  const validateEmail = (email: string): boolean => {
+    if (!email.includes("@")) {
+      setEmailError("Email must contain an @ symbol");
+      return false;
+    }
+    setEmailError(null);
+    return true;
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+
+    // Clear error when user types
+    if (emailError && newEmail.includes("@")) {
+      setEmailError(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Validate email before submission
+    if (!validateEmail(email)) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -77,6 +103,24 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
         // that falls out of the range of 2xx
         if (err.response.status === 401) {
           setError("Invalid email or password");
+        } else if (err.response.status === 422) {
+          // Handle validation errors
+          if (err.response.data && err.response.data.detail) {
+            // If the error has a structured format
+            if (Array.isArray(err.response.data.detail)) {
+              // Process structured validation errors
+              const validationErrors = err.response.data.detail
+                .map((item: any) => `${item.loc[1]}: ${item.msg}`)
+                .join(", ");
+              setError(`Validation error: ${validationErrors}`);
+            } else if (typeof err.response.data.detail === "string") {
+              setError(err.response.data.detail);
+            } else {
+              setError("Invalid input data. Please check your email format.");
+            }
+          } else {
+            setError("Invalid input data. Please check your email format.");
+          }
         } else if (err.response.data && err.response.data.detail) {
           setError(err.response.data.detail);
         } else {
@@ -127,8 +171,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               autoComplete="email"
               autoFocus
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
               disabled={isLoading}
+              error={!!emailError}
+              helperText={emailError}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "&.Mui-focused fieldset": {
