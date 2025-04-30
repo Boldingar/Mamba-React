@@ -61,7 +61,7 @@ jobs:
           source: "docker-compose.yml,nginx.conf"
           target: "/root/mamba-frontend"
 
-      # --- Revert to using appleboy/scp-action for image upload --- 
+      # --- Try scp-action again with explicit target file path --- 
       - name: Upload Docker image to droplet using scp-action
         uses: appleboy/scp-action@master
         with:
@@ -69,8 +69,8 @@ jobs:
           username: ${{ secrets.DROPLET_USERNAME }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           source: "${{ github.workspace }}/mamba-frontend.tar" # Source file in workspace
-          target: "/tmp/"                                   # Target directory on server
-          # Keep it simple - no strip_components for single file
+          target: "/tmp/mamba-frontend.tar"                   # Explicit target file path on server
+          # Keep it simple - no strip_components
 
       - name: Generate deployment ID
         id: deploy_id
