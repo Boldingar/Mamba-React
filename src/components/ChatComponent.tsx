@@ -129,7 +129,7 @@ interface APIResponse {
 }
 
 interface ChatComponentProps {
-  onTableReady: (id: string) => void;
+  onTableReady: (id: string | any) => void;
   updates: Update[];
   agentProcessing: boolean;
   showForm: boolean;
@@ -238,7 +238,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         setMessages((prev) => [...prev, agentMessage]);
       }
     }
-  }, [updates, onTableReady]);
+  }, [updates, onTableReady, conversationId]);
 
   // Add an effect to check if a form is currently visible in messages
   useEffect(() => {
@@ -384,7 +384,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
               setIsFormVisible(true);
             }
             // Handle keywords_ready action type
-            else if (actionType === "keywords_ready" && actionData.table) {
+            else if (actionType === "keywords_ready") {
               // First update the messages array to show the agent's response
               const messagesWithResponse = [...updatedMessages, agentMessage];
               setMessages(messagesWithResponse);
@@ -394,37 +394,35 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                 updateMessages(messagesWithResponse);
               }
 
-              console.log(
-                "Keywords data received in response:",
-                actionData.table
-              );
+              console.log("Keywords ready action received:", actionData);
 
-              // Extract the table data directly from the response
-              const tableData = actionData.table;
-
+              // Check if we have table data in the action-data
               if (
-                tableData &&
-                tableData.id &&
-                Array.isArray(tableData.rows) &&
-                tableData.rows.length > 0
+                actionData.table &&
+                actionData.table.id &&
+                Array.isArray(actionData.table.rows)
               ) {
-                // Create CSV data structure for the keywords table
-                const headers = Object.keys(tableData.rows[0]);
-
-                const csvData: CSVData = {
-                  headers: headers,
-                  rows: tableData.rows,
-                  metadata: {
-                    filename: tableData.id,
-                    total_rows: tableData.rows.length,
-                  },
-                };
+                console.log(
+                  "Table data found in action-data:",
+                  actionData.table
+                );
 
                 // Call parent's onTableReady with the table information
-                if (tableData.id) {
-                  // Send the parent the complete table data instead of just the ID
-                  onTableReady(tableData);
-                }
+                // For data received during chat, we want to show the panel automatically
+                onTableReady({
+                  ...actionData.table,
+                  showPanel: true, // Signal to show panel for data received during chat
+                });
+              }
+              // If we have just a table_id, it might be in the generated_content that needs to be fetched
+              else if (actionData.table_id && conversationId) {
+                console.log(
+                  "Just table_id received, refreshing messages to get generated_content:",
+                  actionData.table_id
+                );
+
+                // For older implementations, just pass the table_id
+                onTableReady(actionData.table_id);
 
                 // Add a system message about keywords being ready
                 const keywordsMessage: Message = {
@@ -448,27 +446,29 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                 }
               } else {
                 console.error(
-                  "Invalid table data format in keywords_ready action",
+                  "No valid table data found in keywords_ready action",
                   actionData
                 );
 
-                // Add an error message if the data is invalid
-                const errorMessage: Message = {
+                // Add a system message about keywords being ready
+                const keywordsMessage: Message = {
                   id: Date.now().toString(),
-                  text: "Failed to process keywords data. Please try again.",
+                  text: "Keywords data is ready. Check the Data Panel to view it.",
                   sender: "system",
                   timestamp: new Date(),
                   type: "text",
                 };
 
-                const messagesWithError = [
+                // Add the keywords message to chat
+                const messagesWithKeywords = [
                   ...messagesWithResponse,
-                  errorMessage,
+                  keywordsMessage,
                 ];
-                setMessages(messagesWithError);
+                setMessages(messagesWithKeywords);
 
+                // Update parent component's messages
                 if (updateMessages) {
-                  updateMessages(messagesWithError);
+                  updateMessages(messagesWithKeywords);
                 }
               }
             } else {

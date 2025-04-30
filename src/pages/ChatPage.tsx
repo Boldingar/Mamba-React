@@ -171,6 +171,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
         return;
       }
 
+      // Check if this data came from the chat (showPanel = true)
+      // or from loading a conversation (showPanel not set)
+      const fromChat = tableData.showPanel === true;
+
       // Check if we have valid data
       if (
         tableData &&
@@ -187,9 +191,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           timestamp: new Date(),
         };
 
-        console.log("Created dataset:", newDataset);
+        console.log("Created dataset:", newDataset, "from chat:", fromChat);
 
-        // Update state with the new dataset and show the panel
+        // Update state with the new dataset
         setDatasets((prev) => {
           // Check if dataset already exists to prevent duplicates
           const exists = prev.some((ds) => ds.id === newDataset.id);
@@ -202,7 +206,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
         });
 
         setSelectedDatasetId(newDataset.id);
-        setShowDataPanel(true);
+
+        // Only show the panel if data is from chat
+        if (fromChat) {
+          console.log("Showing data panel for data received during chat");
+          setShowDataPanel(true);
+        } else {
+          console.log("Not showing panel for data from conversation switch");
+        }
       } else {
         throw new Error("Invalid table data format");
       }
@@ -267,47 +278,116 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     setIsAwaitingResponse(true);
     console.log(`Fetching messages for conversation: ${convId}`);
 
+    // Reset datasets when loading a new conversation
+    setDatasets([]);
+    setSelectedDatasetId(null);
+    // Don't automatically show data panel when switching conversations
+    // setShowDataPanel(false); - We keep this to preserve current panel state
+
     try {
       const response = await axiosInstance.get(
         `${API_BASE_URL}/messages/${convId}?limit=0&offset=0&order=asc`
       );
 
-      if (response.status === 200 && response.data.messages) {
-        console.log("Messages received:", response.data.messages);
-        // Transform backend message format to our app's message format
-        const formattedMessages = response.data.messages.map((msg: any) => ({
-          id: msg.id,
-          text: msg.content,
-          sender: msg.is_from_agency ? "agent" : "user",
-          timestamp: new Date(msg.timestamp),
-          type: "text",
-        }));
+      if (response.status === 200) {
+        console.log("Messages response:", response.data);
 
-        console.log("Formatted messages:", formattedMessages);
+        // Process regular messages
+        if (response.data.messages) {
+          console.log("Messages received:", response.data.messages);
+          // Transform backend message format to our app's message format
+          const formattedMessages = response.data.messages.map((msg: any) => ({
+            id: msg.id,
+            text: msg.content,
+            sender: msg.is_from_agency ? "agent" : "user",
+            timestamp: new Date(msg.timestamp),
+            type: "text",
+          }));
 
-        // Create a welcome message to add at the beginning
-        const welcomeMessage: Message = {
-          id: "welcome",
-          text: `Welcome! I am Lily from Mamba. How can I help you today?`,
-          sender: "agent",
-          timestamp: new Date(0), // Set to oldest timestamp so it appears first
-          type: "text",
-        };
+          console.log("Formatted messages:", formattedMessages);
 
-        // Clear existing messages first to ensure loading shows
-        setMessages([]);
+          // Create a welcome message to add at the beginning
+          const welcomeMessage: Message = {
+            id: "welcome",
+            text: `Welcome! I am Lily from Mamba. How can I help you today?`,
+            sender: "agent",
+            timestamp: new Date(0), // Set to oldest timestamp so it appears first
+            type: "text",
+          };
 
-        // Then add welcome message and fetched messages
-        setTimeout(() => {
-          // Add welcome message to the beginning of the conversation
-          if (formattedMessages.length > 0) {
-            setMessages([welcomeMessage, ...formattedMessages]);
-          } else {
-            setMessages([welcomeMessage]);
-          }
-          setIsLoading(false);
-          setIsAwaitingResponse(false);
-        }, 100); // Small delay to ensure UI updates properly
+          // Clear existing messages first to ensure loading shows
+          setMessages([]);
+
+          // Then add welcome message and fetched messages
+          setTimeout(() => {
+            // Add welcome message to the beginning of the conversation
+            if (formattedMessages.length > 0) {
+              setMessages([welcomeMessage, ...formattedMessages]);
+            } else {
+              setMessages([welcomeMessage]);
+            }
+            setIsLoading(false);
+            setIsAwaitingResponse(false);
+          }, 100); // Small delay to ensure UI updates properly
+        }
+
+        // Process generated content (keyword tables)
+        if (
+          response.data.generated_content &&
+          response.data.generated_content.keyword_tables
+        ) {
+          console.log(
+            "Generated content with keyword tables found:",
+            response.data.generated_content.keyword_tables
+          );
+
+          const keywordTables = response.data.generated_content.keyword_tables;
+
+          // Process each keyword table in the response
+          Object.keys(keywordTables).forEach((tableId) => {
+            const tableData = keywordTables[tableId];
+
+            if (
+              tableData &&
+              tableData.id &&
+              Array.isArray(tableData.rows) &&
+              tableData.rows.length > 0
+            ) {
+              // Create dataset from keywords data
+              const newDataset: Dataset = {
+                id: tableData.id,
+                name: tableData.id,
+                displayName: tableData.id,
+                data: tableData.rows,
+                timestamp: new Date(),
+              };
+
+              console.log(
+                "Created dataset from generated content:",
+                newDataset
+              );
+
+              // Add this dataset to our state
+              setDatasets((prev) => {
+                // Check if dataset already exists to prevent duplicates
+                const exists = prev.some((ds) => ds.id === newDataset.id);
+                if (exists) {
+                  return prev.map((ds) =>
+                    ds.id === newDataset.id ? newDataset : ds
+                  );
+                }
+                return [...prev, newDataset];
+              });
+
+              // Select the first dataset we find but don't automatically show the panel
+              setSelectedDatasetId(tableData.id);
+              console.log(
+                "Not showing panel for data from conversation loading"
+              );
+              // Don't open the panel when loading conversation data
+            }
+          });
+        }
       }
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -377,7 +457,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const selectedDataset = datasets.find((ds) => ds.id === selectedDatasetId);
 
   // Handler to toggle the DataPanel
-  const handleToggleCSVPanel = () => setShowDataPanel((open) => !open);
+  const handleToggleCSVPanel = () => {
+    // Only allow opening the panel if there's data to show
+    if (!showDataPanel && datasets.length === 0) {
+      // Don't open the panel if there's no data
+      return;
+    }
+    setShowDataPanel((open) => !open);
+  };
 
   const handleDatasetSelect = (datasetId: string) => {
     setSelectedDatasetId(datasetId);
@@ -409,6 +496,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
       <TopAppBar
         csvPanelOpen={showDataPanel}
         onToggleCSVPanel={handleToggleCSVPanel}
+        hasDataToShow={datasets.length > 0}
       />
       <Box
         sx={{
