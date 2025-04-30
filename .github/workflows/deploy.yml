@@ -53,19 +53,30 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_KEY }}
           source: "docker-compose.yml,nginx.conf"
           target: "/root/mamba-frontend"
-          # strip_components: 0 <-- Keep this for config files if needed, or remove if causing issues
+          # strip_components: 0 # Keep this for config files if needed
 
-      - name: Upload Docker image to droplet
-        uses: appleboy/scp-action@master
+      # --- Start: Replace SCP Action with direct SCP via SSH Action --- 
+      - name: Create SSH key file for SCP
+        run: |
+          echo "${{ secrets.DROPLET_SSH_KEY }}" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+
+      - name: Upload Docker image via direct SCP
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USERNAME }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          source: "/tmp/mamba-frontend.tar"      # Source file path on runner
-          target: "/tmp/mamba-frontend.tar"      # Explicit target file path on server
-          # REMOVED strip_components: 0
-          timeout: 300s
-          overwrite: true
+          key: ${{ secrets.DROPLET_SSH_KEY }} # Key still needed for the ssh-action connection itself
+          script: |
+            # This script runs on the runner, executing scp to the target
+            scp -i /tmp/deploy_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+              /tmp/mamba-frontend.tar \
+              ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_HOST }}:/tmp/mamba-frontend.tar
+          
+      - name: Remove SSH key file from runner
+        if: always() # Ensure key is removed even if scp fails
+        run: rm -f /tmp/deploy_key
+      # --- End: Replace SCP Action --- 
 
       - name: Generate deployment ID
         id: deploy_id
@@ -80,18 +91,14 @@ jobs:
           envs: DEPLOY_ID=${{ steps.deploy_id.outputs.DEPLOY_ID }}
           script: |
             echo "Starting deployment on droplet..."
-            # Ensure directories exist
             mkdir -p /root/mamba-frontend
-
-            # Verify the uploaded image file exists
             echo "Verifying uploaded tar file..."
             if [ ! -f /tmp/mamba-frontend.tar ]; then
               echo "ERROR: Docker image tar file not found at /tmp/mamba-frontend.tar!"
-              ls -la /tmp/ # List contents of /tmp for debugging
-              exit 1 # Exit the script if file not found
+              ls -la /tmp/
+              exit 1
             fi
             ls -la /tmp/mamba-frontend.tar
-
             # Stop and remove any containers using the mamba-frontend image or name pattern
             echo "Stopping and removing existing containers..."
             CONTAINER_IDS=$(docker ps -a -q --filter="name=mamba-frontend")
@@ -108,7 +115,7 @@ jobs:
 
             # Load the new Docker image from the tar file
             echo "Loading new Docker image..."
-            docker load < /tmp/mamba-frontend.tar
+            docker load -i /tmp/mamba-frontend.tar # Use -i just to be safe
             # Verify image loaded successfully
             if ! docker images | grep -q mamba-frontend; then
               echo "ERROR: Failed to load Docker image from tar file!"
