@@ -98,8 +98,8 @@ const DataPanel: React.FC<DataPanelProps> = ({
       (ds) => ds.id === selectedDatasetId
     );
     const fileName = currentDataset
-      ? `${currentDataset.name.toLowerCase().replace(/\s+/g, "_")}_filtered.csv`
-      : "filtered_data.csv";
+      ? `${currentDataset.id}.csv`
+      : "keywords_data.csv";
 
     link.setAttribute("href", url);
     link.setAttribute("download", fileName);

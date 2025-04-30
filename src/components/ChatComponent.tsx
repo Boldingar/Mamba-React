@@ -320,6 +320,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           };
 
           // Check if there's an action in the response
+          // Handle legacy action format (string-based)
           if (data.action === "collect_business_info") {
             // Add a form message
             const formMessage: Message = {
@@ -345,8 +346,143 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
             // Set form visible flag
             setIsFormVisible(true);
+          }
+          // Handle new action format (object-based) with action-type and action-data
+          else if (
+            data.action &&
+            typeof data.action === "object" &&
+            data.action["action-type"]
+          ) {
+            const actionType = data.action["action-type"];
+            const actionData = data.action["action-data"] || {};
+
+            // Handle different action types
+            if (actionType === "collect_business_info") {
+              // Add a form message
+              const formMessage: Message = {
+                id: Date.now().toString() + "-form",
+                text: "",
+                sender: "agent",
+                timestamp: new Date(),
+                type: "form",
+              };
+
+              // Update with both the text response and the form
+              const messagesWithForm = [
+                ...updatedMessages,
+                agentMessage,
+                formMessage,
+              ];
+              setMessages(messagesWithForm);
+
+              // Update parent component's messages
+              if (updateMessages) {
+                updateMessages(messagesWithForm);
+              }
+
+              // Set form visible flag
+              setIsFormVisible(true);
+            }
+            // Handle keywords_ready action type
+            else if (actionType === "keywords_ready" && actionData.table) {
+              // First update the messages array to show the agent's response
+              const messagesWithResponse = [...updatedMessages, agentMessage];
+              setMessages(messagesWithResponse);
+
+              // Update parent component's messages
+              if (updateMessages) {
+                updateMessages(messagesWithResponse);
+              }
+
+              console.log(
+                "Keywords data received in response:",
+                actionData.table
+              );
+
+              // Extract the table data directly from the response
+              const tableData = actionData.table;
+
+              if (
+                tableData &&
+                tableData.id &&
+                Array.isArray(tableData.rows) &&
+                tableData.rows.length > 0
+              ) {
+                // Create CSV data structure for the keywords table
+                const headers = Object.keys(tableData.rows[0]);
+
+                const csvData: CSVData = {
+                  headers: headers,
+                  rows: tableData.rows,
+                  metadata: {
+                    filename: tableData.id,
+                    total_rows: tableData.rows.length,
+                  },
+                };
+
+                // Call parent's onTableReady with the table information
+                if (tableData.id) {
+                  // Send the parent the complete table data instead of just the ID
+                  onTableReady(tableData);
+                }
+
+                // Add a system message about keywords being ready
+                const keywordsMessage: Message = {
+                  id: Date.now().toString(),
+                  text: "Keywords data is ready. Check the Data Panel to view it.",
+                  sender: "system",
+                  timestamp: new Date(),
+                  type: "text",
+                };
+
+                // Add the keywords message to chat
+                const messagesWithKeywords = [
+                  ...messagesWithResponse,
+                  keywordsMessage,
+                ];
+                setMessages(messagesWithKeywords);
+
+                // Update parent component's messages
+                if (updateMessages) {
+                  updateMessages(messagesWithKeywords);
+                }
+              } else {
+                console.error(
+                  "Invalid table data format in keywords_ready action",
+                  actionData
+                );
+
+                // Add an error message if the data is invalid
+                const errorMessage: Message = {
+                  id: Date.now().toString(),
+                  text: "Failed to process keywords data. Please try again.",
+                  sender: "system",
+                  timestamp: new Date(),
+                  type: "text",
+                };
+
+                const messagesWithError = [
+                  ...messagesWithResponse,
+                  errorMessage,
+                ];
+                setMessages(messagesWithError);
+
+                if (updateMessages) {
+                  updateMessages(messagesWithError);
+                }
+              }
+            } else {
+              // Regular text response without any action
+              const messagesWithResponse = [...updatedMessages, agentMessage];
+              setMessages(messagesWithResponse);
+
+              // Update parent component's messages
+              if (updateMessages) {
+                updateMessages(messagesWithResponse);
+              }
+            }
           } else {
-            // Regular text response without a form
+            // Regular text response without any action
             const messagesWithResponse = [...updatedMessages, agentMessage];
             setMessages(messagesWithResponse);
 
@@ -645,7 +781,25 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       type: "csv_data",
       csvData: data,
     };
-    setMessages((prev) => [...prev, csvMessage]);
+
+    // Update local state
+    const updatedMessages = [...messages, csvMessage];
+    setMessages(updatedMessages);
+
+    // Update parent component's state
+    if (updateMessages) {
+      updateMessages(updatedMessages);
+    }
+
+    // Also notify the parent about the table being ready if we have data
+    if (data && data.metadata && data.metadata.filename) {
+      const tableId = data.metadata.filename
+        .replace("keywords_", "")
+        .replace(".csv", "");
+      if (tableId) {
+        onTableReady(tableId);
+      }
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

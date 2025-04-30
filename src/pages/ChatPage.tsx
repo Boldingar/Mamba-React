@@ -156,23 +156,29 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     setConversationId("");
   };
 
-  const fetchTableData = useCallback(async (tableId: string) => {
+  const fetchTableData = useCallback(async (tableData: any) => {
     try {
-      const response = await axiosInstance.get(
-        `${API_BASE_URL}/get_table_data?table_id=${tableId}`,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      console.log(`Processing table data:`, tableData);
 
-      if (response.status !== 200)
-        throw new Error("Failed to fetch table data");
-      const result: TableResponse = response.data;
+      // First update UI state
+      setError(null);
 
-      if (result.status === "success" && result.data) {
-        const tableData = result.data;
+      // Check if we received a table object directly or just an ID
+      if (typeof tableData === "string") {
+        // This is the old format - just an ID was passed
+        // We no longer need to fetch data in this case, but log a warning
+        console.warn("Received just a table ID. This format is deprecated.");
+        return;
+      }
 
-        // Create dataset from table data
+      // Check if we have valid data
+      if (
+        tableData &&
+        tableData.id &&
+        Array.isArray(tableData.rows) &&
+        tableData.rows.length > 0
+      ) {
+        // Create dataset from keywords data
         const newDataset: Dataset = {
           id: tableData.id,
           name: tableData.id,
@@ -181,13 +187,28 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           timestamp: new Date(),
         };
 
-        setDatasets((prev) => [...prev, newDataset]);
+        console.log("Created dataset:", newDataset);
+
+        // Update state with the new dataset and show the panel
+        setDatasets((prev) => {
+          // Check if dataset already exists to prevent duplicates
+          const exists = prev.some((ds) => ds.id === newDataset.id);
+          if (exists) {
+            return prev.map((ds) =>
+              ds.id === newDataset.id ? newDataset : ds
+            );
+          }
+          return [...prev, newDataset];
+        });
+
         setSelectedDatasetId(newDataset.id);
         setShowDataPanel(true);
+      } else {
+        throw new Error("Invalid table data format");
       }
     } catch (error) {
-      console.error("Error fetching table data:", error);
-      setError(`Failed to load table data: ${error.message}`);
+      console.error("Error processing table data:", error);
+      setError(`Failed to process keywords data: ${error.message}`);
     }
   }, []);
 
