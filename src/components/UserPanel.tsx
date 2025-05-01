@@ -170,7 +170,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
                 sx={{
                   width: "100%",
                   overflow: "auto",
-                  maxHeight: "64vh",
+                  maxHeight: "60vh",
                   ...chatScrollbarStyle,
                 }}
               >
