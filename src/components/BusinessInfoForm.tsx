@@ -752,7 +752,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField sx = {{height : "100px"}}
+              <TextField
                 fullWidth
                 multiline
                 rows={2}
@@ -772,6 +772,7 @@ const BusinessInfoForm: React.FC<BusinessInfoFormProps> = ({
                   "Brief description of features and benefits"
                 }
                 sx={{
+                  height: "100px",
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 1.5,
                   },
