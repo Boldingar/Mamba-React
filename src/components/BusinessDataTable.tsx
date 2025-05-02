@@ -307,16 +307,16 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
           horizontal: "right",
         }}
         PaperProps={{
-          sx: { width: "600px" },
+          sx: { width: "700px" },
         }}
       >
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: 3}}>
           <Typography variant="h6" sx={{ mb: 3 }}>
             Add Filter Condition
           </Typography>
 
           <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
+            <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>Column</InputLabel>
               <Select
                 value={newCondition.column}
@@ -333,7 +333,7 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
               </Select>
             </FormControl>
 
-            <FormControl size="small" sx={{ minWidth: 120 }}>
+            <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>Type</InputLabel>
               <Select
                 value={newCondition.type}
@@ -358,7 +358,7 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
                 setNewCondition({ ...newCondition, value: e.target.value })
               }
               sx={{
-                maxWidth: "150px",
+                maxWidth: "160px",
                 "& .MuiInputBase-root": {
                   height: "40px",
                   fontSize: "1rem",

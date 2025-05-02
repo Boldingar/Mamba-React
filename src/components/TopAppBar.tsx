@@ -10,11 +10,13 @@ import DescriptionIcon from "@mui/icons-material/Description";
 interface TopAppBarProps {
   csvPanelOpen: boolean;
   onToggleCSVPanel: () => void;
+  hasDataToShow?: boolean;
 }
 
 const TopAppBar: React.FC<TopAppBarProps> = ({
   csvPanelOpen,
   onToggleCSVPanel,
+  hasDataToShow = false,
 }) => {
   return (
     <AppBar
@@ -57,13 +59,15 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
           Lily - Senior SEO Engineer
         </Typography>
         <Box sx={{ flex: 1 }} />
-        <IconButton
-          color={csvPanelOpen ? "primary" : "default"}
-          onClick={onToggleCSVPanel}
-          sx={{ mr: 1, width: 56, height: 56 }}
-        >
-          <DescriptionIcon sx={{ fontSize: 34 }} />
-        </IconButton>
+        {hasDataToShow && (
+          <IconButton
+            color={csvPanelOpen ? "primary" : "default"}
+            onClick={onToggleCSVPanel}
+            sx={{ mr: 1, width: 56, height: 56 }}
+          >
+            <DescriptionIcon sx={{ fontSize: 34 }} />
+          </IconButton>
+        )}
       </Toolbar>
     </AppBar>
   );

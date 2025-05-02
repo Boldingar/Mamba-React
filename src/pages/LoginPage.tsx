@@ -10,9 +10,13 @@ import {
   Checkbox,
   Alert,
   Link,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axiosInstance, { API_BASE_URL } from "../utils/axios";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 interface LoginPageProps {
   setIsAuthenticated?: (auth: boolean) => void;
@@ -20,20 +24,51 @@ interface LoginPageProps {
 
 const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const validateEmail = (email: string): boolean => {
+    if (!email.includes("@")) {
+      setEmailError("Email must contain an @ symbol");
+      return false;
+    }
+    setEmailError(null);
+    return true;
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+
+    // Clear error when user types
+    if (emailError && newEmail.includes("@")) {
+      setEmailError(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Validate email before submission
+    if (!validateEmail(email)) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const response = await axiosInstance.post(`/login`, {
-        username,
+        email,
         password,
       });
 
@@ -67,7 +102,25 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
         if (err.response.status === 401) {
-          setError("Invalid username or password");
+          setError("Invalid email or password");
+        } else if (err.response.status === 422) {
+          // Handle validation errors
+          if (err.response.data && err.response.data.detail) {
+            // If the error has a structured format
+            if (Array.isArray(err.response.data.detail)) {
+              // Process structured validation errors
+              const validationErrors = err.response.data.detail
+                .map((item: any) => `${item.loc[1]}: ${item.msg}`)
+                .join(", ");
+              setError(`Validation error: ${validationErrors}`);
+            } else if (typeof err.response.data.detail === "string") {
+              setError(err.response.data.detail);
+            } else {
+              setError("Invalid input data. Please check your email format.");
+            }
+          } else {
+            setError("Invalid input data. Please check your email format.");
+          }
         } else if (err.response.data && err.response.data.detail) {
           setError(err.response.data.detail);
         } else {
@@ -112,14 +165,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               margin="normal"
               required
               fullWidth
-              id="username"
-              label="Username"
-              name="username"
-              autoComplete="username"
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
               autoFocus
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={email}
+              onChange={handleEmailChange}
               disabled={isLoading}
+              error={!!emailError}
+              helperText={emailError}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "&.Mui-focused fieldset": {
@@ -137,12 +192,29 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               fullWidth
               name="password"
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleTogglePasswordVisibility}
+                      edge="end"
+                    >
+                      {showPassword ? (
+                        <VisibilityOffIcon />
+                      ) : (
+                        <VisibilityIcon />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "&.Mui-focused fieldset": {
