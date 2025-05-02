@@ -171,6 +171,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   const [isFormVisible, setIsFormVisible] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [processedUpdateIds] = useState<Set<string>>(new Set());
+  const [prevConversationId, setPrevConversationId] = useState<string | null>(
+    conversationId
+  );
 
   // Update messages when they're passed from parent component
   useEffect(() => {
@@ -181,13 +184,63 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     if (parentMessages && parentMessages.length > 0) {
       console.log("Setting messages from parent");
       setMessages(parentMessages);
-    } else if (conversationId === "") {
-      // Reset to empty array for new chats
-      // (welcome message will be added by the parent component)
-      console.log("Setting empty message array for new chat");
+    } else if (conversationId === "" && parentMessages?.length === 0) {
+      // Only reset to empty array if parent explicitly sends empty messages
+      // This happens when parent component initiates a new chat
+      console.log("Setting empty message array for new chat (from parent)");
       setMessages([]);
+
+      // Ensure no form is visible in new chat
+      setIsFormVisible(false);
     }
   }, [parentMessages, conversationId, isLoadingMessages]);
+
+  // Add an effect to specifically handle when explicitly switching to "New Chat"
+  // This should not trigger when sending messages in New Chat
+  useEffect(() => {
+    // Update previous conversation ID when current one changes
+    if (conversationId !== prevConversationId) {
+      console.log(
+        "Conversation ID changed from",
+        prevConversationId,
+        "to",
+        conversationId
+      );
+
+      // Only handle New Chat reset when explicitly switching from a conversation to New Chat
+      // This prevents resetting when sending messages in New Chat
+      if (
+        conversationId === "" &&
+        prevConversationId !== "" &&
+        prevConversationId !== null
+      ) {
+        console.log("Detected explicit switch to New Chat, resetting messages");
+
+        // Create a welcome message
+        const welcomeMessage: Message = {
+          id: "welcome",
+          text: `Welcome! I am Lily from Mamba. How can I help you today?`,
+          sender: "agent",
+          timestamp: new Date(),
+          type: "text",
+        };
+
+        // Reset messages to only contain the welcome message
+        setMessages([welcomeMessage]);
+
+        // Ensure no form is visible
+        setIsFormVisible(false);
+
+        // Update parent component if needed
+        if (updateMessages) {
+          updateMessages([welcomeMessage]);
+        }
+      }
+
+      // Store current conversation ID as previous for next comparison
+      setPrevConversationId(conversationId);
+    }
+  }, [conversationId, prevConversationId, updateMessages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -249,8 +302,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     if (!showForm) {
       // Immediately clear form visibility when prop changes to false
       setIsFormVisible(false);
+    } else if (conversationId === "" || conversationId === null) {
+      // Never show form in the "New Chat" tab
+      setIsFormVisible(false);
     }
-  }, [showForm]);
+  }, [showForm, conversationId]);
 
   // Add an effect to check if a form is currently visible in messages
   useEffect(() => {
@@ -270,20 +326,43 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         }
       }
       setIsFormVisible(false);
+    } else if (conversationId === "" || conversationId === null) {
+      // Never show form in the "New Chat" tab
+      setIsFormVisible(false);
+
+      // Remove any form messages from the messages array for new chat
+      const hasFormMessages = messages.some((msg) => msg.type === "form");
+      if (hasFormMessages) {
+        console.log("Removing form messages from new chat");
+        const messagesWithoutForm = messages.filter(
+          (msg) => msg.type !== "form"
+        );
+        setMessages(messagesWithoutForm);
+
+        if (updateMessages) {
+          updateMessages(messagesWithoutForm);
+        }
+      }
     } else {
       // If showForm is true, check if there's already a form in messages
       const hasForm = messages.some((msg) => msg.type === "form");
       setIsFormVisible(hasForm || showForm);
     }
-  }, [showForm, messages, updateMessages]);
+  }, [showForm, messages, updateMessages, conversationId]);
 
   // Remove the old useEffect that added form messages, and create a simpler one
   useEffect(() => {
-    // Only add a form if showForm is true, no form exists yet, and we have messages
+    // Only add a form if:
+    // - showForm is true
+    // - no form exists yet
+    // - we have messages
+    // - we're not in a new chat
     if (
       showForm &&
       !messages.some((msg) => msg.type === "form") &&
-      messages.length > 0
+      messages.length > 0 &&
+      conversationId !== "" &&
+      conversationId !== null
     ) {
       console.log("Adding form message because showForm is true");
       const formMessage: Message = {
@@ -301,7 +380,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         updateMessages(updatedMessages);
       }
     }
-  }, [showForm, messages, updateMessages]);
+  }, [showForm, messages, updateMessages, conversationId]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -335,6 +414,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     try {
       let endpoint;
       let data;
+      let newConversationId: string | null = null;
 
       // If conversationId is empty/null, it's a new chat
       if (!conversationId) {
@@ -355,11 +435,129 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
       // For new chats, capture the conversation ID from the response
       if (!conversationId && data && data.conversation_id) {
+        // Store the new conversation ID
+        newConversationId = data.conversation_id;
+
+        // Check if we have a collect_business_info action
+        const hasBusinessInfoAction =
+          data.action &&
+          typeof data.action === "object" &&
+          data.action["action-type"] === "collect_business_info";
+
+        // First, complete the transition to the new conversation
         if (onNewConversation) {
           onNewConversation(
             data.conversation_id,
             data.conversation_name || "New Chat"
           );
+        }
+
+        // If we have a business info action, make a second call to fetch messages
+        // but only after the transition is complete
+        if (hasBusinessInfoAction && newConversationId) {
+          // Small delay to ensure the conversation transition is complete
+          setTimeout(async () => {
+            try {
+              console.log(
+                "Fetching messages after transition to refresh conversation state"
+              );
+              // Fetch the conversation messages to ensure we have the latest state
+              const messagesResponse = await axiosInstance.get(
+                `/messages/${newConversationId}?limit=0&offset=0&order=asc`
+              );
+              console.log(
+                "Successfully retrieved conversation messages:",
+                messagesResponse.data
+              );
+
+              // Process the messages response to update the component state
+              if (messagesResponse.data && messagesResponse.data.messages) {
+                // Extract messages from the response
+                const fetchedMessages = messagesResponse.data.messages.map(
+                  (msg: any) => {
+                    return {
+                      id: msg.id,
+                      text: msg.content,
+                      sender: msg.is_from_agency ? "agent" : "user",
+                      timestamp: new Date(msg.timestamp),
+                      type: "text",
+                    };
+                  }
+                );
+
+                // Check if there's a business form action in the response
+                let hasBusinessForm = false;
+
+                // Look for business form action in the response data
+                if (
+                  messagesResponse.data.action &&
+                  typeof messagesResponse.data.action === "object" &&
+                  messagesResponse.data.action["action-type"] ===
+                    "collect_business_info"
+                ) {
+                  hasBusinessForm = true;
+                  console.log(
+                    "Found business form action in fetched messages, enabling form"
+                  );
+                }
+
+                // Ensure welcome message is at the beginning
+                const welcomeMessage = {
+                  id: "welcome",
+                  text: `Welcome! I am Lily from Mamba. How can I help you today?`,
+                  sender: "agent" as const,
+                  timestamp: new Date(0),
+                  type: "text" as const,
+                };
+
+                // Combine messages with welcome message at the beginning
+                const allMessages = [welcomeMessage, ...fetchedMessages];
+
+                // Update the component state with the fetched messages
+                setMessages(allMessages);
+
+                // If we have parent component's update function, use it
+                if (updateMessages) {
+                  updateMessages(allMessages);
+                }
+
+                // If business form is detected, add it and make it visible
+                if (hasBusinessForm) {
+                  // Add a form message
+                  const formMessage = {
+                    id: Date.now().toString() + "-form",
+                    text: "",
+                    sender: "agent" as const,
+                    timestamp: new Date(),
+                    type: "form" as const,
+                  };
+
+                  // Update messages with the form
+                  const messagesWithForm = [...allMessages, formMessage];
+                  setMessages(messagesWithForm);
+
+                  // Update parent component's messages
+                  if (updateMessages) {
+                    updateMessages(messagesWithForm);
+                  }
+
+                  // Make the form visible
+                  setIsFormVisible(true);
+
+                  // Notify the parent component
+                  const formEvent = new CustomEvent("formRequested", {
+                    detail: {
+                      conversationId: newConversationId,
+                      timestamp: Date.now(),
+                    },
+                  });
+                  window.dispatchEvent(formEvent);
+                }
+              }
+            } catch (error) {
+              console.error("Error fetching messages after transition:", error);
+            }
+          }, 100); // Short delay to ensure transition is complete
         }
       }
 
@@ -419,36 +617,55 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                 "Found collect_business_info action in response",
                 actionType
               );
-              // Add a form message
-              const formMessage: Message = {
-                id: Date.now().toString() + "-form",
-                text: "",
-                sender: "agent",
-                timestamp: new Date(),
-                type: "form",
-              };
 
-              // Update with both the text response and the form
-              const messagesWithForm = [
-                ...updatedMessages,
-                agentMessage,
-                formMessage,
-              ];
-              setMessages(messagesWithForm);
+              // Only add form if we have a valid conversation (not in "New Chat")
+              if (
+                newConversationId ||
+                (conversationId && conversationId !== "")
+              ) {
+                // Add a form message
+                const formMessage: Message = {
+                  id: Date.now().toString() + "-form",
+                  text: "",
+                  sender: "agent",
+                  timestamp: new Date(),
+                  type: "form",
+                };
 
-              // Update parent component's messages
-              if (updateMessages) {
-                updateMessages(messagesWithForm);
+                // Update with both the text response and the form
+                const messagesWithForm = [
+                  ...updatedMessages,
+                  agentMessage,
+                  formMessage,
+                ];
+                setMessages(messagesWithForm);
+
+                // Update parent component's messages
+                if (updateMessages) {
+                  updateMessages(messagesWithForm);
+                }
+
+                // Set form visible flag - this is critical to ensure the form shows
+                setIsFormVisible(true);
+
+                // Force window event to ensure parent component knows form should be shown
+                const parentUpdateEvent = new CustomEvent("formRequested", {
+                  detail: {
+                    conversationId: newConversationId || conversationId,
+                    timestamp: Date.now(),
+                  },
+                });
+                window.dispatchEvent(parentUpdateEvent);
+              } else {
+                // Just add the text response without a form for "New Chat"
+                const messagesWithResponse = [...updatedMessages, agentMessage];
+                setMessages(messagesWithResponse);
+
+                // Update parent component's messages
+                if (updateMessages) {
+                  updateMessages(messagesWithResponse);
+                }
               }
-
-              // Set form visible flag - this is critical to ensure the form shows
-              setIsFormVisible(true);
-
-              // Force window event to ensure parent component knows form should be shown
-              const parentUpdateEvent = new CustomEvent("formRequested", {
-                detail: { conversationId, timestamp: Date.now() },
-              });
-              window.dispatchEvent(parentUpdateEvent);
             }
             // Handle keywords_ready action type
             else if (actionType === "keywords_ready") {
@@ -658,6 +875,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     // Now make the API call in the background
     setIsLoading(true);
 
+    // Set isAwaitingResponse to true to disable conversation switching in UserPanel
+    if (setIsAwaitingResponse) {
+      setIsAwaitingResponse(true);
+    }
+
     try {
       // Make sure we have a conversation ID before submitting the form
       if (!conversationId) {
@@ -728,6 +950,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       }
     } finally {
       setIsLoading(false);
+
+      // Re-enable conversation switching in UserPanel
+      if (setIsAwaitingResponse) {
+        setIsAwaitingResponse(false);
+      }
     }
   };
 
@@ -772,7 +999,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
     // Also inform parent component that form should be hidden
     if (setIsAwaitingResponse) {
-      setIsAwaitingResponse(false);
+      setIsAwaitingResponse(true); // First set to true to disable conversation switching
     }
 
     // Force the showForm prop to be updated
@@ -854,6 +1081,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       }
     } finally {
       setIsLoading(false);
+
+      // Re-enable conversation switching in UserPanel
+      if (setIsAwaitingResponse) {
+        setIsAwaitingResponse(false);
+      }
     }
   };
 
