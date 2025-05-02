@@ -171,6 +171,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   const [isFormVisible, setIsFormVisible] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [processedUpdateIds] = useState<Set<string>>(new Set());
+  const [prevConversationId, setPrevConversationId] = useState<string | null>(
+    conversationId
+  );
 
   // Update messages when they're passed from parent component
   useEffect(() => {
@@ -181,13 +184,63 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     if (parentMessages && parentMessages.length > 0) {
       console.log("Setting messages from parent");
       setMessages(parentMessages);
-    } else if (conversationId === "") {
-      // Reset to empty array for new chats
-      // (welcome message will be added by the parent component)
-      console.log("Setting empty message array for new chat");
+    } else if (conversationId === "" && parentMessages?.length === 0) {
+      // Only reset to empty array if parent explicitly sends empty messages
+      // This happens when parent component initiates a new chat
+      console.log("Setting empty message array for new chat (from parent)");
       setMessages([]);
+
+      // Ensure no form is visible in new chat
+      setIsFormVisible(false);
     }
   }, [parentMessages, conversationId, isLoadingMessages]);
+
+  // Add an effect to specifically handle when explicitly switching to "New Chat"
+  // This should not trigger when sending messages in New Chat
+  useEffect(() => {
+    // Update previous conversation ID when current one changes
+    if (conversationId !== prevConversationId) {
+      console.log(
+        "Conversation ID changed from",
+        prevConversationId,
+        "to",
+        conversationId
+      );
+
+      // Only handle New Chat reset when explicitly switching from a conversation to New Chat
+      // This prevents resetting when sending messages in New Chat
+      if (
+        conversationId === "" &&
+        prevConversationId !== "" &&
+        prevConversationId !== null
+      ) {
+        console.log("Detected explicit switch to New Chat, resetting messages");
+
+        // Create a welcome message
+        const welcomeMessage: Message = {
+          id: "welcome",
+          text: `Welcome! I am Lily from Mamba. How can I help you today?`,
+          sender: "agent",
+          timestamp: new Date(),
+          type: "text",
+        };
+
+        // Reset messages to only contain the welcome message
+        setMessages([welcomeMessage]);
+
+        // Ensure no form is visible
+        setIsFormVisible(false);
+
+        // Update parent component if needed
+        if (updateMessages) {
+          updateMessages([welcomeMessage]);
+        }
+      }
+
+      // Store current conversation ID as previous for next comparison
+      setPrevConversationId(conversationId);
+    }
+  }, [conversationId, prevConversationId, updateMessages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -822,6 +875,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     // Now make the API call in the background
     setIsLoading(true);
 
+    // Set isAwaitingResponse to true to disable conversation switching in UserPanel
+    if (setIsAwaitingResponse) {
+      setIsAwaitingResponse(true);
+    }
+
     try {
       // Make sure we have a conversation ID before submitting the form
       if (!conversationId) {
@@ -892,6 +950,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       }
     } finally {
       setIsLoading(false);
+
+      // Re-enable conversation switching in UserPanel
+      if (setIsAwaitingResponse) {
+        setIsAwaitingResponse(false);
+      }
     }
   };
 
@@ -936,7 +999,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
     // Also inform parent component that form should be hidden
     if (setIsAwaitingResponse) {
-      setIsAwaitingResponse(false);
+      setIsAwaitingResponse(true); // First set to true to disable conversation switching
     }
 
     // Force the showForm prop to be updated
@@ -1018,6 +1081,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       }
     } finally {
       setIsLoading(false);
+
+      // Re-enable conversation switching in UserPanel
+      if (setIsAwaitingResponse) {
+        setIsAwaitingResponse(false);
+      }
     }
   };
 
