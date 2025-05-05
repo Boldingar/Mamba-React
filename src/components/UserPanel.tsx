@@ -25,6 +25,7 @@ import {
   MenuItem,
   TextField,
   CircularProgress,
+  Skeleton,
 } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
 import AddIcon from "@mui/icons-material/Add";
@@ -81,6 +82,22 @@ interface PinnedChat {
   title: string;
 }
 
+interface ConversationData {
+  id: string;
+  name: string;
+}
+
+// Interface for the API response
+interface ConversationResponse {
+  conversations: {
+    id: string;
+    name: string;
+    updated_at: string;
+    is_pinned: boolean;
+  }[];
+  total: number;
+}
+
 const UserPanel: React.FC<UserPanelProps> = ({
   setIsAuthenticated,
   onProfileClick,
@@ -101,12 +118,15 @@ const UserPanel: React.FC<UserPanelProps> = ({
   const [isRenaming, setIsRenaming] = useState(false);
   const [newChatName, setNewChatName] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
-  const [localChats, setLocalChats] = useState<{ id: string; title: string }[]>(
-    []
-  );
+  const [localChats, setLocalChats] = useState<
+    { id: string; title: string; isPinned?: boolean }[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Create a ref for the text input
   const renameInputRef = useRef<HTMLInputElement>(null);
+  // Create a ref to track if the API call has been made
+  const apiCalledRef = useRef(false);
 
   // Load pinned chats from localStorage on component mount
   useEffect(() => {
@@ -116,30 +136,95 @@ const UserPanel: React.FC<UserPanelProps> = ({
     }
   }, []);
 
-  // Update localChats when recentChats change
+  // Fetch conversations from the API on page load
   useEffect(() => {
-    if (recentChats.length > 0) {
-      setLocalChats([...recentChats]);
+    const fetchConversations = async () => {
+      // Make sure we don't call the API twice
+      if (apiCalledRef.current) return;
+      apiCalledRef.current = true;
+
+      // Check if we're already logged in
+      const hasToken =
+        localStorage.getItem("authToken") ||
+        sessionStorage.getItem("authToken");
+      if (!hasToken) return;
+
+      try {
+        setIsLoading(true);
+        const response = await axiosInstance.get<ConversationResponse>(
+          "/user/conversations"
+        );
+
+        if (response.data && response.data.conversations) {
+          // Convert the API response to our local format
+          const conversations = response.data.conversations.map((conv) => ({
+            id: conv.id,
+            title: conv.name || `Chat ${conv.id}`,
+            isPinned: conv.is_pinned,
+          }));
+
+          // Update local chats
+          setLocalChats(conversations);
+
+          // Update storage with the new conversations
+          const storage = localStorage.getItem("authToken")
+            ? localStorage
+            : sessionStorage;
+          const conversationsForStorage = response.data.conversations.map(
+            (conv) => ({
+              id: conv.id,
+              name: conv.name || `Chat ${conv.id}`,
+            })
+          );
+          storage.setItem(
+            "conversations",
+            JSON.stringify(conversationsForStorage)
+          );
+
+          // Extract pinned chats directly from the API response
+          const pinnedFromServer = response.data.conversations
+            .filter((conv) => conv.is_pinned)
+            .map((conv) => ({
+              id: conv.id,
+              title: conv.name || `Chat ${conv.id}`,
+            }));
+
+          setPinnedChats(pinnedFromServer);
+        }
+      } catch (error) {
+        console.error("Error fetching conversations:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchConversations();
+
+    // Cleanup function to reset the ref when component unmounts
+    return () => {
+      apiCalledRef.current = false;
+    };
+  }, []);
+
+  // Update localChats when recentChats change - only if we're not loading from API
+  useEffect(() => {
+    if (recentChats.length > 0 && !isLoading) {
+      // Preserve isPinned property when updating from recentChats
+      const updatedChats = recentChats.map((chat) => {
+        const existingChat = localChats.find((local) => local.id === chat.id);
+        return {
+          ...chat,
+          isPinned: existingChat?.isPinned || false,
+        };
+      });
+      setLocalChats(updatedChats);
     }
-  }, [recentChats]);
+  }, [recentChats, isLoading]);
 
   // Save pinned chats to localStorage when they change
   useEffect(() => {
     localStorage.setItem("pinnedChats", JSON.stringify(pinnedChats));
   }, [pinnedChats]);
-
-  // Load renamed chats from localStorage
-  useEffect(() => {
-    const renamedChats = localStorage.getItem("renamedChats");
-    if (renamedChats && localChats.length > 0) {
-      const renamedChatsObj = JSON.parse(renamedChats);
-      const updatedChats = localChats.map((chat) => ({
-        ...chat,
-        title: renamedChatsObj[chat.id] || chat.title,
-      }));
-      setLocalChats(updatedChats);
-    }
-  }, [localChats.length]);
 
   // Focus and select text when renaming starts
   useEffect(() => {
@@ -191,6 +276,27 @@ const UserPanel: React.FC<UserPanelProps> = ({
           prevChats.filter((chat) => chat.id !== currentChatId)
         );
 
+        // Update the storage
+        const storage = localStorage.getItem("authToken")
+          ? localStorage
+          : sessionStorage;
+        try {
+          const storedConversations = storage.getItem("conversations");
+          if (storedConversations) {
+            const conversations: ConversationData[] =
+              JSON.parse(storedConversations);
+            const updatedConversations = conversations.filter(
+              (conv) => conv.id !== currentChatId
+            );
+            storage.setItem(
+              "conversations",
+              JSON.stringify(updatedConversations)
+            );
+          }
+        } catch (error) {
+          console.error("Error updating stored conversations:", error);
+        }
+
         setDeleteDialogOpen(false);
 
         // The parent component should refresh the chats list after deletion
@@ -206,21 +312,61 @@ const UserPanel: React.FC<UserPanelProps> = ({
   const handlePinChat = () => {
     handleMenuClose();
     if (currentChatId) {
-      const chatToPin = localChats.find((chat) => chat.id === currentChatId);
-      if (chatToPin && !pinnedChats.some((chat) => chat.id === currentChatId)) {
-        setPinnedChats([...pinnedChats, chatToPin]);
+      // Find the chat
+      const chatToToggle = localChats.find((chat) => chat.id === currentChatId);
+      if (chatToToggle) {
+        // Check if it's already pinned
+        const isPinned =
+          localChats.find((chat) => chat.id === currentChatId)?.isPinned ||
+          false;
+
+        // Update UI immediately
+        // 1. Update isPinned status in localChats
+        setLocalChats((prevChats) =>
+          prevChats.map((chat) =>
+            chat.id === currentChatId ? { ...chat, isPinned: !isPinned } : chat
+          )
+        );
+
+        // 2. Update pinnedChats list
+        if (!isPinned) {
+          // Add to pinned chats
+          setPinnedChats([...pinnedChats, chatToToggle]);
+        } else {
+          // Remove from pinned chats
+          setPinnedChats((prevPinned) =>
+            prevPinned.filter((chat) => chat.id !== currentChatId)
+          );
+        }
+
+        // 3. Call API in the background
+        axiosInstance
+          .post(`/conversations/${currentChatId}/toggle-pin`)
+          .catch((error) => {
+            console.error("Error toggling pin status:", error);
+            // Revert changes on error
+            setLocalChats((prevChats) =>
+              prevChats.map((chat) =>
+                chat.id === currentChatId
+                  ? { ...chat, isPinned: isPinned }
+                  : chat
+              )
+            );
+
+            if (!isPinned) {
+              // Remove from pinned if adding failed
+              setPinnedChats((prevPinned) =>
+                prevPinned.filter((chat) => chat.id !== currentChatId)
+              );
+            } else {
+              // Add back to pinned if removal failed
+              if (chatToToggle) {
+                setPinnedChats((prev) => [...prev, chatToToggle]);
+              }
+            }
+          });
       }
     }
-  };
-
-  const handleUnpinChat = (
-    event: React.MouseEvent<HTMLButtonElement>,
-    chatId: string
-  ) => {
-    event.stopPropagation();
-    setPinnedChats((prevPinned) =>
-      prevPinned.filter((chat) => chat.id !== chatId)
-    );
   };
 
   const handleRenameClick = () => {
@@ -234,32 +380,97 @@ const UserPanel: React.FC<UserPanelProps> = ({
     }
   };
 
-  const handleRenameSubmit = (event: React.FormEvent) => {
+  const handleRenameSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (currentChatId && newChatName.trim()) {
-      // Update in local chats
+      const originalName =
+        localChats.find((chat) => chat.id === currentChatId)?.title || "";
+
+      // Update UI immediately
+      // 1. Update in local chats
       setLocalChats((prevChats) =>
         prevChats.map((chat) =>
           chat.id === currentChatId ? { ...chat, title: newChatName } : chat
         )
       );
 
-      // Save to local storage for persistence
-      localStorage.setItem(
-        "renamedChats",
-        JSON.stringify({
-          ...JSON.parse(localStorage.getItem("renamedChats") || "{}"),
-          [currentChatId]: newChatName,
-        })
-      );
-
-      // Update in pinned chats if it exists there
+      // 2. Update in pinned chats if it exists there
       setPinnedChats((prevPinned) =>
         prevPinned.map((chat) =>
           chat.id === currentChatId ? { ...chat, title: newChatName } : chat
         )
       );
 
+      // 3. Update in storage
+      const storage = localStorage.getItem("authToken")
+        ? localStorage
+        : sessionStorage;
+      try {
+        const storedConversations = storage.getItem("conversations");
+        if (storedConversations) {
+          const conversations: ConversationData[] =
+            JSON.parse(storedConversations);
+          const updatedConversations = conversations.map((conv) =>
+            conv.id === currentChatId ? { ...conv, name: newChatName } : conv
+          );
+          storage.setItem(
+            "conversations",
+            JSON.stringify(updatedConversations)
+          );
+        }
+      } catch (error) {
+        console.error("Error updating stored conversations:", error);
+      }
+
+      // 4. Close the rename field
+      setIsRenaming(false);
+
+      // 5. Call the rename API endpoint in the background
+      axiosInstance
+        .patch(`/conversations/${currentChatId}/rename`, {
+          name: newChatName.trim(),
+        })
+        .catch((error) => {
+          console.error("Error renaming conversation:", error);
+
+          // Revert changes on error
+          setLocalChats((prevChats) =>
+            prevChats.map((chat) =>
+              chat.id === currentChatId
+                ? { ...chat, title: originalName }
+                : chat
+            )
+          );
+
+          setPinnedChats((prevPinned) =>
+            prevPinned.map((chat) =>
+              chat.id === currentChatId
+                ? { ...chat, title: originalName }
+                : chat
+            )
+          );
+
+          // Revert in storage
+          try {
+            const storedConversations = storage.getItem("conversations");
+            if (storedConversations) {
+              const conversations: ConversationData[] =
+                JSON.parse(storedConversations);
+              const updatedConversations = conversations.map((conv) =>
+                conv.id === currentChatId
+                  ? { ...conv, name: originalName }
+                  : conv
+              );
+              storage.setItem(
+                "conversations",
+                JSON.stringify(updatedConversations)
+              );
+            }
+          } catch (error) {
+            console.error("Error reverting stored conversations:", error);
+          }
+        });
+    } else {
       setIsRenaming(false);
     }
   };
@@ -280,7 +491,6 @@ const UserPanel: React.FC<UserPanelProps> = ({
     localStorage.removeItem("userData");
     localStorage.removeItem("conversations");
     localStorage.removeItem("pinnedChats");
-    localStorage.removeItem("renamedChats");
     sessionStorage.removeItem("authToken");
     sessionStorage.removeItem("userData");
     sessionStorage.removeItem("conversations");
@@ -295,7 +505,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
 
   // Function to render chat item with the appropriate controls
   const renderChatItem = (
-    chat: { id: string; title: string },
+    chat: { id: string; title: string; isPinned?: boolean },
     isPinned: boolean = false
   ) => {
     const isSelected = chat.id === selectedConversationId;
@@ -367,26 +577,48 @@ const UserPanel: React.FC<UserPanelProps> = ({
               </span>
             }
           />
-          {isPinned ? (
-            <IconButton
-              size="small"
-              onClick={(e) => handleUnpinChat(e, chat.id)}
-              sx={{ ml: 1 }}
-            >
-              <PushPinIcon fontSize="small" color="primary" />
-            </IconButton>
-          ) : (
-            <IconButton
-              size="small"
-              onClick={(e) => handleMenuOpen(e, chat.id)}
-              sx={{ ml: 1 }}
-            >
-              <MoreVertIcon fontSize="small" />
-            </IconButton>
-          )}
+          <IconButton
+            size="small"
+            onClick={(e) => handleMenuOpen(e, chat.id)}
+            sx={{ ml: 1 }}
+          >
+            <MoreVertIcon fontSize="small" />
+          </IconButton>
         </ListItemButton>
       </ListItem>
     );
+  };
+
+  // Skeleton for loading state
+  const renderChatSkeleton = (count: number) => {
+    return Array(count)
+      .fill(0)
+      .map((_, index) => (
+        <ListItem
+          key={`skeleton-${index}`}
+          disablePadding
+          sx={{ borderRadius: 2, mb: 0.5 }}
+        >
+          <ListItemButton
+            sx={{
+              borderRadius: 2,
+              pointerEvents: "none",
+            }}
+            disabled
+          >
+            <ListItemIcon>
+              <Skeleton variant="circular" width={24} height={24} />
+            </ListItemIcon>
+            <ListItemText primary={<Skeleton variant="text" width="80%" />} />
+            <Skeleton
+              variant="circular"
+              width={24}
+              height={24}
+              sx={{ ml: 1 }}
+            />
+          </ListItemButton>
+        </ListItem>
+      ));
   };
 
   return (
@@ -434,7 +666,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
                     <AddIcon />
                   </ListItemIcon>
                   <ListItemText
-                    primary={<span style={{ fontWeight: 600 }}>New Chat</span>}
+                    primary={<span style={{ fontWeight: 400 }}>New Chat</span>}
                   />
                 </ListItemButton>
               </ListItem>
@@ -451,13 +683,18 @@ const UserPanel: React.FC<UserPanelProps> = ({
               pb: 2,
             }}
           >
+            {/* Loading indicator if we're fetching conversations */}
+            {isLoading && (
+              <List sx={{ width: "100%" }}>{renderChatSkeleton(10)}</List>
+            )}
+
             {/* Pinned Chats Section */}
-            {pinnedChats.length > 0 && (
+            {!isLoading && pinnedChats.length > 0 && (
               <>
                 <Typography
                   variant="subtitle2"
                   color="text.secondary"
-                  sx={{ mb: 1, mt: 2, fontWeight: 700, letterSpacing: 1 }}
+                  sx={{ mb: 1, mt: 2, fontWeight: 400, letterSpacing: 1 }}
                 >
                   Pinned Chats
                 </Typography>
@@ -468,12 +705,12 @@ const UserPanel: React.FC<UserPanelProps> = ({
             )}
 
             {/* Recent Chats Section Header and List */}
-            {localChats.length > 0 && (
+            {!isLoading && localChats.length > 0 && (
               <>
                 <Typography
                   variant="subtitle2"
                   color="text.secondary"
-                  sx={{ mb: 1, mt: 2, fontWeight: 700, letterSpacing: 1 }}
+                  sx={{ mb: 1, mt: 2, fontWeight: 400, letterSpacing: 1 }}
                 >
                   Recent Chats
                 </Typography>
@@ -550,8 +787,21 @@ const UserPanel: React.FC<UserPanelProps> = ({
         }}
       >
         <MenuItem onClick={handlePinChat} sx={{ gap: 1 }}>
-          <PushPinIcon fontSize="small" />
-          <Typography variant="body2">Pin</Typography>
+          {currentChatId &&
+          localChats.find((chat) => chat.id === currentChatId)?.isPinned ? (
+            <PushPinIcon
+              fontSize="small"
+              sx={{ transform: "rotate(90deg)" }}
+            />
+          ) : (
+            <PushPinIcon fontSize="small" />
+          )}
+          <Typography variant="body2">
+            {currentChatId &&
+            localChats.find((chat) => chat.id === currentChatId)?.isPinned
+              ? "Unpin"
+              : "Pin"}
+          </Typography>
         </MenuItem>
         <MenuItem onClick={handleRenameClick} sx={{ gap: 1 }}>
           <EditIcon fontSize="small" />
