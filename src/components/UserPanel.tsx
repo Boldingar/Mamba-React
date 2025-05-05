@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Drawer,
@@ -21,12 +21,22 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Menu,
+  MenuItem,
+  TextField,
+  CircularProgress,
+  Skeleton,
 } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
 import AddIcon from "@mui/icons-material/Add";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import PushPinIcon from "@mui/icons-material/PushPin";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../utils/axios";
 
 // Remove dummy chats
 // const dummyChats = [
@@ -67,6 +77,27 @@ interface UserPanelProps {
   selectedConversationId?: string | null;
 }
 
+interface PinnedChat {
+  id: string;
+  title: string;
+}
+
+interface ConversationData {
+  id: string;
+  name: string;
+}
+
+// Interface for the API response
+interface ConversationResponse {
+  conversations: {
+    id: string;
+    name: string;
+    updated_at: string;
+    is_pinned: boolean;
+  }[];
+  total: number;
+}
+
 const UserPanel: React.FC<UserPanelProps> = ({
   setIsAuthenticated,
   onProfileClick,
@@ -80,6 +111,369 @@ const UserPanel: React.FC<UserPanelProps> = ({
   const theme = useTheme();
   const sidebarBg = "#232323";
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const [pinnedChats, setPinnedChats] = useState<PinnedChat[]>([]);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newChatName, setNewChatName] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [localChats, setLocalChats] = useState<
+    { id: string; title: string; isPinned?: boolean }[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Create a ref for the text input
+  const renameInputRef = useRef<HTMLInputElement>(null);
+  // Create a ref to track if the API call has been made
+  const apiCalledRef = useRef(false);
+
+  // Load pinned chats from localStorage on component mount
+  useEffect(() => {
+    const storedPinnedChats = localStorage.getItem("pinnedChats");
+    if (storedPinnedChats) {
+      setPinnedChats(JSON.parse(storedPinnedChats));
+    }
+  }, []);
+
+  // Fetch conversations from the API on page load
+  useEffect(() => {
+    const fetchConversations = async () => {
+      // Make sure we don't call the API twice
+      if (apiCalledRef.current) return;
+      apiCalledRef.current = true;
+
+      // Check if we're already logged in
+      const hasToken =
+        localStorage.getItem("authToken") ||
+        sessionStorage.getItem("authToken");
+      if (!hasToken) return;
+
+      try {
+        setIsLoading(true);
+        const response = await axiosInstance.get<ConversationResponse>(
+          "/user/conversations"
+        );
+
+        if (response.data && response.data.conversations) {
+          // Convert the API response to our local format
+          const conversations = response.data.conversations.map((conv) => ({
+            id: conv.id,
+            title: conv.name || `Chat ${conv.id}`,
+            isPinned: conv.is_pinned,
+          }));
+
+          // Update local chats
+          setLocalChats(conversations);
+
+          // Update storage with the new conversations
+          const storage = localStorage.getItem("authToken")
+            ? localStorage
+            : sessionStorage;
+          const conversationsForStorage = response.data.conversations.map(
+            (conv) => ({
+              id: conv.id,
+              name: conv.name || `Chat ${conv.id}`,
+            })
+          );
+          storage.setItem(
+            "conversations",
+            JSON.stringify(conversationsForStorage)
+          );
+
+          // Extract pinned chats directly from the API response
+          const pinnedFromServer = response.data.conversations
+            .filter((conv) => conv.is_pinned)
+            .map((conv) => ({
+              id: conv.id,
+              title: conv.name || `Chat ${conv.id}`,
+            }));
+
+          setPinnedChats(pinnedFromServer);
+        }
+      } catch (error) {
+        console.error("Error fetching conversations:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchConversations();
+
+    // Cleanup function to reset the ref when component unmounts
+    return () => {
+      apiCalledRef.current = false;
+    };
+  }, []);
+
+  // Update localChats when recentChats change - only if we're not loading from API
+  useEffect(() => {
+    if (recentChats.length > 0 && !isLoading) {
+      // Preserve isPinned property when updating from recentChats
+      const updatedChats = recentChats.map((chat) => {
+        const existingChat = localChats.find((local) => local.id === chat.id);
+        return {
+          ...chat,
+          isPinned: existingChat?.isPinned || false,
+        };
+      });
+      setLocalChats(updatedChats);
+    }
+  }, [recentChats, isLoading]);
+
+  // Save pinned chats to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem("pinnedChats", JSON.stringify(pinnedChats));
+  }, [pinnedChats]);
+
+  // Focus and select text when renaming starts
+  useEffect(() => {
+    if (isRenaming && renameInputRef.current) {
+      setTimeout(() => {
+        if (renameInputRef.current) {
+          renameInputRef.current.focus();
+          renameInputRef.current.select();
+        }
+      }, 50);
+    }
+  }, [isRenaming]);
+
+  const handleMenuOpen = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    chatId: string
+  ) => {
+    event.stopPropagation();
+    setMenuAnchorEl(event.currentTarget);
+    setCurrentChatId(chatId);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+  };
+
+  const handleDeleteClick = () => {
+    handleMenuClose();
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (currentChatId) {
+      try {
+        setIsDeleting(true);
+        await axiosInstance.delete(`/conversations/${currentChatId}`);
+
+        // Remove from pinned chats if it exists there
+        setPinnedChats((prevPinned) =>
+          prevPinned.filter((chat) => chat.id !== currentChatId)
+        );
+
+        // Remove from local chats as well
+        setLocalChats((prevChats) =>
+          prevChats.filter((chat) => chat.id !== currentChatId)
+        );
+
+        // Update the storage
+        const storage = localStorage.getItem("authToken")
+          ? localStorage
+          : sessionStorage;
+        try {
+          const storedConversations = storage.getItem("conversations");
+          if (storedConversations) {
+            const conversations: ConversationData[] =
+              JSON.parse(storedConversations);
+            const updatedConversations = conversations.filter(
+              (conv) => conv.id !== currentChatId
+            );
+            storage.setItem(
+              "conversations",
+              JSON.stringify(updatedConversations)
+            );
+          }
+        } catch (error) {
+          console.error("Error updating stored conversations:", error);
+        }
+
+        setDeleteDialogOpen(false);
+
+        // The parent component should refresh the chats list after deletion
+        if (onNewChat) onNewChat(); // Triggering new chat to reset the view
+      } catch (error) {
+        console.error("Error deleting chat:", error);
+      } finally {
+        setIsDeleting(false);
+      }
+    }
+  };
+
+  const handlePinChat = () => {
+    handleMenuClose();
+    if (currentChatId) {
+      // Find the chat
+      const chatToToggle = localChats.find((chat) => chat.id === currentChatId);
+      if (chatToToggle) {
+        // Check if it's already pinned
+        const isPinned =
+          localChats.find((chat) => chat.id === currentChatId)?.isPinned ||
+          false;
+
+        // Update UI immediately
+        // 1. Update isPinned status in localChats
+        setLocalChats((prevChats) =>
+          prevChats.map((chat) =>
+            chat.id === currentChatId ? { ...chat, isPinned: !isPinned } : chat
+          )
+        );
+
+        // 2. Update pinnedChats list
+        if (!isPinned) {
+          // Add to pinned chats
+          setPinnedChats([...pinnedChats, chatToToggle]);
+        } else {
+          // Remove from pinned chats
+          setPinnedChats((prevPinned) =>
+            prevPinned.filter((chat) => chat.id !== currentChatId)
+          );
+        }
+
+        // 3. Call API in the background
+        axiosInstance
+          .post(`/conversations/${currentChatId}/toggle-pin`)
+          .catch((error) => {
+            console.error("Error toggling pin status:", error);
+            // Revert changes on error
+            setLocalChats((prevChats) =>
+              prevChats.map((chat) =>
+                chat.id === currentChatId
+                  ? { ...chat, isPinned: isPinned }
+                  : chat
+              )
+            );
+
+            if (!isPinned) {
+              // Remove from pinned if adding failed
+              setPinnedChats((prevPinned) =>
+                prevPinned.filter((chat) => chat.id !== currentChatId)
+              );
+            } else {
+              // Add back to pinned if removal failed
+              if (chatToToggle) {
+                setPinnedChats((prev) => [...prev, chatToToggle]);
+              }
+            }
+          });
+      }
+    }
+  };
+
+  const handleRenameClick = () => {
+    handleMenuClose();
+    if (currentChatId) {
+      const currentChat = localChats.find((chat) => chat.id === currentChatId);
+      if (currentChat) {
+        setNewChatName(currentChat.title || `Chat ${currentChat.id}`);
+        setIsRenaming(true);
+      }
+    }
+  };
+
+  const handleRenameSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (currentChatId && newChatName.trim()) {
+      const originalName =
+        localChats.find((chat) => chat.id === currentChatId)?.title || "";
+
+      // Update UI immediately
+      // 1. Update in local chats
+      setLocalChats((prevChats) =>
+        prevChats.map((chat) =>
+          chat.id === currentChatId ? { ...chat, title: newChatName } : chat
+        )
+      );
+
+      // 2. Update in pinned chats if it exists there
+      setPinnedChats((prevPinned) =>
+        prevPinned.map((chat) =>
+          chat.id === currentChatId ? { ...chat, title: newChatName } : chat
+        )
+      );
+
+      // 3. Update in storage
+      const storage = localStorage.getItem("authToken")
+        ? localStorage
+        : sessionStorage;
+      try {
+        const storedConversations = storage.getItem("conversations");
+        if (storedConversations) {
+          const conversations: ConversationData[] =
+            JSON.parse(storedConversations);
+          const updatedConversations = conversations.map((conv) =>
+            conv.id === currentChatId ? { ...conv, name: newChatName } : conv
+          );
+          storage.setItem(
+            "conversations",
+            JSON.stringify(updatedConversations)
+          );
+        }
+      } catch (error) {
+        console.error("Error updating stored conversations:", error);
+      }
+
+      // 4. Close the rename field
+      setIsRenaming(false);
+
+      // 5. Call the rename API endpoint in the background
+      axiosInstance
+        .patch(`/conversations/${currentChatId}/rename`, {
+          name: newChatName.trim(),
+        })
+        .catch((error) => {
+          console.error("Error renaming conversation:", error);
+
+          // Revert changes on error
+          setLocalChats((prevChats) =>
+            prevChats.map((chat) =>
+              chat.id === currentChatId
+                ? { ...chat, title: originalName }
+                : chat
+            )
+          );
+
+          setPinnedChats((prevPinned) =>
+            prevPinned.map((chat) =>
+              chat.id === currentChatId
+                ? { ...chat, title: originalName }
+                : chat
+            )
+          );
+
+          // Revert in storage
+          try {
+            const storedConversations = storage.getItem("conversations");
+            if (storedConversations) {
+              const conversations: ConversationData[] =
+                JSON.parse(storedConversations);
+              const updatedConversations = conversations.map((conv) =>
+                conv.id === currentChatId
+                  ? { ...conv, name: originalName }
+                  : conv
+              );
+              storage.setItem(
+                "conversations",
+                JSON.stringify(updatedConversations)
+              );
+            }
+          } catch (error) {
+            console.error("Error reverting stored conversations:", error);
+          }
+        });
+    } else {
+      setIsRenaming(false);
+    }
+  };
 
   const handleLogoutClick = () => {
     setLogoutDialogOpen(true);
@@ -96,6 +490,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
     localStorage.removeItem("authToken");
     localStorage.removeItem("userData");
     localStorage.removeItem("conversations");
+    localStorage.removeItem("pinnedChats");
     sessionStorage.removeItem("authToken");
     sessionStorage.removeItem("userData");
     sessionStorage.removeItem("conversations");
@@ -103,6 +498,127 @@ const UserPanel: React.FC<UserPanelProps> = ({
     // Update auth state and navigate
     if (setIsAuthenticated) setIsAuthenticated(false);
     navigate("/login");
+  };
+
+  // Calculate dynamic height for pinned chats list
+  const pinnedListHeight = Math.min(20, Math.max(10, pinnedChats.length * 10));
+
+  // Function to render chat item with the appropriate controls
+  const renderChatItem = (
+    chat: { id: string; title: string; isPinned?: boolean },
+    isPinned: boolean = false
+  ) => {
+    const isSelected = chat.id === selectedConversationId;
+    const isCurrentlyRenaming = isRenaming && currentChatId === chat.id;
+
+    return (
+      <ListItem key={chat.id} disablePadding sx={{ borderRadius: 2, mb: 0.5 }}>
+        <ListItemButton
+          sx={{
+            borderRadius: 2,
+            bgcolor: isSelected ? "rgba(0, 120, 255, 0.1)" : "transparent",
+            borderLeft: isSelected
+              ? `3px solid ${theme.palette.primary.main}`
+              : "none",
+            paddingLeft: isSelected ? 1.7 : 2,
+            transition: "all 0.2s ease",
+            "&:hover": {
+              bgcolor: isSelected
+                ? "rgba(0, 120, 255, 0.15)"
+                : "rgba(255, 255, 255, 0.05)",
+            },
+            "&.Mui-disabled": {
+              opacity: 0.5,
+            },
+          }}
+          onClick={() =>
+            !isCurrentlyRenaming && onSelectChat && onSelectChat(chat.id)
+          }
+          disabled={isAwaitingResponse}
+        >
+          <ListItemIcon>
+            <ChatIcon
+              fontSize="small"
+              color={isSelected ? "primary" : "inherit"}
+            />
+          </ListItemIcon>
+          <ListItemText
+            primary={
+              <span
+                style={{
+                  fontSize: 15,
+                  fontWeight: isSelected ? 600 : 400,
+                  color: isSelected ? theme.palette.primary.main : "inherit",
+                }}
+              >
+                {isCurrentlyRenaming ? (
+                  <form
+                    onSubmit={handleRenameSubmit}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <TextField
+                      size="small"
+                      value={newChatName}
+                      onChange={(e) => setNewChatName(e.target.value)}
+                      inputRef={renameInputRef}
+                      onBlur={handleRenameSubmit}
+                      sx={{
+                        width: "100%",
+                        "& .MuiInputBase-input": {
+                          padding: "4px 8px",
+                          fontSize: "15px",
+                        },
+                      }}
+                    />
+                  </form>
+                ) : (
+                  chat.title || `Chat ${chat.id}`
+                )}
+              </span>
+            }
+          />
+          <IconButton
+            size="small"
+            onClick={(e) => handleMenuOpen(e, chat.id)}
+            sx={{ ml: 1 }}
+          >
+            <MoreVertIcon fontSize="small" />
+          </IconButton>
+        </ListItemButton>
+      </ListItem>
+    );
+  };
+
+  // Skeleton for loading state
+  const renderChatSkeleton = (count: number) => {
+    return Array(count)
+      .fill(0)
+      .map((_, index) => (
+        <ListItem
+          key={`skeleton-${index}`}
+          disablePadding
+          sx={{ borderRadius: 2, mb: 0.5 }}
+        >
+          <ListItemButton
+            sx={{
+              borderRadius: 2,
+              pointerEvents: "none",
+            }}
+            disabled
+          >
+            <ListItemIcon>
+              <Skeleton variant="circular" width={24} height={24} />
+            </ListItemIcon>
+            <ListItemText primary={<Skeleton variant="text" width="80%" />} />
+            <Skeleton
+              variant="circular"
+              width={24}
+              height={24}
+              sx={{ ml: 1 }}
+            />
+          </ListItemButton>
+        </ListItem>
+      ));
   };
 
   return (
@@ -130,151 +646,178 @@ const UserPanel: React.FC<UserPanelProps> = ({
         <Toolbar sx={{ minHeight: 48 }} />
         <Box
           sx={{
-            flex: 1,
             display: "flex",
             flexDirection: "column",
-            alignItems: "flex-start",
-            p: 2,
-            pt: 2,
-            height: "100%",
+            height: "calc(100vh - 48px)", // Minus toolbar height
+            overflow: "hidden", // Ensure no scrolling on the parent
           }}
         >
-          <List sx={{ width: "100%" }}>
-            {/* New Chat Button */}
-            <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
-              <ListItemButton
-                sx={{ borderRadius: 2 }}
-                onClick={onNewChat}
-                disabled={isAwaitingResponse || selectedConversationId === ""}
-              >
-                <ListItemIcon>
-                  <AddIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={<span style={{ fontWeight: 600 }}>New Chat</span>}
-                />
-              </ListItemButton>
-            </ListItem>
-          </List>
-          {/* Recent Chats Section Header and List */}
-          {recentChats.length > 0 && (
-            <>
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                sx={{ mb: 1, mt: 2, fontWeight: 700, letterSpacing: 1 }}
-              >
-                Recent Chats
-              </Typography>
-              <List
-                sx={{
-                  width: "100%",
-                  overflow: "auto",
-                  maxHeight: "60vh",
-                  ...chatScrollbarStyle,
-                }}
-              >
-                {/* Recent Chats */}
-                {recentChats.map((chat) => {
-                  const isSelected = chat.id === selectedConversationId;
+          {/* Top section with New Chat button */}
+          <Box sx={{ p: 2 }}>
+            <List sx={{ width: "100%" }}>
+              {/* New Chat Button */}
+              <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
+                <ListItemButton
+                  sx={{ borderRadius: 2 }}
+                  onClick={onNewChat}
+                  disabled={isAwaitingResponse || selectedConversationId === ""}
+                >
+                  <ListItemIcon>
+                    <AddIcon />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={<span style={{ fontWeight: 400 }}>New Chat</span>}
+                  />
+                </ListItemButton>
+              </ListItem>
+            </List>
+          </Box>
 
-                  return (
-                    <ListItem
-                      key={chat.id}
-                      disablePadding
-                      sx={{ borderRadius: 2, mb: 0.5 }}
-                    >
-                      <ListItemButton
-                        sx={{
-                          borderRadius: 2,
-                          bgcolor: isSelected
-                            ? "rgba(0, 120, 255, 0.1)"
-                            : "transparent",
-                          borderLeft: isSelected
-                            ? `3px solid ${theme.palette.primary.main}`
-                            : "none",
-                          paddingLeft: isSelected ? 1.7 : 2,
-                          transition: "all 0.2s ease",
-                          "&:hover": {
-                            bgcolor: isSelected
-                              ? "rgba(0, 120, 255, 0.15)"
-                              : "rgba(255, 255, 255, 0.05)",
-                          },
-                          "&.Mui-disabled": {
-                            opacity: 0.5,
-                          },
+          {/* Middle scrollable section with chats */}
+          <Box
+            sx={{
+              flex: 1,
+              overflowY: "auto",
+              ...chatScrollbarStyle,
+              px: 2,
+              pb: 2,
+            }}
+          >
+            {/* Loading indicator if we're fetching conversations */}
+            {isLoading && (
+              <List sx={{ width: "100%" }}>{renderChatSkeleton(10)}</List>
+            )}
+
+            {/* Pinned Chats Section */}
+            {!isLoading && pinnedChats.length > 0 && (
+              <>
+                <Typography
+                  variant="subtitle2"
+                  color="text.secondary"
+                  sx={{ mb: 1, mt: 2, fontWeight: 400, letterSpacing: 1 }}
+                >
+                  Pinned Chats
+                </Typography>
+                <List sx={{ width: "100%" }}>
+                  {pinnedChats.map((chat) => renderChatItem(chat, true))}
+                </List>
+              </>
+            )}
+
+            {/* Recent Chats Section Header and List */}
+            {!isLoading && localChats.length > 0 && (
+              <>
+                <Typography
+                  variant="subtitle2"
+                  color="text.secondary"
+                  sx={{ mb: 1, mt: 2, fontWeight: 400, letterSpacing: 1 }}
+                >
+                  Recent Chats
+                </Typography>
+                <List sx={{ width: "100%" }}>
+                  {/* Filter out pinned chats from recent chats to avoid duplicates */}
+                  {localChats
+                    .filter(
+                      (chat) =>
+                        !pinnedChats.some((pinned) => pinned.id === chat.id)
+                    )
+                    .map((chat) => renderChatItem(chat))}
+                </List>
+              </>
+            )}
+          </Box>
+
+          {/* Bottom section with Profile and Logout buttons */}
+          <Box sx={{ p: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
+            <List sx={{ width: "100%" }}>
+              {/* Profile Button */}
+              <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
+                <ListItemButton
+                  sx={{ borderRadius: 2 }}
+                  onClick={onProfileClick}
+                >
+                  <ListItemIcon>
+                    <PersonIcon />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={<span style={{ fontWeight: 600 }}>Profile</span>}
+                  />
+                </ListItemButton>
+              </ListItem>
+              {/* Logout Button */}
+              <ListItem disablePadding sx={{ borderRadius: 2 }}>
+                <ListItemButton
+                  sx={{ borderRadius: 2 }}
+                  onClick={handleLogoutClick}
+                >
+                  <ListItemIcon>
+                    <LogoutIcon sx={{ color: theme.palette.error.main }} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={
+                      <span
+                        style={{
+                          fontWeight: 600,
+                          color: theme.palette.error.main,
                         }}
-                        onClick={() => onSelectChat && onSelectChat(chat.id)}
-                        disabled={isAwaitingResponse}
                       >
-                        <ListItemIcon>
-                          <ChatIcon
-                            fontSize="small"
-                            color={isSelected ? "primary" : "inherit"}
-                          />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={
-                            <span
-                              style={{
-                                fontSize: 15,
-                                fontWeight: isSelected ? 600 : 400,
-                                color: isSelected
-                                  ? theme.palette.primary.main
-                                  : "inherit",
-                              }}
-                            >
-                              {chat.title || `Chat ${chat.id}`}
-                            </span>
-                          }
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                  );
-                })}
-              </List>
-            </>
-          )}
-          <Box sx={{ flexGrow: 1 }} />
-          <Divider sx={{ my: 2, width: "100%", borderColor: "#292929" }} />
-          {/* Profile Button */}
-          <List sx={{ width: "100%" }}>
-            <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
-              <ListItemButton sx={{ borderRadius: 2 }} onClick={onProfileClick}>
-                <ListItemIcon>
-                  <PersonIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={<span style={{ fontWeight: 600 }}>Profile</span>}
-                />
-              </ListItemButton>
-            </ListItem>
-            {/* Logout Button */}
-            <ListItem disablePadding sx={{ borderRadius: 2 }}>
-              <ListItemButton
-                sx={{ borderRadius: 2 }}
-                onClick={handleLogoutClick}
-              >
-                <ListItemIcon>
-                  <LogoutIcon sx={{ color: theme.palette.error.main }} />
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <span
-                      style={{
-                        fontWeight: 600,
-                        color: theme.palette.error.main,
-                      }}
-                    >
-                      Logout
-                    </span>
-                  }
-                />
-              </ListItemButton>
-            </ListItem>
-          </List>
+                        Logout
+                      </span>
+                    }
+                  />
+                </ListItemButton>
+              </ListItem>
+            </List>
+          </Box>
         </Box>
       </Drawer>
+
+      {/* Menu for chat options */}
+      <Menu
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
+        onClose={handleMenuClose}
+        PaperProps={{
+          elevation: 3,
+          sx: {
+            bgcolor: "#2a2a2a",
+            borderRadius: 2,
+            minWidth: 180,
+          },
+        }}
+      >
+        <MenuItem onClick={handlePinChat} sx={{ gap: 1 }}>
+          {currentChatId &&
+          localChats.find((chat) => chat.id === currentChatId)?.isPinned ? (
+            <PushPinIcon
+              fontSize="small"
+              sx={{ transform: "rotate(90deg)" }}
+            />
+          ) : (
+            <PushPinIcon fontSize="small" />
+          )}
+          <Typography variant="body2">
+            {currentChatId &&
+            localChats.find((chat) => chat.id === currentChatId)?.isPinned
+              ? "Unpin"
+              : "Pin"}
+          </Typography>
+        </MenuItem>
+        <MenuItem onClick={handleRenameClick} sx={{ gap: 1 }}>
+          <EditIcon fontSize="small" />
+          <Typography variant="body2">Rename</Typography>
+        </MenuItem>
+        <MenuItem
+          onClick={handleDeleteClick}
+          sx={{
+            gap: 1,
+            color: theme.palette.error.main,
+          }}
+        >
+          <DeleteIcon fontSize="small" />
+          <Typography variant="body2">Delete</Typography>
+        </MenuItem>
+      </Menu>
 
       {/* Logout Confirmation Dialog */}
       <Dialog
@@ -340,6 +883,90 @@ const UserPanel: React.FC<UserPanelProps> = ({
             }}
           >
             Logout
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 2,
+              boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+              maxWidth: "400px",
+              width: "100%",
+              bgcolor: "#1a1a1a",
+            },
+          },
+        }}
+      >
+        <DialogTitle id="delete-dialog-title" sx={{ pb: 1 }}>
+          <Typography variant="h6" fontWeight={600}>
+            Delete Chat
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText
+            id="delete-dialog-description"
+            sx={{ color: "text.primary", opacity: 0.8 }}
+          >
+            Are you sure you want to delete this chat? This action cannot be
+            undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button
+            onClick={handleDeleteCancel}
+            variant="outlined"
+            disabled={isDeleting}
+            sx={{
+              textTransform: "none",
+              borderRadius: 1.5,
+              px: 2,
+              fontWeight: 500,
+              color: "text.secondary",
+              borderColor: "divider",
+              "&:hover": {
+                borderColor: "text.secondary",
+                backgroundColor: "rgba(0, 0, 0, 0.04)",
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            variant="contained"
+            color="error"
+            autoFocus
+            disabled={isDeleting}
+            sx={{
+              textTransform: "none",
+              borderRadius: 1.5,
+              px: 2,
+              fontWeight: 500,
+              position: "relative",
+            }}
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+            {isDeleting && (
+              <CircularProgress
+                size={20}
+                sx={{
+                  color: "#ffffff",
+                  position: "absolute",
+                  left: "50%",
+                  top: "50%",
+                  marginLeft: "-10px",
+                  marginTop: "-10px",
+                }}
+              />
+            )}
           </Button>
         </DialogActions>
       </Dialog>
