@@ -789,10 +789,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
         <MenuItem onClick={handlePinChat} sx={{ gap: 1 }}>
           {currentChatId &&
           localChats.find((chat) => chat.id === currentChatId)?.isPinned ? (
-            <PushPinIcon
-              fontSize="small"
-              sx={{ transform: "rotate(90deg)" }}
-            />
+            <PushPinIcon fontSize="small" sx={{ transform: "rotate(90deg)" }} />
           ) : (
             <PushPinIcon fontSize="small" />
           )}
