@@ -58,8 +58,18 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USERNAME }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
-          source: "docker-compose.yml,nginx.conf"
+          source: "docker-compose.yml,nginx.conf,options-ssl-nginx.conf"
           target: "/root/Mamba-React"
+
+      - name: Copy options-ssl-nginx.conf to certbot conf dir on droplet
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USERNAME }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            mkdir -p /root/Mamba-React/certbot/conf
+            cp /root/Mamba-React/options-ssl-nginx.conf /root/Mamba-React/certbot/conf/options-ssl-nginx.conf
 
       - name: Generate deployment ID
         id: deploy_id
