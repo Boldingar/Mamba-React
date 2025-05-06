@@ -108,31 +108,51 @@ jobs:
             cd ${REMOTE_PROJECT_PATH}; \
             echo 'Ensuring Git repository is clean and up to date...'; \
             git fetch origin; \
-            git reset --hard origin/${GITHUB_REF_NAME}; \
-            git clean -fdx; \
-            echo 'Copying options-ssl-nginx.conf to certbot/conf directory...'; \
+            git reset --hard origin/${GITHUB_REF_NAME:-main}; \
+            echo 'Cleaning repository, excluding Certbot data...'; \
+            git clean -fdx -e certbot/conf -e certbot/www; \
+            echo 'Ensuring Certbot directories and necessary config files exist...'; \
             mkdir -p ./certbot/conf; \
-            cp ./options-ssl-nginx.conf ./certbot/conf/options-ssl-nginx.conf; \
-            ls -la ./certbot/conf/options-ssl-nginx.conf; \
+            mkdir -p ./certbot/www; \
+            echo 'Copying options-ssl-nginx.conf to certbot/conf directory...'; \
+            if [ -f ./options-ssl-nginx.conf ]; then \
+              cp ./options-ssl-nginx.conf ./certbot/conf/options-ssl-nginx.conf; \
+              ls -la ./certbot/conf/options-ssl-nginx.conf; \
+            else \
+              echo 'WARNING: options-ssl-nginx.conf not found in project root. Ensure it is present in ./certbot/conf manually or via SCP.'; \
+            fi; \
+            echo 'Ensuring ssl-dhparams.pem exists in certbot/conf...'; \
+            if [ ! -f ./certbot/conf/ssl-dhparams.pem ]; then \
+              echo 'Generating ssl-dhparams.pem (this might take a few minutes)...'; \
+              openssl dhparam -out ./certbot/conf/ssl-dhparams.pem 2048; \
+            else \
+              echo 'ssl-dhparams.pem already exists.'; \
+            fi; \
             echo 'Verifying uploaded tar file at ${REMOTE_IMAGE_PATH}...'; \
             ls -la ${REMOTE_IMAGE_PATH}; \
             if [ ! -f ${REMOTE_IMAGE_PATH} ]; then echo 'ERROR: Tar file not found on droplet at ${REMOTE_IMAGE_PATH}!' >&2; exit 1; fi; \
             echo 'Stopping/Removing old containers...'; \
-            docker stop $(docker ps -a -q --filter='name=mamba-frontend') 2>/dev/null || true; \
-            docker rm $(docker ps -a -q --filter='name=mamba-frontend') 2>/dev/null || true; \
-            echo 'Removing old image tag...'; \
+            docker ps -a --filter 'name=mamba-frontend' -q | xargs -r docker stop || true; \
+            docker ps -a --filter 'name=mamba-frontend' -q | xargs -r docker rm || true; \
+            docker ps -a --filter 'name=certbot' -q | xargs -r docker stop || true; \
+            docker ps -a --filter 'name=certbot' -q | xargs -r docker rm || true; \
+            echo 'Removing old image tag mamba-frontend:latest...'; \
             docker rmi mamba-frontend:latest 2>/dev/null || true; \
             echo 'Loading new image...'; \
             docker load -i ${REMOTE_IMAGE_PATH}; \
             if ! docker images | grep -q mamba-frontend; then echo 'ERROR: Failed to load image!' >&2; exit 1; fi; \
             echo 'Image loaded.'; \
-            echo 'Running compose down...'; \
+            echo 'Running compose down (to remove old network if any)...'; \
             export DEPLOY_ID='${DEPLOY_ID}'; \
-            docker-compose down --remove-orphans -v --timeout 10 2>/dev/null || true; \
-            echo 'Running compose up...'; \
-            docker-compose up -d --force-recreate; \
+            docker-compose -f docker-compose.yml down --remove-orphans -v --timeout 10 2>/dev/null || true; \
+            echo 'Running compose up for mamba-frontend...'; \
+            docker-compose -f docker-compose.yml up --build -d mamba-frontend; \
+            echo 'Running Certbot for renewal check...'; \
+            docker-compose -f docker-compose.yml run --rm certbot; \
+            echo 'Restarting mamba-frontend to pick up any renewed certs (if any)...'; \
+            docker-compose -f docker-compose.yml restart mamba-frontend; \
             echo 'Verifying deployment...'; \
-            docker ps | grep mamba-frontend; \
+            docker ps -a | grep mamba-frontend; \
             echo 'Cleaning up tar file...'; \
             rm -f ${REMOTE_IMAGE_PATH}; \
             echo 'Pruning images...'; \
