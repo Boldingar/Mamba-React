@@ -268,4 +268,5 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
   );
 };
 
+
 export default LoginPage;
