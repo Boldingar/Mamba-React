@@ -105,6 +105,11 @@ jobs:
           ssh ${SSH_OPTIONS} "${DROPLET_USERNAME}@${DROPLET_HOST}" " \
             echo '--- Starting deployment on droplet ---'; \
             mkdir -p ${REMOTE_PROJECT_PATH}; \
+            cd ${REMOTE_PROJECT_PATH}; \
+            echo 'Ensuring Git repository is clean and up to date...'; \
+            git fetch origin; \
+            git reset --hard origin/${GITHUB_REF_NAME}; \
+            git clean -fdx; \
             echo 'Verifying uploaded tar file at ${REMOTE_IMAGE_PATH}...'; \
             ls -la ${REMOTE_IMAGE_PATH}; \
             if [ ! -f ${REMOTE_IMAGE_PATH} ]; then echo 'ERROR: Tar file not found on droplet at ${REMOTE_IMAGE_PATH}!' >&2; exit 1; fi; \
@@ -118,7 +123,6 @@ jobs:
             if ! docker images | grep -q mamba-frontend; then echo 'ERROR: Failed to load image!' >&2; exit 1; fi; \
             echo 'Image loaded.'; \
             echo 'Running compose down...'; \
-            cd ${REMOTE_PROJECT_PATH}; \
             export DEPLOY_ID='${DEPLOY_ID}'; \
             docker-compose down --remove-orphans -v --timeout 10 2>/dev/null || true; \
             echo 'Running compose up...'; \
