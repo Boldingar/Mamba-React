@@ -61,16 +61,6 @@ jobs:
           source: "docker-compose.yml,nginx.conf,options-ssl-nginx.conf"
           target: "/root/Mamba-React"
 
-      - name: Copy options-ssl-nginx.conf to certbot conf dir on droplet
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DROPLET_HOST }}
-          username: ${{ secrets.DROPLET_USERNAME }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          script: |
-            mkdir -p /root/Mamba-React/certbot/conf
-            cp /root/Mamba-React/options-ssl-nginx.conf /root/Mamba-React/certbot/conf/options-ssl-nginx.conf
-
       - name: Generate deployment ID
         id: deploy_id
         run: echo "DEPLOY_ID=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
@@ -120,6 +110,10 @@ jobs:
             git fetch origin; \
             git reset --hard origin/${GITHUB_REF_NAME}; \
             git clean -fdx; \
+            echo 'Copying options-ssl-nginx.conf to certbot/conf directory...'; \
+            mkdir -p ./certbot/conf; \
+            cp ./options-ssl-nginx.conf ./certbot/conf/options-ssl-nginx.conf; \
+            ls -la ./certbot/conf/options-ssl-nginx.conf; \
             echo 'Verifying uploaded tar file at ${REMOTE_IMAGE_PATH}...'; \
             ls -la ${REMOTE_IMAGE_PATH}; \
             if [ ! -f ${REMOTE_IMAGE_PATH} ]; then echo 'ERROR: Tar file not found on droplet at ${REMOTE_IMAGE_PATH}!' >&2; exit 1; fi; \
