@@ -29,15 +29,17 @@ services:
     volumes:
       - /root/Mamba-React/certbot/conf:/etc/letsencrypt
       - /root/Mamba-React/certbot/www:/var/www/certbot
-    entrypoint: /bin/sh
-    command: -c "sleep 300"
+    command: >
+      certonly --webroot -w /var/www/certbot --staging
+      --email komymahmoud8@gmail.com
+      -d front-genta.xyz -d www.front-genta.xyz
+      --agree-tos --force-renewal --non-interactive
     # # Original command (restore after diagnostics, also remove entrypoint override):
     # command: >
     #   certonly --webroot -w /var/www/certbot --staging
     #   --email komymahmoud8@gmail.com
     #   -d front-genta.xyz -d www.front-genta.xyz
     #   --agree-tos --force-renewal --non-interactive
-    #   # Remove --staging after successful test for a live certificate.
     # volumes:
     #   - ./:/app
     #   - /app/node_modules
