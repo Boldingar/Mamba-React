@@ -27,11 +27,10 @@ services:
     pull_policy: if_not_present
     container_name: certbot-${DEPLOY_ID:-latest}
     volumes:
-      # Use absolute paths for host directories
       - /root/Mamba-React/certbot/conf:/etc/letsencrypt
       - /root/Mamba-React/certbot/www:/var/www/certbot
-    entrypoint: /bin/sh # Override entrypoint for diagnostics
-    command: -c "sleep 300" # Command for the shell to execute
+    entrypoint: /bin/sh
+    command: -c "sleep 300"
     # # Original command (restore after diagnostics, also remove entrypoint override):
     # command: >
     #   certonly --webroot -w /var/www/certbot --staging
