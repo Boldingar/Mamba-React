@@ -30,13 +30,12 @@ services:
       # Mount host directories to store certs and challenge files
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    command: ls -la /var/www/ # Temporarily changed for diagnostics
-      # certonly --webroot -w /var/www/certbot
-      # --email komymahmoud8@gmail.com
-      # -d front-genta.xyz -d www.front-genta.xyz
-      # --agree-tos --force-renewal --non-interactive
-      # # Add --staging for initial testing to avoid rate limits, then remove for live cert.
-      # # Example for staging: --staging
+    command: >
+      certonly --webroot -w /var/www/certbot --staging
+      --email komymahmoud8@gmail.com
+      -d front-genta.xyz -d www.front-genta.xyz
+      --agree-tos --force-renewal --non-interactive
+      # Remove --staging after successful test for a live certificate.
     volumes:
       - ./:/app
       - /app/node_modules
