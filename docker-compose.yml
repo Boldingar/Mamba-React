@@ -30,8 +30,9 @@ services:
       # Use absolute paths for host directories
       - /root/Mamba-React/certbot/conf:/etc/letsencrypt
       - /root/Mamba-React/certbot/www:/var/www/certbot
-    command: sleep 300 # TEMPORARY: Keep container alive for inspection
-    # # Original command (restore after diagnostics):
+    entrypoint: /bin/sh # Override entrypoint for diagnostics
+    command: -c "sleep 300" # Command for the shell to execute
+    # # Original command (restore after diagnostics, also remove entrypoint override):
     # command: >
     #   certonly --webroot -w /var/www/certbot --staging
     #   --email komymahmoud8@gmail.com
