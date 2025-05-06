@@ -30,12 +30,14 @@ services:
       # Use absolute paths for host directories
       - /root/Mamba-React/certbot/conf:/etc/letsencrypt
       - /root/Mamba-React/certbot/www:/var/www/certbot
-    command: >
-      certonly --webroot -w /var/www/certbot --staging
-      --email komymahmoud8@gmail.com
-      -d front-genta.xyz -d www.front-genta.xyz
-      --agree-tos --force-renewal --non-interactive
-      # Remove --staging after successful test for a live certificate.
+    command: sleep 300 # TEMPORARY: Keep container alive for inspection
+    # # Original command (restore after diagnostics):
+    # command: >
+    #   certonly --webroot -w /var/www/certbot --staging
+    #   --email komymahmoud8@gmail.com
+    #   -d front-genta.xyz -d www.front-genta.xyz
+    #   --agree-tos --force-renewal --non-interactive
+    #   # Remove --staging after successful test for a live certificate.
     volumes:
       - ./:/app
       - /app/node_modules
