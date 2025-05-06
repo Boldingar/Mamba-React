@@ -11,10 +11,10 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      # Mount Let's Encrypt certificates (read-only for nginx)
-      - ./certbot/conf:/etc/letsencrypt:ro
-      # Mount the webroot for ACME challenges (read-only for nginx)
-      - ./certbot/www:/var/www/certbot:ro
+      # Use absolute path for Let's Encrypt certificates
+      - /root/Mamba-React/certbot/conf:/etc/letsencrypt:ro
+      # Use absolute path for the webroot for ACME challenges
+      - /root/Mamba-React/certbot/www:/var/www/certbot:ro
     # # Uncomment for production resource limits if needed
     # deploy:
     #   resources:
@@ -27,9 +27,9 @@ services:
     pull_policy: if_not_present
     container_name: certbot-${DEPLOY_ID:-latest}
     volumes:
-      # Mount host directories to store certs and challenge files
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      # Use absolute paths for host directories
+      - /root/Mamba-React/certbot/conf:/etc/letsencrypt
+      - /root/Mamba-React/certbot/www:/var/www/certbot
     command: >
       certonly --webroot -w /var/www/certbot --staging
       --email komymahmoud8@gmail.com
