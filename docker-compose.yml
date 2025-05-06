@@ -4,7 +4,6 @@ services:
   mamba-frontend:
     build: .
     image: mamba-frontend:latest
-    # pull_policy: never
     container_name: mamba-frontend-${DEPLOY_ID:-latest}
     restart: always
     ports:
@@ -12,34 +11,32 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      # Mount Let's Encrypt certificates (read-only)
+      # Mount Let's Encrypt certificates (read-only for nginx)
       - ./certbot/conf:/etc/letsencrypt:ro
-      # Mount the webroot for ACME challenges (read-only for Nginx, Certbot writes to it via its own mount)
+      # Mount the webroot for ACME challenges (read-only for nginx)
       - ./certbot/www:/var/www/certbot:ro
-    # Uncomment for production settings
+    # # Uncomment for production resource limits if needed
     # deploy:
     #   resources:
     #     limits:
     #       cpus: '0.5'
     #       memory: 256M
 
-  Uncomment to enable SSL certificates with Let's Encrypt
   certbot:
     image: certbot/certbot
     pull_policy: if_not_present
     container_name: certbot-${DEPLOY_ID:-latest}
     volumes:
+      # Mount host directories to store certs and challenge files
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    # Command to obtain/renew certificate. Replace with your actual email and domains.
-    # Use --staging for testing to avoid rate limits, then remove --staging for live cert.
     command: >
-      certonly --webroot -w /var/www/certbot 
+      certonly --webroot -w /var/www/certbot
       --email komymahmoud8@gmail.com
-      -d front-genta.xyz -d www.front-genta.xyz 
+      -d front-genta.xyz -d www.front-genta.xyz
       --agree-tos --force-renewal --non-interactive
-    # Remove --staging after successful test, or use a command like 'renew' for cron jobs.
-    # For initial run, this command is fine. For renewals, you might use 'renew'.
+      # Add --staging for initial testing to avoid rate limits, then remove for live cert.
+      # Example for staging: --staging
     volumes:
       - ./:/app
       - /app/node_modules
