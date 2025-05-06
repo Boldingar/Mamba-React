@@ -250,7 +250,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
 
             <Box sx={{ textAlign: "center", mt: 2 }}>
               <Typography variant="body2">
-                Don't have an account????????????{" "}
+                Don't have an account?{" "}
                 <Link
                   component="button"
                   variant="body2"
