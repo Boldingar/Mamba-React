@@ -38,8 +38,8 @@ services:
     #   -d front-genta.xyz -d www.front-genta.xyz
     #   --agree-tos --force-renewal --non-interactive
     #   # Remove --staging after successful test for a live certificate.
-    volumes:
-      - ./:/app
-      - /app/node_modules
-    ports:
-      - "5173:5173" 
+    # volumes:
+    #   - ./:/app
+    #   - /app/node_modules
+    # ports:
+    #   - "5173:5173" 
