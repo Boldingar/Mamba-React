@@ -2,8 +2,9 @@ version: '3.8'
 
 services:
   mamba-frontend:
+    build: .
     image: mamba-frontend:latest
-    pull_policy: never
+    # pull_policy: never
     container_name: mamba-frontend-${DEPLOY_ID:-latest}
     restart: always
     ports:
