@@ -713,16 +713,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
             </Box>
           </Box>
         )}
-        {showDataPanel && (
-          <DataPanel
-            open={showDataPanel}
-            onClose={() => setShowDataPanel(false)}
-            datasets={datasets}
-            selectedDatasetId={selectedDatasetId}
-            onDatasetSelect={handleDatasetSelect}
-            data={selectedDataset?.data || []}
-          />
-        )}
+        <DataPanel
+          open={showDataPanel}
+          onClose={() => setShowDataPanel(false)}
+          datasets={datasets}
+          selectedDatasetId={selectedDatasetId}
+          onDatasetSelect={handleDatasetSelect}
+          data={selectedDataset?.data || []}
+        />
       </Box>
     </>
   );
