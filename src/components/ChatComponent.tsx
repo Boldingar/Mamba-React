@@ -21,9 +21,7 @@ import MessageLoading from "./TypingIndicator";
 
 const ChatContainer = styled(Paper)(({ theme }) => ({
   width: "100%",
-  maxWidth: "1200px",
-  minWidth: "300px",
-  height: "70vh",
+  height: "100%",
   display: "flex",
   flexDirection: "column",
   backgroundColor: theme.palette.background.default,
@@ -1155,13 +1153,24 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     <Box
       sx={{
         width: "100%",
+        height: "100%",
         display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "80%",
+        justifyContent: "stretch",
+        alignItems: "stretch",
+        p: 0,
+        m: 0,
       }}
     >
-      <ChatContainer elevation={3}>
+      <ChatContainer
+        elevation={0}
+        sx={{
+          width: "100%",
+          maxWidth: "100%",
+          height: "100%",
+          margin: 0,
+          borderRadius: 0,
+        }}
+      >
         <MessageList>
           {isLoadingMessages ? (
             // Only show skeleton if we're loading messages
@@ -1338,7 +1347,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             multiline
             maxRows={4}
             sx={{
-              borderRadius: 3,
               ".MuiOutlinedInput-root": {
                 borderRadius: 3,
                 bgcolor: "background.paper",

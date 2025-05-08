@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
-  Drawer,
   Box,
   IconButton,
   Typography,
@@ -10,7 +9,6 @@ import {
   MenuItem,
   SelectChangeEvent,
   Button,
-  Tooltip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -35,6 +33,8 @@ interface DataPanelProps {
   selectedDatasetId: string | null;
   onDatasetSelect: (datasetId: string) => void;
   data: Data[];
+  onResize?: (width: number) => void;
+  initialWidth?: number;
 }
 
 const DataPanel: React.FC<DataPanelProps> = ({
@@ -44,18 +44,74 @@ const DataPanel: React.FC<DataPanelProps> = ({
   selectedDatasetId,
   onDatasetSelect,
   data,
+  onResize,
+  initialWidth = 500,
 }) => {
-  const [filteredData, setFilteredData] = React.useState<Data[]>(data);
+  const [filteredData, setFilteredData] = useState<Data[]>(data);
+  const [width, setWidth] = useState(initialWidth);
+  const [isResizing, setIsResizing] = useState(false);
+  const startX = useRef(0);
+  const startWidth = useRef(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setFilteredData(data);
   }, [data]);
+
+  useEffect(() => {
+    if (!isResizing) {
+      setWidth(initialWidth);
+    }
+  }, [initialWidth, isResizing]);
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing) return;
+      const dx = startX.current - e.clientX;
+      const newWidth = Math.min(800, Math.max(300, startWidth.current + dx));
+      setWidth(newWidth);
+      if (onResize) onResize(newWidth);
+    },
+    [isResizing, onResize]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    if (!isResizing) return;
+    setIsResizing(false);
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  }, [isResizing]);
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      startX.current = e.clientX;
+      startWidth.current = width;
+      setIsResizing(true);
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+    },
+    [width]
+  );
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    } else {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing, handleMouseMove, handleMouseUp]);
 
   const handleDatasetChange = (event: SelectChangeEvent<string>) => {
     onDatasetSelect(event.target.value);
   };
 
-  // Sort datasets by timestamp to maintain consistent order
   const sortedDatasets = React.useMemo(() => {
     return [...datasets].sort(
       (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
@@ -64,18 +120,13 @@ const DataPanel: React.FC<DataPanelProps> = ({
 
   const handleDownload = () => {
     if (filteredData.length === 0) return;
-
-    // Get headers from the first row
     const headers = Object.keys(filteredData[0]);
-
-    // Convert data to CSV format
     const csvContent = [
-      headers.join(","), // Header row
+      headers.join(","),
       ...filteredData.map((row) =>
         headers
           .map((header) => {
             const value = row[header];
-            // Handle values that might contain commas or quotes
             if (
               typeof value === "string" &&
               (value.includes(",") || value.includes('"'))
@@ -87,20 +138,15 @@ const DataPanel: React.FC<DataPanelProps> = ({
           .join(",")
       ),
     ].join("\n");
-
-    // Create blob and download
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-
-    // Get current dataset name for the file name
     const currentDataset = sortedDatasets.find(
       (ds) => ds.id === selectedDatasetId
     );
     const fileName = currentDataset
       ? `${currentDataset.id}.csv`
       : "keywords_data.csv";
-
     link.setAttribute("href", url);
     link.setAttribute("download", fileName);
     document.body.appendChild(link);
@@ -109,22 +155,58 @@ const DataPanel: React.FC<DataPanelProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  if (!open) return null;
+
   return (
-    <Drawer
-      anchor="right"
-      open={open}
-      onClose={onClose}
-      PaperProps={{
-        sx: { width: "80%", maxWidth: "1000px" },
+    <Box
+      sx={{
+        width: `${width}px`,
+        height: "100%",
+        bgcolor: "background.paper",
+        boxShadow: "-4px 0px 10px rgba(0, 0, 0, 0.1)",
+        display: "flex",
+        flexDirection: "column",
+        flexShrink: 0,
+        borderLeft: "1px solid",
+        borderColor: "divider",
+        transition: isResizing ? "none" : "width 0.25s ease-out",
+        position: "relative",
       }}
     >
+      {/* Resize handle on the left edge */}
+      <Box
+        sx={{
+          position: "absolute",
+          left: -12,
+          top: 0,
+          width: 24,
+          height: "100%",
+          cursor: "col-resize",
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "transparent",
+        }}
+        onMouseDown={handleMouseDown}
+      >
+        <Box
+          className="resizeIndicator"
+          sx={{
+            width: 4,
+            height: "100%",
+            backgroundColor: "divider",
+            transition: "background-color 0.2s",
+          }}
+        />
+      </Box>
       <Box
         sx={{
           p: 3,
           height: "100%",
           display: "flex",
-          marginTop: "70px",
           flexDirection: "column",
+          width: "100%",
         }}
       >
         <Box
@@ -133,11 +215,12 @@ const DataPanel: React.FC<DataPanelProps> = ({
             justifyContent: "space-between",
             alignItems: "center",
             mb: 3,
+            width: "100%",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
             <Typography variant="h6">CSV Data View</Typography>
-            <FormControl size="small" sx={{ minWidth: 300 }}>
+            <FormControl size="small" sx={{ minWidth: 200, flex: 1 }}>
               <InputLabel>Select Dataset</InputLabel>
               <Select
                 value={selectedDatasetId || ""}
@@ -169,8 +252,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
             <CloseIcon />
           </IconButton>
         </Box>
-
-        <Box sx={{ flex: 1, overflow: "auto" }}>
+        <Box sx={{ flex: 1, overflow: "auto", width: "100%" }}>
           {data.length > 0 ? (
             <BusinessDataTable data={data} onDataFilter={setFilteredData} />
           ) : (
@@ -181,6 +263,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
                 alignItems: "center",
                 justifyContent: "center",
                 height: "100%",
+                width: "100%",
                 p: 3,
               }}
             >
@@ -197,7 +280,6 @@ const DataPanel: React.FC<DataPanelProps> = ({
             </Box>
           )}
         </Box>
-
         <Box
           sx={{
             mt: 2,
@@ -206,6 +288,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
             pt: 2,
             display: "flex",
             justifyContent: "center",
+            width: "100%",
           }}
         >
           <Button
@@ -225,7 +308,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
           </Button>
         </Box>
       </Box>
-    </Drawer>
+    </Box>
   );
 };
 

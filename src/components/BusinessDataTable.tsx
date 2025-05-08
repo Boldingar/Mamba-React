@@ -223,9 +223,19 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
   );
 
   return (
-    <Box>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 3 }}>
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+    <Box sx={{ width: "100%" }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          mb: 3,
+          width: "100%",
+        }}
+      >
+        <Box
+          sx={{ display: "flex", gap: 2, alignItems: "center", width: "100%" }}
+        >
           <TextField
             fullWidth
             variant="outlined"
@@ -310,7 +320,7 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
           sx: { width: "700px" },
         }}
       >
-        <Box sx={{ p: 3}}>
+        <Box sx={{ p: 3 }}>
           <Typography variant="h6" sx={{ mb: 3 }}>
             Add Filter Condition
           </Typography>
@@ -380,8 +390,11 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
         </Box>
       </Popover>
 
-      <TableContainer component={Paper}>
-        <Table stickyHeader>
+      <TableContainer
+        component={Paper}
+        sx={{ width: "100%", overflowX: "auto" }}
+      >
+        <Table stickyHeader sx={{ width: "100%" }}>
           <TableHead>
             <TableRow>
               {headers.map((header) => (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import ChatComponent from "../components/ChatComponent";
 import DataPanel from "../components/DataPanel";
@@ -133,6 +133,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [conversationId, setConversationId] = useState<string | null>("");
   const [recentChats, setRecentChats] = useState<RecentChat[]>([]);
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
+  const [dataPanelWidth, setDataPanelWidth] = useState(500);
 
   const handleNewChat = () => {
     // Don't allow new chat if we're waiting for a response
@@ -597,6 +598,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     };
   }, []);
 
+  // Handler to update the panel width
+  const handleDataPanelResize = (width: number) => {
+    setDataPanelWidth(width);
+  };
+
   return (
     <>
       {showProfile && (
@@ -622,13 +628,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
       />
       <Box
         sx={{
-          height: "90vh",
-          width: "90vw",
+          height: "calc(100vh - 64px)", // Adjust for app bar height
+          width: "100%",
           bgcolor: "background.default",
           display: "flex",
           flexDirection: "row",
-          overflow: "hidden",
+          overflow: "hidden", // Prevent scrolling
           position: "relative",
+          maxHeight: "calc(100vh - 64px)", // Ensure max height is set
         }}
       >
         <UserPanel
@@ -644,25 +651,53 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           sx={{
             flex: 1,
             display: "flex",
-            alignItems: "center",
+            flexDirection: "row",
+            height: "100%",
+            transition: "all 0.3s ease",
+            overflow: "hidden", // Prevent scrolling
             justifyContent: "center",
-            height: "100vh",
-            marginTop: "330px",
-            overflow: "hidden",
+            width: "100%",
+            position: "relative",
           }}
         >
-          <ChatComponent
-            onTableReady={fetchTableData}
-            updates={updates}
-            agentProcessing={agentProcessing}
-            showForm={showForm}
-            conversationId={conversationId}
-            onNewConversation={addNewConversation}
-            setIsAwaitingResponse={setIsAwaitingResponse}
-            messages={messages}
-            isLoadingMessages={isLoading}
-            updateMessages={updateMessages}
-          />
+          <Box
+            sx={{
+              width: showDataPanel
+                ? `calc(100% - ${dataPanelWidth}px)`
+                : "80%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden", // Prevent scrolling
+              // transition: "all 0.2s ease",
+            }}
+          >
+            <ChatComponent
+              onTableReady={fetchTableData}
+              updates={updates}
+              agentProcessing={agentProcessing}
+              showForm={showForm}
+              conversationId={conversationId}
+              onNewConversation={addNewConversation}
+              setIsAwaitingResponse={setIsAwaitingResponse}
+              messages={messages}
+              isLoadingMessages={isLoading}
+              updateMessages={updateMessages}
+            />
+          </Box>
+          {showDataPanel && (
+            <DataPanel
+              open={showDataPanel}
+              onClose={() => setShowDataPanel(false)}
+              datasets={datasets}
+              selectedDatasetId={selectedDatasetId}
+              onDatasetSelect={handleDatasetSelect}
+              data={selectedDataset?.data || []}
+              onResize={handleDataPanelResize}
+              initialWidth={dataPanelWidth}
+            />
+          )}
         </Box>
         {error && (
           <Box
@@ -713,14 +748,6 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
             </Box>
           </Box>
         )}
-        <DataPanel
-          open={showDataPanel}
-          onClose={() => setShowDataPanel(false)}
-          datasets={datasets}
-          selectedDatasetId={selectedDatasetId}
-          onDatasetSelect={handleDatasetSelect}
-          data={selectedDataset?.data || []}
-        />
       </Box>
     </>
   );
