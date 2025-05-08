@@ -665,7 +665,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
               width: showDataPanel
                 ? `calc(100% - ${dataPanelWidth}px)`
                 : "100%",
-              transition: "width 0.3s cubic-bezier(.4,0,.2,1)",
+              // transition: "width 0.3s cubic-bezier(.4,0,.2,1)",
               height: "100%",
               display: "flex",
               alignItems: "center",

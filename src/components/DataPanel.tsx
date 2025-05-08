@@ -67,7 +67,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
     (e: MouseEvent) => {
       if (!isResizing) return;
       const dx = startX.current - e.clientX;
-      const newWidth = Math.min(800, Math.max(300, startWidth.current + dx));
+      const newWidth = Math.min(1000, Math.max(300, startWidth.current + dx));
       setWidth(newWidth);
       if (onResize) onResize(newWidth);
     },
@@ -177,7 +177,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
       <Box
         sx={{
           position: "absolute",
-          left: -12,
+          left: -10,
           top: 0,
           width: 24,
           height: "100%",
