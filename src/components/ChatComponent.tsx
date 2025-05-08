@@ -35,6 +35,8 @@ const MessageList = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
   display: "flex",
   flexDirection: "column",
+  // paddingRight: theme.spacing(30),
+  // paddingLeft: theme.spacing(30),
   gap: theme.spacing(1.5),
   // Custom minimal scrollbar
   "&::-webkit-scrollbar": {

@@ -662,9 +662,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
         >
           <Box
             sx={{
-              width: showDataPanel
-                ? `calc(100% - ${dataPanelWidth}px)`
-                : "80%",
+              // width: showDataPanel
+              //   ? `calc(100% - ${dataPanelWidth}px)`
+              //   : "80%",
+              width: "100%",
               height: "100%",
               display: "flex",
               alignItems: "center",
