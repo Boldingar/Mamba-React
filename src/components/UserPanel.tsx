@@ -37,6 +37,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axios";
+import { useTheme as useAppTheme } from "../context/ThemeContext";
 
 // Remove dummy chats
 // const dummyChats = [
@@ -48,24 +49,25 @@ import axiosInstance from "../utils/axios";
 const panelWidth = 300;
 
 // Add a scrollbar style similar to ChatComponent
-const chatScrollbarStyle = {
+const getScrollbarStyle = (theme) => ({
   "&::-webkit-scrollbar": {
     width: "8px",
     background: "transparent",
   },
   "&::-webkit-scrollbar-thumb": {
-    background: "#444",
+    background: theme.palette.mode === "dark" ? "#444" : "#ccc",
     borderRadius: "8px",
     "&:hover": {
-      background: "#555",
+      background: theme.palette.mode === "dark" ? "#555" : "#aaa",
     },
   },
   "&::-webkit-scrollbar-track": {
     background: "transparent",
   },
   scrollbarWidth: "thin",
-  scrollbarColor: "#444 transparent", // For Firefox
-};
+  scrollbarColor:
+    theme.palette.mode === "dark" ? "#444 transparent" : "#ccc transparent", // For Firefox
+});
 
 interface UserPanelProps {
   setIsAuthenticated?: (auth: boolean) => void;
@@ -109,7 +111,9 @@ const UserPanel: React.FC<UserPanelProps> = ({
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
-  const sidebarBg = "#232323";
+  const { mode } = useAppTheme();
+  // Use theme background instead of hardcoded color
+  const sidebarBg = theme.palette.background.default;
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
@@ -127,6 +131,9 @@ const UserPanel: React.FC<UserPanelProps> = ({
   const renameInputRef = useRef<HTMLInputElement>(null);
   // Create a ref to track if the API call has been made
   const apiCalledRef = useRef(false);
+
+  // Get scrollbar style based on current theme
+  const chatScrollbarStyle = getScrollbarStyle(theme);
 
   // Load pinned chats from localStorage on component mount
   useEffect(() => {
@@ -634,10 +641,10 @@ const UserPanel: React.FC<UserPanelProps> = ({
             boxSizing: "border-box",
             display: "flex",
             flexDirection: "column",
-            bgcolor: sidebarBg,
+            bgcolor: sidebarBg, // Use theme background
             overflowX: "hidden",
             boxShadow: "none",
-            borderRight: "none",
+            borderRight: `1px solid ${theme.palette.divider}`,
             borderRadius: 0,
           },
         }}
@@ -780,7 +787,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
         PaperProps={{
           elevation: 3,
           sx: {
-            bgcolor: "#2a2a2a",
+            bgcolor: theme.palette.background.paper,
             borderRadius: 2,
             minWidth: 180,
           },
@@ -789,10 +796,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
         <MenuItem onClick={handlePinChat} sx={{ gap: 1 }}>
           {currentChatId &&
           localChats.find((chat) => chat.id === currentChatId)?.isPinned ? (
-            <PushPinIcon
-              fontSize="small"
-              sx={{ transform: "rotate(90deg)" }}
-            />
+            <PushPinIcon fontSize="small" sx={{ transform: "rotate(90deg)" }} />
           ) : (
             <PushPinIcon fontSize="small" />
           )}
@@ -832,7 +836,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
               boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
               maxWidth: "400px",
               width: "100%",
-              bgcolor: "#1a1a1a",
+              bgcolor: theme.palette.background.paper,
             },
           },
         }}
@@ -900,7 +904,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
               boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
               maxWidth: "400px",
               width: "100%",
-              bgcolor: "#1a1a1a",
+              bgcolor: theme.palette.background.paper,
             },
           },
         }}
@@ -933,7 +937,10 @@ const UserPanel: React.FC<UserPanelProps> = ({
               borderColor: "divider",
               "&:hover": {
                 borderColor: "text.secondary",
-                backgroundColor: "rgba(0, 0, 0, 0.04)",
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.05)"
+                    : "rgba(0, 0, 0, 0.04)",
               },
             }}
           >

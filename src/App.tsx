@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { ThemeProvider, CssBaseline, Box } from "@mui/material";
+import { CssBaseline, Box } from "@mui/material";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { theme } from "./theme";
+import { ThemeProvider } from "./context/ThemeContext";
 import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -25,7 +25,7 @@ function App() {
   }, []);
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider>
       <CssBaseline />
       <Box
         sx={{
@@ -72,16 +72,7 @@ function App() {
                 )
               }
             />
-            <Route
-              path="/"
-              element={
-                isAuthenticated ? (
-                  <Navigate to="/chat" replace />
-                ) : (
-                  <Navigate to="/login" replace />
-                )
-              }
-            />
+            <Route path="/" element={<Navigate to="/chat" replace />} />
           </Routes>
         </BrowserRouter>
       </Box>
