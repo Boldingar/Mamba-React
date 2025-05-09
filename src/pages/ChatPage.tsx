@@ -137,10 +137,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const skipNextFetch = useRef(false);
 
   const handleNewChat = () => {
-    // Don't allow new chat if we're waiting for a response
     if (isAwaitingResponse) return;
 
-    // Set a welcome message for new chat
     const welcomeMsg: Message = {
       id: "welcome",
       text: `Welcome! I am Lily from Mamba. How can I help you today?`,
@@ -150,11 +148,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     };
 
     setMessages([welcomeMsg]);
+    setDatasets([]);
+    setSelectedDatasetId(null);
+    setShowDataPanel(false);
 
-    // Mark that we're in a new chat
     localStorage.setItem("lastConversationWasNew", "true");
-
-    // We'll set the conversationId to empty string to indicate a new chat
     setConversationId("");
   };
 
