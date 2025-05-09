@@ -86,7 +86,7 @@ const Products: React.FC<{
           />
           <IconButton
             onClick={() => handleDelete(idx)}
-            sx={buttonStyles}
+            color="error"
             aria-label="delete"
           >
             <DeleteIcon />

@@ -31,13 +31,13 @@ const Success: React.FC<{ onBack?: () => void; onNext?: () => void }> = ({
         py: 8,
       }}
     >
-      <Typography
+      {/* <Typography
         variant="h3"
         sx={{ fontWeight: 700, mb: 2, display: "flex", alignItems: "center" }}
       >
         You're all set{" "}
         <span style={{ marginLeft: 8, fontSize: "2rem" }}>✅</span>
-      </Typography>
+      </Typography> */}
       <Typography sx={{ fontSize: "1.1rem", color: "text.primary", mb: 4 }}>
         Let's get to building a comprehensive SEO Strategy for your business!
       </Typography>
