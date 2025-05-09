@@ -62,7 +62,7 @@ const Success: React.FC<{ onBack?: () => void; onNext?: () => void }> = ({
           sx={{ ...buttonStyles, px: 6 }}
           onClick={onNext}
         >
-          Get Started.
+          Start Project.
         </Button>
       </Box>
     </Box>

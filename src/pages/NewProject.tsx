@@ -30,7 +30,6 @@ const stepWelcomeContent = [
   },
   {
     title: "You are all set 😁",
-    subtitle: "Let's get started",
     bigTitle: true,
   },
 ];

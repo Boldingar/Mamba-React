@@ -13,6 +13,7 @@ import Personas from "./Personas.tsx";
 import Competitors from "./Competitors.tsx";
 import Success from "./Success.tsx";
 import WelcomeSection from "./WelcomeSection.tsx";
+import { useTheme } from "@mui/material/styles";
 
 const steps = ["Website", "Products", "Personas", "Competitors", "Success"];
 
@@ -41,7 +42,7 @@ const stepWelcomeContent = [
     bigTitle: false,
   },
   {
-    title: "You are all set 😁",
+    title: " set😁",
     subtitle: "Let's get started",
     bigTitle: true,
   },
@@ -112,6 +113,8 @@ const Checkout: React.FC<CheckoutProps> = ({ activeStep, setActiveStep }) => {
     // Add more fields as needed for products, personas, competitors
   });
 
+  const theme = useTheme();
+
   const handleNext = () => {
     setActiveStep(activeStep + 1);
   };
@@ -153,7 +156,7 @@ const Checkout: React.FC<CheckoutProps> = ({ activeStep, setActiveStep }) => {
             </Step>
           ))}
         </Stepper>
-        <Box sx={{ maxWidth: 600, minWidth: 600, width: "100%", mx: "auto" }}>
+        <Box sx={{ maxWidth: 650, minWidth: 600, width: "100%", mx: "auto" }}>
           {getStepContent(
             activeStep,
             formData,
@@ -177,10 +180,11 @@ const Checkout: React.FC<CheckoutProps> = ({ activeStep, setActiveStep }) => {
                 onClick={handleNext}
                 sx={{
                   ml: 1,
-                  bgcolor: "common.black",
+                  bgcolor: theme.palette.primary.main,
+                  color: theme.palette.common.white,
                   "&:hover": {
-                    bgcolor: "common.black",
-                    opacity: 0.9,
+                    bgcolor: theme.palette.primary.dark,
+                    color: theme.palette.common.white,
                   },
                   px: 4,
                   py: 1.5,

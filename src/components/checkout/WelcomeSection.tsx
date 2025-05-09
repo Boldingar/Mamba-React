@@ -40,7 +40,7 @@ const WelcomeSection: React.FC<{
         }}
       >
         {subtitle ||
-          "I'm Lisa, I'm going to help you through journey of building a successful SEO Program."}
+          "Let's begin the journey of building a successful SEO Program together."}
       </Typography>
 
       {!title && (
@@ -56,7 +56,7 @@ const WelcomeSection: React.FC<{
         </Typography>
       )}
 
-      <Typography
+      {/* <Typography
         sx={{
           color: "text.secondary",
           fontSize: "0.9rem",
@@ -64,7 +64,7 @@ const WelcomeSection: React.FC<{
         }}
       >
         ~3 Minutes.
-      </Typography>
+      </Typography> */}
     </Box>
   );
 };
