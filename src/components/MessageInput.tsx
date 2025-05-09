@@ -6,38 +6,42 @@ import FileUploadIcon from "@mui/icons-material/FileUpload";
 interface MessageInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
+  size?: "normal" | "large";
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
   onSendMessage,
   disabled = false,
+  size = "normal",
 }) => {
   const [inputMessage, setInputMessage] = useState("");
 
-  const handleSend = (e: FormEvent | KeyboardEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (inputMessage.trim()) {
+    if (inputMessage.trim() && !disabled) {
       onSendMessage(inputMessage.trim());
       setInputMessage("");
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyPress = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      handleSend(e);
+      e.preventDefault();
+      handleSubmit(e as any);
     }
   };
+
+  const isLarge = size === "large";
 
   return (
     <Box
       sx={{
         width: "100%",
         mx: "auto",
-        // my: 2,
         paddingRight: "16px",
         paddingLeft: "16px",
         maxWidth: "850px",
-        maxHeight: "150px",
+        maxHeight: isLarge ? "180px" : "150px",
         display: "flex",
         borderRadius: "60px",
         justifyContent: "center",
@@ -45,8 +49,10 @@ const MessageInput: React.FC<MessageInputProps> = ({
     >
       <Paper
         elevation={0}
+        component="form"
+        onSubmit={handleSubmit}
         sx={{
-          p: 3,
+          p: isLarge ? 4 : 3,
           borderRadius: "32px",
           display: "flex",
           flexDirection: "column",
@@ -58,15 +64,13 @@ const MessageInput: React.FC<MessageInputProps> = ({
           position: "relative",
           boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
         }}
-        component="form"
-        onSubmit={handleSend}
       >
         <TextField
           fullWidth
-          size="small"
+          size={isLarge ? "medium" : "small"}
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
+          onKeyDown={handleKeyPress}
           disabled={disabled}
           placeholder="Start with a topic, a keyword, your site, really anything."
           variant="standard"
@@ -77,7 +81,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
             sx: {
               bgcolor: "transparent",
               borderRadius: "24px",
-              fontSize: "16px",
+              fontSize: isLarge ? "18px" : "16px",
               fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
               px: 0,
             },
@@ -89,14 +93,14 @@ const MessageInput: React.FC<MessageInputProps> = ({
               background: "none",
               border: "none",
               boxShadow: "none",
-              fontSize: "16px",
+              fontSize: isLarge ? "18px" : "16px",
               px: 0,
             },
             "& .MuiInputBase-input": {
               background: "none",
               border: "none",
               boxShadow: "none",
-              fontSize: "16px",
+              fontSize: isLarge ? "18px" : "16px",
               px: 0,
             },
           }}

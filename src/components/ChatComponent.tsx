@@ -30,6 +30,17 @@ const ChatContainer = styled(Paper)(({ theme }) => ({
   position: "relative",
 }));
 
+// Add new styled component for centered layout
+const CenteredContainer = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  height: "100%",
+  width: "100%",
+  gap: theme.spacing(3),
+}));
+
 const MessageList = styled(Box)(({ theme }) => ({
   flex: 1,
   overflowY: "auto",
@@ -183,7 +194,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
     if (parentMessages && parentMessages.length > 0) {
       console.log("Setting messages from parent");
-      setMessages(parentMessages);
+      // Filter out any welcome or thinking messages
+      const filteredMessages = parentMessages.filter(
+        (msg) => msg.id !== "welcome" && !msg.text.includes("Thinking...")
+      );
+      setMessages(filteredMessages);
     } else if (conversationId === "" && parentMessages?.length === 0) {
       // Only reset to empty array if parent explicitly sends empty messages
       // This happens when parent component initiates a new chat
@@ -216,24 +231,15 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       ) {
         console.log("Detected explicit switch to New Chat, resetting messages");
 
-        // Create a welcome message
-        const welcomeMessage: Message = {
-          id: "welcome",
-          text: `Welcome! I am Lily from Mamba. How can I help you today?`,
-          sender: "agent",
-          timestamp: new Date(),
-          type: "text",
-        };
-
-        // Reset messages to only contain the welcome message
-        setMessages([welcomeMessage]);
+        // Reset to empty messages array without welcome message
+        setMessages([]);
 
         // Ensure no form is visible
         setIsFormVisible(false);
 
         // Update parent component if needed
         if (updateMessages) {
-          updateMessages([welcomeMessage]);
+          updateMessages([]);
         }
       }
 
@@ -382,25 +388,24 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   }, [showForm, messages, updateMessages, conversationId]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputMessage.trim() || isFormVisible) return;
+  const sendMessage = (messageText: string) => {
+    if (!messageText.trim() || isFormVisible) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputMessage,
+      text: messageText,
       sender: "user",
       timestamp: new Date(),
       type: "text",
     };
 
     // Update local messages state
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
 
     // Update parent component's messages state if callback exists
     if (updateMessages) {
-      updateMessages(updatedMessages);
+      updateMessages(newMessages);
     }
 
     setInputMessage("");
@@ -411,6 +416,14 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       setIsAwaitingResponse(true);
     }
 
+    // Call the API
+    handleMessageAPI(messageText, newMessages);
+  };
+
+  const handleMessageAPI = async (
+    messageText: string,
+    currentMessages: Message[]
+  ) => {
     try {
       let endpoint;
       let data;
@@ -424,7 +437,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       }
 
       const response = await axiosInstance.post(endpoint, {
-        message: inputMessage,
+        message: messageText,
       });
 
       if (response.status !== 200) {
@@ -501,24 +514,12 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                   );
                 }
 
-                // Ensure welcome message is at the beginning
-                const welcomeMessage = {
-                  id: "welcome",
-                  text: `Welcome! I am Lily from Mamba. How can I help you today?`,
-                  sender: "agent" as const,
-                  timestamp: new Date(0),
-                  type: "text" as const,
-                };
-
-                // Combine messages with welcome message at the beginning
-                const allMessages = [welcomeMessage, ...fetchedMessages];
-
                 // Update the component state with the fetched messages
-                setMessages(allMessages);
+                setMessages(fetchedMessages);
 
                 // If we have parent component's update function, use it
                 if (updateMessages) {
-                  updateMessages(allMessages);
+                  updateMessages(fetchedMessages);
                 }
 
                 // If business form is detected, add it and make it visible
@@ -533,7 +534,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                   };
 
                   // Update messages with the form
-                  const messagesWithForm = [...allMessages, formMessage];
+                  const messagesWithForm = [...fetchedMessages, formMessage];
                   setMessages(messagesWithForm);
 
                   // Update parent component's messages
@@ -557,7 +558,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             } catch (error) {
               console.error("Error fetching messages after transition:", error);
             }
-          }, 100); // Short delay to ensure transition is complete
+          }, 100);
         }
       }
 
@@ -588,7 +589,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
             // Update with both the text response and the form
             const messagesWithForm = [
-              ...updatedMessages,
+              ...currentMessages,
               agentMessage,
               formMessage,
             ];
@@ -634,7 +635,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
                 // Update with both the text response and the form
                 const messagesWithForm = [
-                  ...updatedMessages,
+                  ...currentMessages,
                   agentMessage,
                   formMessage,
                 ];
@@ -658,7 +659,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                 window.dispatchEvent(parentUpdateEvent);
               } else {
                 // Just add the text response without a form for "New Chat"
-                const messagesWithResponse = [...updatedMessages, agentMessage];
+                const messagesWithResponse = [...currentMessages, agentMessage];
                 setMessages(messagesWithResponse);
 
                 // Update parent component's messages
@@ -670,7 +671,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             // Handle keywords_ready action type
             else if (actionType === "keywords_ready") {
               // First update the messages array to show the agent's response
-              const messagesWithResponse = [...updatedMessages, agentMessage];
+              const messagesWithResponse = [...currentMessages, agentMessage];
               setMessages(messagesWithResponse);
 
               // Update parent component's messages
@@ -757,7 +758,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
               }
             } else {
               // Regular text response without any action
-              const messagesWithResponse = [...updatedMessages, agentMessage];
+              const messagesWithResponse = [...currentMessages, agentMessage];
               setMessages(messagesWithResponse);
 
               // Update parent component's messages
@@ -767,7 +768,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             }
           } else {
             // Regular text response without any action
-            const messagesWithResponse = [...updatedMessages, agentMessage];
+            const messagesWithResponse = [...currentMessages, agentMessage];
             setMessages(messagesWithResponse);
 
             // Update parent component's messages
@@ -787,7 +788,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           };
 
           // Update local messages with agent's response
-          const messagesWithResponse = [...updatedMessages, agentMessage];
+          const messagesWithResponse = [...currentMessages, agentMessage];
           setMessages(messagesWithResponse);
 
           // Update parent component's messages
@@ -812,7 +813,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       };
 
       // Update local messages with error
-      const messagesWithError = [...updatedMessages, errorMessage];
+      const messagesWithError = [...currentMessages, errorMessage];
       setMessages(messagesWithError);
 
       // Update parent component's messages
@@ -1122,7 +1123,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage(e as any);
+      sendMessage(inputMessage);
     }
   };
 
@@ -1154,8 +1155,15 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   // Handle submitting a message from the MessageInput component
   const handleSubmitMessage = (message: string) => {
     if (message.trim()) {
-      setInputMessage(message);
-      handleSendMessage(new Event("submit") as any);
+      sendMessage(message);
+    }
+  };
+
+  // Handle form submission (keep this for backward compatibility)
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputMessage.trim()) {
+      sendMessage(inputMessage);
     }
   };
 
@@ -1181,121 +1189,47 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           borderRadius: 0,
         }}
       >
-        <MessageList>
-          <Box
-            sx={{
-              maxWidth: "850px",
-              width: "100%",
-              mx: "auto",
-              display: "flex",
-              flexDirection: "column",
-              gap: 1.5,
-            }}
-          >
-            {isLoadingMessages ? (
-              // Only show skeleton if we're loading messages
-              // The parent component (ChatPage) now controls when to skip loading
-              <>
-                {/* First message - Agent */}
-                <MessageWrapper isUser={false}>
-                  <Avatar
-                    src="/agent.png"
-                    sx={{
-                      width: 34,
-                      height: 34,
-                      mt: 1.3,
-                    }}
-                  />
-                  <MessageItem isUser={false}>
-                    <Skeleton variant="text" width={250} height={20} />
-                  </MessageItem>
-                </MessageWrapper>
-
-                {/* Second message - User */}
-                <MessageWrapper isUser={true}>
-                  <MessageItem isUser={true}>
-                    <Skeleton variant="text" width={200} height={20} />
-                  </MessageItem>
-                </MessageWrapper>
-
-                {/* Third message - Agent */}
-                <MessageWrapper isUser={false}>
-                  <Avatar
-                    src="/agent.png"
-                    sx={{
-                      width: 34,
-                      height: 34,
-                      mt: 1.3,
-                    }}
-                  />
-                  <MessageItem isUser={false}>
-                    <Skeleton variant="text" width={300} height={20} />
-                    <Skeleton variant="text" width={270} height={20} />
-                  </MessageItem>
-                </MessageWrapper>
-
-                {/* Fourth message - User */}
-                <MessageWrapper isUser={true}>
-                  <MessageItem isUser={true}>
-                    <Skeleton variant="text" width={180} height={20} />
-                    <Skeleton variant="text" width={150} height={20} />
-                  </MessageItem>
-                </MessageWrapper>
-
-                {/* Fifth message - Agent */}
-                <MessageWrapper isUser={false}>
-                  <Avatar
-                    src="/agent.png"
-                    sx={{
-                      width: 34,
-                      height: 34,
-                      mt: 1.3,
-                    }}
-                  />
-                  <MessageItem isUser={false}>
-                    <Skeleton variant="text" width={280} height={20} />
-                    <Skeleton variant="text" width={260} height={20} />
-                    <Skeleton variant="text" width={220} height={20} />
-                  </MessageItem>
-                </MessageWrapper>
-
-                {/* Sixth message - User */}
-                <MessageWrapper isUser={true}>
-                  <MessageItem isUser={true}>
-                    <Skeleton variant="text" width={170} height={20} />
-                  </MessageItem>
-                </MessageWrapper>
-
-                {/* Seventh message - Agent (additional) */}
-                <MessageWrapper isUser={false}>
-                  <Avatar
-                    src="/agent.png"
-                    sx={{
-                      width: 34,
-                      height: 34,
-                      mt: 1.3,
-                    }}
-                  />
-                  <MessageItem isUser={false}>
-                    <Skeleton variant="text" width={240} height={20} />
-                    <Skeleton variant="text" width={320} height={20} />
-                    <Skeleton variant="text" width={200} height={20} />
-                    <Skeleton variant="text" width={180} height={20} />
-                  </MessageItem>
-                </MessageWrapper>
-              </>
-            ) : null}
-            {!isLoadingMessages &&
-              messages
-                .filter((message) =>
-                  isFormVisible ? true : message.type !== "form"
-                )
-                .map((message) => (
-                  <MessageWrapper
-                    key={message.id}
-                    isUser={message.sender === "user"}
-                  >
-                    {message.sender !== "user" && (
+        {conversationId === "" && messages.length === 0 ? (
+          <CenteredContainer>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 600,
+                color: "text.primary",
+                textAlign: "center",
+                maxWidth: "850px",
+                px: 3,
+              }}
+            >
+              Let's build your keyword strategy.
+            </Typography>
+            <Box sx={{ width: "100%", maxWidth: "850px", px: 3 }}>
+              <MessageInput
+                onSendMessage={handleSubmitMessage}
+                disabled={isLoading || isFormVisible}
+                size="large"
+              />
+            </Box>
+          </CenteredContainer>
+        ) : (
+          <>
+            <MessageList>
+              <Box
+                sx={{
+                  maxWidth: "850px",
+                  width: "100%",
+                  mx: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1.5,
+                }}
+              >
+                {isLoadingMessages ? (
+                  // Only show skeleton if we're loading messages
+                  // The parent component (ChatPage) now controls when to skip loading
+                  <>
+                    {/* First message - Agent */}
+                    <MessageWrapper isUser={false}>
                       <Avatar
                         src="/agent.png"
                         sx={{
@@ -1304,45 +1238,135 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                           mt: 1.3,
                         }}
                       />
-                    )}
-                    <MessageItem
-                      isUser={message.sender === "user"}
-                      className={message.type === "form" ? "form" : ""}
-                    >
-                      {message.type === "form" && isFormVisible ? (
-                        <BusinessInfoForm
-                          onSubmit={handleFormSubmit}
-                          onClose={() => {}}
-                          onFileClick={() => {}}
-                          onCancel={handleFormCancel}
-                        />
-                      ) : (
-                        <Typography sx={{ fontSize: "17px" }}>
-                          {message.text}
-                        </Typography>
-                      )}
-                    </MessageItem>
-                  </MessageWrapper>
-                ))}
-            {(isLoading || agentProcessing) && <MessageLoading />}
-            <div ref={messagesEndRef} />
-          </Box>
-        </MessageList>
+                      <MessageItem isUser={false}>
+                        <Skeleton variant="text" width={250} height={20} />
+                      </MessageItem>
+                    </MessageWrapper>
 
-        <style>
-          {`
-              @keyframes pulse {
-                0% { opacity: 0.4; }
-                50% { opacity: 1; }
-                100% { opacity: 0.4; }
-              }
-            `}
-        </style>
+                    {/* Second message - User */}
+                    <MessageWrapper isUser={true}>
+                      <MessageItem isUser={true}>
+                        <Skeleton variant="text" width={200} height={20} />
+                      </MessageItem>
+                    </MessageWrapper>
 
-        <MessageInput
-          onSendMessage={handleSubmitMessage}
-          disabled={isLoading || isFormVisible}
-        />
+                    {/* Third message - Agent */}
+                    <MessageWrapper isUser={false}>
+                      <Avatar
+                        src="/agent.png"
+                        sx={{
+                          width: 34,
+                          height: 34,
+                          mt: 1.3,
+                        }}
+                      />
+                      <MessageItem isUser={false}>
+                        <Skeleton variant="text" width={300} height={20} />
+                        <Skeleton variant="text" width={270} height={20} />
+                      </MessageItem>
+                    </MessageWrapper>
+
+                    {/* Fourth message - User */}
+                    <MessageWrapper isUser={true}>
+                      <MessageItem isUser={true}>
+                        <Skeleton variant="text" width={180} height={20} />
+                        <Skeleton variant="text" width={150} height={20} />
+                      </MessageItem>
+                    </MessageWrapper>
+
+                    {/* Fifth message - Agent */}
+                    <MessageWrapper isUser={false}>
+                      <Avatar
+                        src="/agent.png"
+                        sx={{
+                          width: 34,
+                          height: 34,
+                          mt: 1.3,
+                        }}
+                      />
+                      <MessageItem isUser={false}>
+                        <Skeleton variant="text" width={280} height={20} />
+                        <Skeleton variant="text" width={260} height={20} />
+                        <Skeleton variant="text" width={220} height={20} />
+                      </MessageItem>
+                    </MessageWrapper>
+
+                    {/* Sixth message - User */}
+                    <MessageWrapper isUser={true}>
+                      <MessageItem isUser={true}>
+                        <Skeleton variant="text" width={170} height={20} />
+                      </MessageItem>
+                    </MessageWrapper>
+
+                    {/* Seventh message - Agent (additional) */}
+                    <MessageWrapper isUser={false}>
+                      <Avatar
+                        src="/agent.png"
+                        sx={{
+                          width: 34,
+                          height: 34,
+                          mt: 1.3,
+                        }}
+                      />
+                      <MessageItem isUser={false}>
+                        <Skeleton variant="text" width={240} height={20} />
+                        <Skeleton variant="text" width={320} height={20} />
+                        <Skeleton variant="text" width={200} height={20} />
+                        <Skeleton variant="text" width={180} height={20} />
+                      </MessageItem>
+                    </MessageWrapper>
+                  </>
+                ) : (
+                  messages
+                    .filter((message) =>
+                      isFormVisible ? true : message.type !== "form"
+                    )
+                    .map((message) => (
+                      <MessageWrapper
+                        key={message.id}
+                        isUser={message.sender === "user"}
+                      >
+                        {message.sender !== "user" && (
+                          <Avatar
+                            src="/agent.png"
+                            sx={{
+                              width: 34,
+                              height: 34,
+                              mt: 1.3,
+                            }}
+                          />
+                        )}
+                        <MessageItem
+                          isUser={message.sender === "user"}
+                          className={message.type === "form" ? "form" : ""}
+                        >
+                          {message.type === "form" && isFormVisible ? (
+                            <BusinessInfoForm
+                              onSubmit={handleFormSubmit}
+                              onClose={() => {}}
+                              onFileClick={() => {}}
+                              onCancel={handleFormCancel}
+                            />
+                          ) : (
+                            <Typography sx={{ fontSize: "17px" }}>
+                              {message.text}
+                            </Typography>
+                          )}
+                        </MessageItem>
+                      </MessageWrapper>
+                    ))
+                )}
+                {(isLoading || agentProcessing) && <MessageLoading />}
+                <div ref={messagesEndRef} />
+              </Box>
+            </MessageList>
+            <MessageInput
+              onSendMessage={handleSubmitMessage}
+              disabled={isLoading || isFormVisible}
+              size="normal"
+            />
+          </>
+        )}
       </ChatContainer>
     </Box>
   );

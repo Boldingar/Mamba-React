@@ -26,7 +26,7 @@ function App() {
   }, []);
 
   return (
-     <ThemeProvider>
+    <ThemeProvider>
     {/* <AppTheme> */}
       <CssBaseline />
       <Box
@@ -79,7 +79,7 @@ function App() {
         </BrowserRouter>
       </Box>
       </ThemeProvider>
-    // </AppTheme>
+    //</AppTheme>
   );
 }
 
