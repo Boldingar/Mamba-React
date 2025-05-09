@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { CssBaseline, Box } from "@mui/material";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
+import AppTheme from "../shared-theme/AppTheme";
 import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -25,7 +26,8 @@ function App() {
   }, []);
 
   return (
-    <ThemeProvider>
+     <ThemeProvider>
+    {/* <AppTheme> */}
       <CssBaseline />
       <Box
         sx={{
@@ -76,7 +78,8 @@ function App() {
           </Routes>
         </BrowserRouter>
       </Box>
-    </ThemeProvider>
+      </ThemeProvider>
+    // </AppTheme>
   );
 }
 
