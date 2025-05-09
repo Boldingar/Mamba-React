@@ -6,6 +6,7 @@ import AppTheme from "../shared-theme/AppTheme";
 import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import NewProject from "./pages/NewProject";
 import TopAppBar from "./components/TopAppBar";
 
 function checkAuth() {
@@ -27,7 +28,7 @@ function App() {
 
   return (
     <ThemeProvider>
-    {/* <AppTheme> */}
+      {/* <AppTheme> */}
       <CssBaseline />
       <Box
         sx={{
@@ -74,11 +75,27 @@ function App() {
                 )
               }
             />
+            <Route
+              path="/new-project"
+              element={
+                isAuthenticated ? (
+                  <>
+                    {/* <TopAppBar
+                      csvPanelOpen={false}
+                      onToggleCSVPanel={() => {}}
+                    /> */}
+                    <NewProject />
+                  </>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
             <Route path="/" element={<Navigate to="/chat" replace />} />
           </Routes>
         </BrowserRouter>
       </Box>
-      </ThemeProvider>
+    </ThemeProvider>
     //</AppTheme>
   );
 }
