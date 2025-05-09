@@ -134,6 +134,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [recentChats, setRecentChats] = useState<RecentChat[]>([]);
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   const [dataPanelWidth, setDataPanelWidth] = useState(500);
+  const skipNextFetch = useRef(false);
 
   const handleNewChat = () => {
     // Don't allow new chat if we're waiting for a response
@@ -254,24 +255,26 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   // Fetch messages for the selected conversation
   useEffect(() => {
     if (conversationId) {
-      // Reset showForm when switching conversations
       setShowForm(false);
-
+      if (skipNextFetch.current) {
+        skipNextFetch.current = false;
+        setIsLoading(false);
+        setIsAwaitingResponse(false);
+        return;
+      }
       // Only skip loading when we're coming from an empty conversationId (new chat)
       // to a newly created conversation with the same messages
       const isNewConversationFromNewChat =
         messages.length > 0 &&
         messages.some((msg) => msg.sender === "user") &&
         messages[0].id === "welcome" &&
-        // This is the critical part - only skip if we're coming directly from a new chat
         localStorage.getItem("lastConversationWasNew") === "true";
-
-      // Always fetch messages unless it's a direct transition from new chat to created conversation
       if (!isNewConversationFromNewChat) {
         fetchMessages(conversationId);
       } else {
-        // Clear the flag after we've used it
         localStorage.removeItem("lastConversationWasNew");
+        setIsLoading(false);
+        setIsAwaitingResponse(false);
       }
     }
   }, [conversationId]);
@@ -483,18 +486,19 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   };
 
   // Add a new conversation to the recent chats list and select it
-  const addNewConversation = (id: string, name: string) => {
+  const addNewConversation = (
+    id: string,
+    name: string,
+    initialMessages?: Message[]
+  ) => {
     const newChat: RecentChat = { id, title: name };
-    // Update in-memory state
     setRecentChats((prev) => [newChat, ...prev]);
-
-    // We're still in the same flow from a new chat to a created conversation
-    // Make sure the flag is set so we don't reload messages
     localStorage.setItem("lastConversationWasNew", "true");
-
-    // Set the conversation ID after setting the flag
     setConversationId(id);
-
+    if (initialMessages) {
+      setMessages(initialMessages);
+      skipNextFetch.current = true;
+    }
     // Update storage
     const storage = localStorage.getItem("authToken")
       ? localStorage
@@ -512,10 +516,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     } catch (error) {
       console.error("Error updating stored conversations:", error);
     }
-
-    // No longer waiting for a response
     setIsAwaitingResponse(false);
-    // Ensure loading is false for the new conversation
     setIsLoading(false);
   };
 

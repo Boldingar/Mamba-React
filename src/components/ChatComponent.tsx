@@ -145,7 +145,7 @@ interface ChatComponentProps {
   agentProcessing: boolean;
   showForm: boolean;
   conversationId: string | null;
-  onNewConversation?: (id: string, name: string) => void;
+  onNewConversation?: (id: string, name: string, messages: Message[]) => void;
   setIsAwaitingResponse?: (isAwaiting: boolean) => void;
   messages?: Message[];
   isLoadingMessages?: boolean;
@@ -457,109 +457,83 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           typeof data.action === "object" &&
           data.action["action-type"] === "collect_business_info";
 
-        // First, complete the transition to the new conversation
-        if (onNewConversation) {
-          onNewConversation(
-            data.conversation_id,
-            data.conversation_name || "New Chat"
+        // Fetch the conversation messages to ensure we have the latest state BEFORE transitioning the UI
+        try {
+          const messagesResponse = await axiosInstance.get(
+            `/messages/${newConversationId}?limit=0&offset=0&order=asc`
           );
-        }
 
-        // If we have a business info action, make a second call to fetch messages
-        // but only after the transition is complete
-        if (hasBusinessInfoAction && newConversationId) {
-          // Small delay to ensure the conversation transition is complete
-          setTimeout(async () => {
-            try {
-              console.log(
-                "Fetching messages after transition to refresh conversation state"
-              );
-              // Fetch the conversation messages to ensure we have the latest state
-              const messagesResponse = await axiosInstance.get(
-                `/messages/${newConversationId}?limit=0&offset=0&order=asc`
-              );
-              console.log(
-                "Successfully retrieved conversation messages:",
-                messagesResponse.data
-              );
-
-              // Process the messages response to update the component state
-              if (messagesResponse.data && messagesResponse.data.messages) {
-                // Extract messages from the response
-                const fetchedMessages = messagesResponse.data.messages.map(
-                  (msg: any) => {
-                    return {
-                      id: msg.id,
-                      text: msg.content,
-                      sender: msg.is_from_agency ? "agent" : "user",
-                      timestamp: new Date(msg.timestamp),
-                      type: "text",
-                    };
-                  }
-                );
-
-                // Check if there's a business form action in the response
-                let hasBusinessForm = false;
-
-                // Look for business form action in the response data
-                if (
-                  messagesResponse.data.action &&
-                  typeof messagesResponse.data.action === "object" &&
-                  messagesResponse.data.action["action-type"] ===
-                    "collect_business_info"
-                ) {
-                  hasBusinessForm = true;
-                  console.log(
-                    "Found business form action in fetched messages, enabling form"
-                  );
-                }
-
-                // Update the component state with the fetched messages
-                setMessages(fetchedMessages);
-
-                // If we have parent component's update function, use it
-                if (updateMessages) {
-                  updateMessages(fetchedMessages);
-                }
-
-                // If business form is detected, add it and make it visible
-                if (hasBusinessForm) {
-                  // Add a form message
-                  const formMessage = {
-                    id: Date.now().toString() + "-form",
-                    text: "",
-                    sender: "agent" as const,
-                    timestamp: new Date(),
-                    type: "form" as const,
-                  };
-
-                  // Update messages with the form
-                  const messagesWithForm = [...fetchedMessages, formMessage];
-                  setMessages(messagesWithForm);
-
-                  // Update parent component's messages
-                  if (updateMessages) {
-                    updateMessages(messagesWithForm);
-                  }
-
-                  // Make the form visible
-                  setIsFormVisible(true);
-
-                  // Notify the parent component
-                  const formEvent = new CustomEvent("formRequested", {
-                    detail: {
-                      conversationId: newConversationId,
-                      timestamp: Date.now(),
-                    },
-                  });
-                  window.dispatchEvent(formEvent);
-                }
+          if (messagesResponse.data && messagesResponse.data.messages) {
+            // Extract messages from the response
+            const fetchedMessages = messagesResponse.data.messages.map(
+              (msg: any) => {
+                return {
+                  id: msg.id,
+                  text: msg.content,
+                  sender: msg.is_from_agency ? "agent" : "user",
+                  timestamp: new Date(msg.timestamp),
+                  type: "text",
+                };
               }
-            } catch (error) {
-              console.error("Error fetching messages after transition:", error);
+            );
+
+            // Check if there's a business form action in the response
+            let hasBusinessForm = false;
+            if (
+              messagesResponse.data.action &&
+              typeof messagesResponse.data.action === "object" &&
+              messagesResponse.data.action["action-type"] ===
+                "collect_business_info"
+            ) {
+              hasBusinessForm = true;
             }
-          }, 100);
+
+            // If business form is detected, add it and make it visible
+            let messagesWithForm = fetchedMessages;
+            if (hasBusinessForm) {
+              const formMessage = {
+                id: Date.now().toString() + "-form",
+                text: "",
+                sender: "agent" as const,
+                timestamp: new Date(),
+                type: "form" as const,
+              };
+              messagesWithForm = [...fetchedMessages, formMessage];
+            }
+
+            // Update local state before transitioning
+            setMessages(messagesWithForm);
+            if (updateMessages) {
+              updateMessages(messagesWithForm);
+            }
+            if (hasBusinessForm) {
+              setIsFormVisible(true);
+              const formEvent = new CustomEvent("formRequested", {
+                detail: {
+                  conversationId: newConversationId,
+                  timestamp: Date.now(),
+                },
+              });
+              window.dispatchEvent(formEvent);
+            }
+
+            // Now transition the UI by calling onNewConversation
+            if (onNewConversation) {
+              onNewConversation(
+                data.conversation_id,
+                data.conversation_name || "New Chat",
+                messagesWithForm
+              );
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching messages after transition:", error);
         }
+        setIsLoading(false);
+        if (setIsAwaitingResponse) {
+          setIsAwaitingResponse(false);
+        }
+        return; // Exit early so the rest of the function doesn't run
       }
 
       if (data) {
