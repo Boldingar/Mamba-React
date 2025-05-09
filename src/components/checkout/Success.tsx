@@ -1,22 +1,28 @@
 import React from "react";
 import { Box, Typography, Button } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 
 const Success: React.FC<{ onBack?: () => void; onNext?: () => void }> = ({
   onBack,
   onNext,
 }) => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const buttonStyles = {
     bgcolor: theme.palette.primary.main,
-    color: "common.white",
+    color: theme.palette.common.white,
     boxShadow: "none",
     borderRadius: 2,
     textTransform: "none",
     "&:hover": {
       bgcolor: theme.palette.primary.dark,
-      color: "common.white",
+      color: theme.palette.common.white,
     },
+  };
+
+  const handleStart = () => {
+    navigate("/chat");
   };
 
   return (
@@ -48,6 +54,7 @@ const Success: React.FC<{ onBack?: () => void; onNext?: () => void }> = ({
           width: "100%",
           maxWidth: 400,
           mt: 2,
+          gap: 2,
         }}
       >
         <Button
@@ -55,14 +62,14 @@ const Success: React.FC<{ onBack?: () => void; onNext?: () => void }> = ({
           sx={{ ...buttonStyles, px: 3 }}
           onClick={onBack}
         >
-          Back
+          Forgot something ?
         </Button>
         <Button
           variant="contained"
           sx={{ ...buttonStyles, px: 6 }}
-          onClick={onNext}
+          onClick={handleStart}
         >
-          Start Project.
+          Get Started.
         </Button>
       </Box>
     </Box>
