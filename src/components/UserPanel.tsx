@@ -307,7 +307,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
         setDeleteDialogOpen(false);
 
         // The parent component should refresh the chats list after deletion
-        if (onNewChat) onNewChat(); // Triggering new chat to reset the view
+        if (onNewChat && currentChatId === selectedConversationId) onNewChat(); // Only redirect if the deleted chat is the current one
       } catch (error) {
         console.error("Error deleting chat:", error);
       } finally {
