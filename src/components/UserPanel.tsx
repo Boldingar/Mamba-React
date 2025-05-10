@@ -49,7 +49,7 @@ import { alpha } from "@mui/material/styles";
 //   { id: 3, title: "Support Bot" },
 // ];
 
-const panelWidth = 300;
+const panelWidth = 285;
 
 // Add a scrollbar style similar to ChatComponent
 const getScrollbarStyle = (theme) => ({
@@ -720,7 +720,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
                     <InsightsIcon />
                   </ListItemIcon>
                   <ListItemText
-                    primary={<span style={{ fontWeight: 400 }}>Insights</span>}
+                    primary={<span style={{ fontWeight: 400 }}>Integrations</span>}
                   />
                 </ListItemButton>
               </ListItem>

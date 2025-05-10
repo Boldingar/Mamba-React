@@ -1192,7 +1192,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             <MessageList>
               <Box
                 sx={{
-                  maxWidth: "850px",
+                  maxWidth: "800px",
                   width: "100%",
                   mx: "auto",
                   display: "flex",

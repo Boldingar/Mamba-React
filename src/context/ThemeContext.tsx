@@ -14,7 +14,7 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  mode: "dark",
+  mode: "light",
   toggleTheme: () => {},
 });
 
@@ -26,7 +26,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   const { mode: muiMode, setMode: setMuiMode } = useColorScheme();
   const [mode, setMode] = useState<ThemeMode>(() => {
     const savedMode = localStorage.getItem("themeMode");
-    return (savedMode as ThemeMode) || "dark";
+    return (savedMode as ThemeMode) || "light";
   });
 
   // Sync ThemeContext mode with MUI mode
