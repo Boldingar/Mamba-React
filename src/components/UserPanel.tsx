@@ -35,8 +35,12 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import PushPinIcon from "@mui/icons-material/PushPin";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import InsightsIcon from "@mui/icons-material/Insights";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axios";
+import { useTheme as useAppTheme } from "../context/ThemeContext";
+import SelectContent from "./SelectContent";
+import { alpha } from "@mui/material/styles";
 
 // Remove dummy chats
 // const dummyChats = [
@@ -45,27 +49,28 @@ import axiosInstance from "../utils/axios";
 //   { id: 3, title: "Support Bot" },
 // ];
 
-const panelWidth = 300;
+const panelWidth = 285;
 
 // Add a scrollbar style similar to ChatComponent
-const chatScrollbarStyle = {
+const getScrollbarStyle = (theme) => ({
   "&::-webkit-scrollbar": {
     width: "8px",
     background: "transparent",
   },
   "&::-webkit-scrollbar-thumb": {
-    background: "#444",
+    background: theme.palette.mode === "dark" ? "#444" : "#ccc",
     borderRadius: "8px",
     "&:hover": {
-      background: "#555",
+      background: theme.palette.mode === "dark" ? "#555" : "#aaa",
     },
   },
   "&::-webkit-scrollbar-track": {
     background: "transparent",
   },
   scrollbarWidth: "thin",
-  scrollbarColor: "#444 transparent", // For Firefox
-};
+  scrollbarColor:
+    theme.palette.mode === "dark" ? "#444 transparent" : "#ccc transparent", // For Firefox
+});
 
 interface UserPanelProps {
   setIsAuthenticated?: (auth: boolean) => void;
@@ -109,7 +114,9 @@ const UserPanel: React.FC<UserPanelProps> = ({
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
-  const sidebarBg = "#232323";
+  const { mode } = useAppTheme();
+  // Use theme background instead of hardcoded color
+  const sidebarBg = theme.palette.background.default;
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
@@ -122,11 +129,22 @@ const UserPanel: React.FC<UserPanelProps> = ({
     { id: string; title: string; isPinned?: boolean }[]
   >([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<null | HTMLElement>(
+    null
+  );
+  const [user, setUser] = useState<{
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+  }>({});
 
   // Create a ref for the text input
   const renameInputRef = useRef<HTMLInputElement>(null);
   // Create a ref to track if the API call has been made
   const apiCalledRef = useRef(false);
+
+  // Get scrollbar style based on current theme
+  const chatScrollbarStyle = getScrollbarStyle(theme);
 
   // Load pinned chats from localStorage on component mount
   useEffect(() => {
@@ -238,6 +256,16 @@ const UserPanel: React.FC<UserPanelProps> = ({
     }
   }, [isRenaming]);
 
+  useEffect(() => {
+    const stored =
+      localStorage.getItem("userData") || sessionStorage.getItem("userData");
+    if (stored) {
+      try {
+        setUser(JSON.parse(stored));
+      } catch {}
+    }
+  }, []);
+
   const handleMenuOpen = (
     event: React.MouseEvent<HTMLButtonElement>,
     chatId: string
@@ -300,7 +328,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
         setDeleteDialogOpen(false);
 
         // The parent component should refresh the chats list after deletion
-        if (onNewChat) onNewChat(); // Triggering new chat to reset the view
+        if (onNewChat && currentChatId === selectedConversationId) onNewChat(); // Only redirect if the deleted chat is the current one
       } catch (error) {
         console.error("Error deleting chat:", error);
       } finally {
@@ -500,6 +528,13 @@ const UserPanel: React.FC<UserPanelProps> = ({
     navigate("/login");
   };
 
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setUserMenuAnchorEl(event.currentTarget);
+  };
+  const handleUserMenuClose = () => {
+    setUserMenuAnchorEl(null);
+  };
+
   // Calculate dynamic height for pinned chats list
   const pinnedListHeight = Math.min(20, Math.max(10, pinnedChats.length * 10));
 
@@ -580,7 +615,14 @@ const UserPanel: React.FC<UserPanelProps> = ({
           <IconButton
             size="small"
             onClick={(e) => handleMenuOpen(e, chat.id)}
-            sx={{ ml: 1 }}
+            sx={{
+              ml: 1,
+              border: "none",
+              bgcolor: "transparent",
+              "&:hover": {
+                bgcolor: (theme) => alpha(theme.palette.action.hover, 0.04),
+              },
+            }}
           >
             <MoreVertIcon fontSize="small" />
           </IconButton>
@@ -634,10 +676,10 @@ const UserPanel: React.FC<UserPanelProps> = ({
             boxSizing: "border-box",
             display: "flex",
             flexDirection: "column",
-            bgcolor: sidebarBg,
+            bgcolor: sidebarBg, // Use theme background
             overflowX: "hidden",
             boxShadow: "none",
-            borderRight: "none",
+            borderRight: `1px solid ${theme.palette.divider}`,
             borderRadius: 0,
           },
         }}
@@ -654,6 +696,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
         >
           {/* Top section with New Chat button */}
           <Box sx={{ p: 2 }}>
+            <SelectContent />
             <List sx={{ width: "100%" }}>
               {/* New Chat Button */}
               <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
@@ -667,6 +710,17 @@ const UserPanel: React.FC<UserPanelProps> = ({
                   </ListItemIcon>
                   <ListItemText
                     primary={<span style={{ fontWeight: 400 }}>New Chat</span>}
+                  />
+                </ListItemButton>
+              </ListItem>
+              {/* Insights Button */}
+              <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
+                <ListItemButton sx={{ borderRadius: 2 }}>
+                  <ListItemIcon>
+                    <InsightsIcon />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={<span style={{ fontWeight: 400 }}>Integrations</span>}
                   />
                 </ListItemButton>
               </ListItem>
@@ -729,45 +783,74 @@ const UserPanel: React.FC<UserPanelProps> = ({
 
           {/* Bottom section with Profile and Logout buttons */}
           <Box sx={{ p: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
-            <List sx={{ width: "100%" }}>
-              {/* Profile Button */}
-              <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
-                <ListItemButton
-                  sx={{ borderRadius: 2 }}
-                  onClick={onProfileClick}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Avatar sx={{ width: 36, height: 36 }}>
+                {(user.first_name?.[0] || "U").toUpperCase()}
+              </Avatar>
+              <Box sx={{ mr: "auto" }}>
+                <Typography sx={{ fontWeight: 600, fontSize: 15 }}>
+                  {user.first_name || "User"} {user.last_name || ""}
+                </Typography>
+                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                  {user.email || ""}
+                </Typography>
+              </Box>
+              <IconButton
+                onClick={handleUserMenuOpen}
+                sx={{
+                  border: "none",
+                  bgcolor: "transparent",
+                  "&:hover": {
+                    bgcolor: (theme) => alpha(theme.palette.action.hover, 0.04),
+                  },
+                }}
+              >
+                <MoreVertIcon />
+              </IconButton>
+            </Box>
+            <Menu
+              anchorEl={userMenuAnchorEl}
+              open={Boolean(userMenuAnchorEl)}
+              onClose={handleUserMenuClose}
+              anchorOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              transformOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              PaperProps={{
+                sx: { mt: -1, minWidth: 200 },
+              }}
+            >
+              <MenuItem
+                onClick={() => {
+                  handleUserMenuClose();
+                  onProfileClick && onProfileClick();
+                }}
+              >
+                <PersonIcon sx={{ mr: 1 }} />
+                <span style={{ fontWeight: 600, fontSize: 15 }}>Profile</span>
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleUserMenuClose();
+                  handleLogoutClick();
+                }}
+              >
+                <LogoutIcon sx={{ mr: 1, color: theme.palette.error.main }} />
+                <span
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 15,
+                    color: theme.palette.error.main,
+                  }}
                 >
-                  <ListItemIcon>
-                    <PersonIcon />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={<span style={{ fontWeight: 600 }}>Profile</span>}
-                  />
-                </ListItemButton>
-              </ListItem>
-              {/* Logout Button */}
-              <ListItem disablePadding sx={{ borderRadius: 2 }}>
-                <ListItemButton
-                  sx={{ borderRadius: 2 }}
-                  onClick={handleLogoutClick}
-                >
-                  <ListItemIcon>
-                    <LogoutIcon sx={{ color: theme.palette.error.main }} />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <span
-                        style={{
-                          fontWeight: 600,
-                          color: theme.palette.error.main,
-                        }}
-                      >
-                        Logout
-                      </span>
-                    }
-                  />
-                </ListItemButton>
-              </ListItem>
-            </List>
+                  Logout
+                </span>
+              </MenuItem>
+            </Menu>
           </Box>
         </Box>
       </Drawer>
@@ -780,7 +863,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
         PaperProps={{
           elevation: 3,
           sx: {
-            bgcolor: "#2a2a2a",
+            bgcolor: theme.palette.background.paper,
             borderRadius: 2,
             minWidth: 180,
           },
@@ -789,10 +872,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
         <MenuItem onClick={handlePinChat} sx={{ gap: 1 }}>
           {currentChatId &&
           localChats.find((chat) => chat.id === currentChatId)?.isPinned ? (
-            <PushPinIcon
-              fontSize="small"
-              sx={{ transform: "rotate(90deg)" }}
-            />
+            <PushPinIcon fontSize="small" sx={{ transform: "rotate(90deg)" }} />
           ) : (
             <PushPinIcon fontSize="small" />
           )}
@@ -832,7 +912,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
               boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
               maxWidth: "400px",
               width: "100%",
-              bgcolor: "#1a1a1a",
+              bgcolor: theme.palette.background.paper,
             },
           },
         }}
@@ -900,7 +980,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
               boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
               maxWidth: "400px",
               width: "100%",
-              bgcolor: "#1a1a1a",
+              bgcolor: theme.palette.background.paper,
             },
           },
         }}
@@ -933,7 +1013,10 @@ const UserPanel: React.FC<UserPanelProps> = ({
               borderColor: "divider",
               "&:hover": {
                 borderColor: "text.secondary",
-                backgroundColor: "rgba(0, 0, 0, 0.04)",
+                backgroundColor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.05)"
+                    : "rgba(0, 0, 0, 0.04)",
               },
             }}
           >
