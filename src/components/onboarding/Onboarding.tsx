@@ -7,7 +7,7 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import AddressForm from "./AddressForm";
+import WebsiteForm from "./WebsiteForm";
 import Products from "./Products";
 import Personas from "./Personas";
 import Competitors from "./Competitors";
@@ -15,6 +15,7 @@ import Success from "./Success";
 import WelcomeSection from "./WelcomeSection";
 import { useTheme } from "@mui/material/styles";
 import AppTheme from "../../../shared-theme/AppTheme";
+import LoadingTransition from "./LoadingTransition";
 
 const steps = ["Website", "Products", "Personas", "Competitors", "Success"];
 
@@ -54,11 +55,19 @@ function getStepContent(
   formData: any,
   setFormData: any,
   handleBack: () => void,
-  handleNext: () => void
+  handleNext: () => void,
+  onSkipToProducts?: () => void
 ) {
   switch (step) {
     case 0:
-      return <AddressForm formData={formData} setFormData={setFormData} />;
+      return (
+        <WebsiteForm
+          formData={formData}
+          setFormData={setFormData}
+          onNext={handleNext}
+          onSkipToProducts={onSkipToProducts}
+        />
+      );
     case 1:
       return (
         <Products
@@ -93,12 +102,15 @@ function getStepContent(
   }
 }
 
-interface CheckoutProps {
+interface OnboardingProps {
   activeStep: number;
   setActiveStep: (step: number) => void;
 }
 
-const Checkout: React.FC<CheckoutProps> = ({ activeStep, setActiveStep }) => {
+const Onboarding: React.FC<OnboardingProps> = ({
+  activeStep,
+  setActiveStep,
+}) => {
   const [formData, setFormData] = React.useState({
     firstName: "",
     lastName: "",
@@ -114,6 +126,7 @@ const Checkout: React.FC<CheckoutProps> = ({ activeStep, setActiveStep }) => {
     // Add more fields as needed for products, personas, competitors
   });
 
+  const [showLoading, setShowLoading] = React.useState(false);
   const theme = useTheme();
 
   const handleNext = () => {
@@ -122,6 +135,11 @@ const Checkout: React.FC<CheckoutProps> = ({ activeStep, setActiveStep }) => {
 
   const handleBack = () => {
     setActiveStep(activeStep - 1);
+  };
+
+  // Handler for Get Started button
+  const handleGetStarted = () => {
+    setShowLoading(true);
   };
 
   return (
@@ -159,14 +177,26 @@ const Checkout: React.FC<CheckoutProps> = ({ activeStep, setActiveStep }) => {
             ))}
           </Stepper>
           <Box sx={{ maxWidth: 650, minWidth: 600, width: "100%", mx: "auto" }}>
-            {getStepContent(
-              activeStep,
-              formData,
-              setFormData,
-              handleBack,
-              handleNext
+            {/* Show loading transition after Get Started, before Products tab */}
+            {showLoading ? (
+              <LoadingTransition
+                onComplete={() => {
+                  setShowLoading(false);
+                  handleNext();
+                }}
+                durationSeconds={30} // Change this value to control loading duration (in ms)
+              />
+            ) : (
+              getStepContent(
+                activeStep,
+                formData,
+                setFormData,
+                handleBack,
+                handleNext,
+                () => setActiveStep(activeStep + 1)
+              )
             )}
-            {activeStep === 0 && (
+            {activeStep === 0 && !showLoading && (
               <Box
                 sx={{
                   display: "flex",
@@ -179,7 +209,7 @@ const Checkout: React.FC<CheckoutProps> = ({ activeStep, setActiveStep }) => {
               >
                 <Button
                   variant="contained"
-                  onClick={handleNext}
+                  onClick={handleGetStarted}
                   sx={{
                     ml: 1,
                     bgcolor: theme.palette.primary.main,
@@ -206,4 +236,4 @@ const Checkout: React.FC<CheckoutProps> = ({ activeStep, setActiveStep }) => {
   );
 };
 
-export default Checkout;
+export default Onboarding;

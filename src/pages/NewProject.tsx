@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Stack } from "@mui/material";
-import Checkout from "../components/checkout/Checkout";
-import WelcomeSection from "../components/checkout/WelcomeSection";
+import Onboarding from "../components/onboarding/Onboarding";
+import WelcomeSection from "../components/Onboarding/WelcomeSection";
 import { ThemeProvider } from "../context/ThemeContext";
 
 const stepWelcomeContent = [
@@ -36,7 +36,7 @@ const stepWelcomeContent = [
 
 const NewProject: React.FC = () => {
   const [activeStep, setActiveStep] = React.useState(0);
-  // We'll pass setActiveStep to Checkout so it can update the step
+  // We'll pass setActiveStep to Onboarding so it can update the step
   return (
     <ThemeProvider>
       <Box
@@ -65,7 +65,7 @@ const NewProject: React.FC = () => {
             <WelcomeSection {...stepWelcomeContent[activeStep]} />
           </Box>
 
-          {/* Right Column - Checkout Form */}
+          {/* Right Column - Onboarding Form */}
           <Box
             sx={{
               width: { xs: "100%", md: "60%" },
@@ -73,7 +73,7 @@ const NewProject: React.FC = () => {
               overflow: "auto",
             }}
           >
-            <Checkout activeStep={activeStep} setActiveStep={setActiveStep} />
+            <Onboarding activeStep={activeStep} setActiveStep={setActiveStep} />
           </Box>
         </Stack>
       </Box>

@@ -17,12 +17,19 @@ interface FormData {
   [key: string]: string;
 }
 
-interface AddressFormProps {
+interface WebsiteFormProps {
   formData: FormData;
   setFormData: (data: FormData) => void;
+  onNext?: () => void;
+  onSkipToProducts?: () => void;
 }
 
-const AddressForm: React.FC<AddressFormProps> = ({ formData, setFormData }) => {
+const WebsiteForm: React.FC<WebsiteFormProps> = ({
+  formData,
+  setFormData,
+  onNext,
+  onSkipToProducts,
+}) => {
   const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setFormData({ ...formData, [name]: value });
@@ -57,7 +64,8 @@ const AddressForm: React.FC<AddressFormProps> = ({ formData, setFormData }) => {
               href="#"
               onClick={(e) => {
                 e.preventDefault();
-                // Handle "I don't have a website yet" click
+                if (onSkipToProducts) onSkipToProducts();
+                else if (onNext) onNext();
               }}
               sx={{
                 textDecoration: "none",
@@ -98,4 +106,4 @@ const AddressForm: React.FC<AddressFormProps> = ({ formData, setFormData }) => {
   );
 };
 
-export default AddressForm;
+export default WebsiteForm;
