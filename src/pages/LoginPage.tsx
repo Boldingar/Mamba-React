@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance, { API_BASE_URL } from "../utils/axios";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import GoogleLogin from "../components/GoogleLogin";
 
 interface LoginPageProps {
   setIsAuthenticated?: (auth: boolean) => void;
@@ -136,6 +137,39 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (googleUser: any) => {
+    try {
+      // Send the Google token to your backend
+      const response = await axiosInstance.post("/auth/google", {
+        token: googleUser.token,
+      });
+
+      // Assuming your backend returns access_token, user, conversations, etc.
+      const { access_token, user, conversations, token_type } = response.data;
+
+      // Store the token and user data (using localStorage for now)
+      localStorage.setItem("authToken", access_token);
+      localStorage.setItem("userData", JSON.stringify(user));
+      localStorage.setItem(
+        "conversations",
+        JSON.stringify(conversations || [])
+      );
+
+      if (setIsAuthenticated) setIsAuthenticated(true);
+      navigate("/chat");
+    } catch (err: any) {
+      setError(
+        err.response?.data?.detail ||
+          "Google authentication failed. Please try again."
+      );
+    }
+  };
+
+  const handleGoogleError = (error: Error) => {
+    console.error("Google login error:", error);
+    // Handle the error appropriately
   };
 
   return (
@@ -262,11 +296,48 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               </Typography>
             </Box>
           </Box>
+
+          <Box sx={{ position: "relative", my: 4 }}>
+            <Box
+              sx={{
+                position: "absolute",
+                top: "50%",
+                left: 0,
+                right: 0,
+                transform: "translateY(-50%)",
+              }}
+            >
+              <Typography
+                variant="body2"
+                component="div"
+                sx={{
+                  textAlign: "center",
+                  bgcolor: "background.paper",
+                  display: "inline-block",
+                  px: 2,
+                  position: "relative",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  color: "text.secondary",
+                }}
+              >
+                or
+              </Typography>
+            </Box>
+            <Box sx={{ borderBottom: 1, borderColor: "divider" }} />
+          </Box>
+
+          <Box sx={{ width: "100%" }}>
+            <GoogleLogin
+              clientId="890844016593-ec67bfb6poh7q86cr26icctq68v1vmh5.apps.googleusercontent.com"
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+            />
+          </Box>
         </Paper>
       </Container>
     </Box>
   );
 };
-
 
 export default LoginPage;
