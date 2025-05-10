@@ -7,12 +7,14 @@ interface MessageInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   size?: "normal" | "large";
+  isNewChat?: boolean;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
   onSendMessage,
   disabled = false,
   size = "normal",
+  isNewChat = false,
 }) => {
   const [inputMessage, setInputMessage] = useState("");
 
@@ -72,7 +74,11 @@ const MessageInput: React.FC<MessageInputProps> = ({
           onChange={(e) => setInputMessage(e.target.value)}
           onKeyDown={handleKeyPress}
           disabled={disabled}
-          placeholder="Start with a topic, a keyword, your site, really anything."
+          placeholder={
+            isNewChat
+              ? "Start with a topic, a keyword, your site, really anything."
+              : "Ask anything..."
+          }
           variant="standard"
           multiline
           maxRows={4}

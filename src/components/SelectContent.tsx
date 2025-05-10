@@ -53,7 +53,7 @@ export default function SelectContent() {
       sx={{
         maxHeight: 56,
         width: 250,
-        borderRadius: 3,
+        borderRadius: 2,
         "&.MuiList-root": {
           p: "8px",
         },

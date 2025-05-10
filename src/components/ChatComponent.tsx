@@ -1183,6 +1183,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                 onSendMessage={handleSubmitMessage}
                 disabled={isLoading || isFormVisible}
                 size="large"
+                isNewChat={true}
               />
             </Box>
           </CenteredContainer>
@@ -1339,6 +1340,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
               onSendMessage={handleSubmitMessage}
               disabled={isLoading || isFormVisible}
               size="normal"
+              isNewChat={false}
             />
           </>
         )}
