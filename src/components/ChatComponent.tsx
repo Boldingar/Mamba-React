@@ -1169,6 +1169,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
               variant="h4"
               sx={{
                 fontWeight: 600,
+                fontSize: "2.5rem",
                 color: "text.primary",
                 textAlign: "center",
                 maxWidth: "850px",

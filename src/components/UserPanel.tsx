@@ -35,9 +35,12 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import PushPinIcon from "@mui/icons-material/PushPin";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import InsightsIcon from "@mui/icons-material/Insights";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axios";
 import { useTheme as useAppTheme } from "../context/ThemeContext";
+import SelectContent from "./SelectContent";
+import { alpha } from "@mui/material/styles";
 
 // Remove dummy chats
 // const dummyChats = [
@@ -126,6 +129,14 @@ const UserPanel: React.FC<UserPanelProps> = ({
     { id: string; title: string; isPinned?: boolean }[]
   >([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<null | HTMLElement>(
+    null
+  );
+  const [user, setUser] = useState<{
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+  }>({});
 
   // Create a ref for the text input
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -244,6 +255,16 @@ const UserPanel: React.FC<UserPanelProps> = ({
       }, 50);
     }
   }, [isRenaming]);
+
+  useEffect(() => {
+    const stored =
+      localStorage.getItem("userData") || sessionStorage.getItem("userData");
+    if (stored) {
+      try {
+        setUser(JSON.parse(stored));
+      } catch {}
+    }
+  }, []);
 
   const handleMenuOpen = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -507,6 +528,13 @@ const UserPanel: React.FC<UserPanelProps> = ({
     navigate("/login");
   };
 
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setUserMenuAnchorEl(event.currentTarget);
+  };
+  const handleUserMenuClose = () => {
+    setUserMenuAnchorEl(null);
+  };
+
   // Calculate dynamic height for pinned chats list
   const pinnedListHeight = Math.min(20, Math.max(10, pinnedChats.length * 10));
 
@@ -587,7 +615,14 @@ const UserPanel: React.FC<UserPanelProps> = ({
           <IconButton
             size="small"
             onClick={(e) => handleMenuOpen(e, chat.id)}
-            sx={{ ml: 1 }}
+            sx={{
+              ml: 1,
+              border: "none",
+              bgcolor: "transparent",
+              "&:hover": {
+                bgcolor: (theme) => alpha(theme.palette.action.hover, 0.04),
+              },
+            }}
           >
             <MoreVertIcon fontSize="small" />
           </IconButton>
@@ -661,6 +696,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
         >
           {/* Top section with New Chat button */}
           <Box sx={{ p: 2 }}>
+            <SelectContent />
             <List sx={{ width: "100%" }}>
               {/* New Chat Button */}
               <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
@@ -674,6 +710,17 @@ const UserPanel: React.FC<UserPanelProps> = ({
                   </ListItemIcon>
                   <ListItemText
                     primary={<span style={{ fontWeight: 400 }}>New Chat</span>}
+                  />
+                </ListItemButton>
+              </ListItem>
+              {/* Insights Button */}
+              <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
+                <ListItemButton sx={{ borderRadius: 2 }}>
+                  <ListItemIcon>
+                    <InsightsIcon />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={<span style={{ fontWeight: 400 }}>Insights</span>}
                   />
                 </ListItemButton>
               </ListItem>
@@ -736,45 +783,74 @@ const UserPanel: React.FC<UserPanelProps> = ({
 
           {/* Bottom section with Profile and Logout buttons */}
           <Box sx={{ p: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
-            <List sx={{ width: "100%" }}>
-              {/* Profile Button */}
-              <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
-                <ListItemButton
-                  sx={{ borderRadius: 2 }}
-                  onClick={onProfileClick}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Avatar sx={{ width: 36, height: 36 }}>
+                {(user.first_name?.[0] || "U").toUpperCase()}
+              </Avatar>
+              <Box sx={{ mr: "auto" }}>
+                <Typography sx={{ fontWeight: 600, fontSize: 15 }}>
+                  {user.first_name || "User"} {user.last_name || ""}
+                </Typography>
+                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                  {user.email || ""}
+                </Typography>
+              </Box>
+              <IconButton
+                onClick={handleUserMenuOpen}
+                sx={{
+                  border: "none",
+                  bgcolor: "transparent",
+                  "&:hover": {
+                    bgcolor: (theme) => alpha(theme.palette.action.hover, 0.04),
+                  },
+                }}
+              >
+                <MoreVertIcon />
+              </IconButton>
+            </Box>
+            <Menu
+              anchorEl={userMenuAnchorEl}
+              open={Boolean(userMenuAnchorEl)}
+              onClose={handleUserMenuClose}
+              anchorOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              transformOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              PaperProps={{
+                sx: { mt: -1, minWidth: 200 },
+              }}
+            >
+              <MenuItem
+                onClick={() => {
+                  handleUserMenuClose();
+                  onProfileClick && onProfileClick();
+                }}
+              >
+                <PersonIcon sx={{ mr: 1 }} />
+                <span style={{ fontWeight: 600, fontSize: 15 }}>Profile</span>
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleUserMenuClose();
+                  handleLogoutClick();
+                }}
+              >
+                <LogoutIcon sx={{ mr: 1, color: theme.palette.error.main }} />
+                <span
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 15,
+                    color: theme.palette.error.main,
+                  }}
                 >
-                  <ListItemIcon>
-                    <PersonIcon />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={<span style={{ fontWeight: 600 }}>Profile</span>}
-                  />
-                </ListItemButton>
-              </ListItem>
-              {/* Logout Button */}
-              <ListItem disablePadding sx={{ borderRadius: 2 }}>
-                <ListItemButton
-                  sx={{ borderRadius: 2 }}
-                  onClick={handleLogoutClick}
-                >
-                  <ListItemIcon>
-                    <LogoutIcon sx={{ color: theme.palette.error.main }} />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <span
-                        style={{
-                          fontWeight: 600,
-                          color: theme.palette.error.main,
-                        }}
-                      >
-                        Logout
-                      </span>
-                    }
-                  />
-                </ListItemButton>
-              </ListItem>
-            </List>
+                  Logout
+                </span>
+              </MenuItem>
+            </Menu>
           </Box>
         </Box>
       </Drawer>

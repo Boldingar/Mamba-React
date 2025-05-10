@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Stack,
@@ -16,7 +16,7 @@ const Personas: React.FC<{
   setFormData: (data: any) => void;
   onBack?: () => void;
   onNext?: () => void;
-}> = ({ onBack, onNext }) => {
+}> = ({ formData, setFormData, onBack, onNext }) => {
   const theme = useTheme();
   const borderRadius = 3;
   const buttonStyles = {
@@ -43,18 +43,34 @@ const Personas: React.FC<{
     { name: "", description: "", priority: "" },
   ]);
 
+  // Sync with formData
+  useEffect(() => {
+    if (formData.personas) {
+      setPersonas(formData.personas);
+    }
+  }, [formData.personas]);
+
   const handleAdd = () => {
-    setPersonas([...personas, { name: "", description: "", priority: "" }]);
+    const newPersonas = [
+      ...personas,
+      { name: "", description: "", priority: "" },
+    ];
+    setPersonas(newPersonas);
+    setFormData({ ...formData, personas: newPersonas });
   };
 
   const handleDelete = (idx: number) => {
-    setPersonas(personas.filter((_, i) => i !== idx));
+    const newPersonas = personas.filter((_, i) => i !== idx);
+    setPersonas(newPersonas);
+    setFormData({ ...formData, personas: newPersonas });
   };
 
   const handleChange = (idx: number, field: string, value: string) => {
-    setPersonas(
-      personas.map((p, i) => (i === idx ? { ...p, [field]: value } : p))
+    const newPersonas = personas.map((p, i) =>
+      i === idx ? { ...p, [field]: value } : p
     );
+    setPersonas(newPersonas);
+    setFormData({ ...formData, personas: newPersonas });
   };
 
   return (
@@ -95,6 +111,11 @@ const Personas: React.FC<{
             onClick={() => handleDelete(idx)}
             color="error"
             aria-label="delete"
+            sx={{
+              "&:hover": {
+                bgcolor: (theme) => theme.palette.error.light + "20",
+              },
+            }}
           >
             <DeleteIcon />
           </IconButton>
@@ -102,7 +123,15 @@ const Personas: React.FC<{
       ))}
       <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
         <Box sx={{ flexGrow: 1 }} />
-        <IconButton onClick={handleAdd} sx={buttonStyles} aria-label="add">
+        <IconButton
+          onClick={handleAdd}
+          sx={{
+            ...buttonStyles,
+            width: 40,
+            height: 40,
+          }}
+          aria-label="add"
+        >
           <AddIcon />
         </IconButton>
       </Box>

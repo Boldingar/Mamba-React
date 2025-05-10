@@ -7,13 +7,14 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import AddressForm from "./AddressForm.tsx";
-import Products from "./Products.tsx";
-import Personas from "./Personas.tsx";
-import Competitors from "./Competitors.tsx";
-import Success from "./Success.tsx";
-import WelcomeSection from "./WelcomeSection.tsx";
+import AddressForm from "./AddressForm";
+import Products from "./Products";
+import Personas from "./Personas";
+import Competitors from "./Competitors";
+import Success from "./Success";
+import WelcomeSection from "./WelcomeSection";
 import { useTheme } from "@mui/material/styles";
+import AppTheme from "../../../shared-theme/AppTheme";
 
 const steps = ["Website", "Products", "Personas", "Competitors", "Success"];
 
@@ -124,82 +125,84 @@ const Checkout: React.FC<CheckoutProps> = ({ activeStep, setActiveStep }) => {
   };
 
   return (
-    <Box
-      sx={{
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <AppTheme>
       <Box
         sx={{
+          height: "100%",
           width: "100%",
-          p: { xs: 2, md: 4 },
-          flex: 1,
           display: "flex",
           flexDirection: "column",
         }}
       >
-        <Stepper
-          activeStep={activeStep}
+        <Box
           sx={{
-            mb: 4,
-            "& .MuiStepLabel-label": {
-              color: "text.primary",
-            },
+            width: "100%",
+            p: { xs: 2, md: 4 },
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
           }}
         >
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-        <Box sx={{ maxWidth: 650, minWidth: 600, width: "100%", mx: "auto" }}>
-          {getStepContent(
-            activeStep,
-            formData,
-            setFormData,
-            handleBack,
-            handleNext
-          )}
-          {activeStep === 0 && (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "flex-end",
-                mt: 3,
-                pt: 3,
-                borderTop: "1px solid",
-                borderColor: "divider",
-              }}
-            >
-              <Button
-                variant="contained"
-                onClick={handleNext}
+          <Stepper
+            activeStep={activeStep}
+            sx={{
+              mb: 4,
+              "& .MuiStepLabel-label": {
+                color: "text.primary",
+              },
+            }}
+          >
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+          <Box sx={{ maxWidth: 650, minWidth: 600, width: "100%", mx: "auto" }}>
+            {getStepContent(
+              activeStep,
+              formData,
+              setFormData,
+              handleBack,
+              handleNext
+            )}
+            {activeStep === 0 && (
+              <Box
                 sx={{
-                  ml: 1,
-                  bgcolor: theme.palette.primary.main,
-                  color: theme.palette.common.white,
-                  "&:hover": {
-                    bgcolor: theme.palette.primary.dark,
-                    color: theme.palette.common.white,
-                  },
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontSize: "1rem",
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  mt: 3,
+                  pt: 3,
+                  borderTop: "1px solid",
+                  borderColor: "divider",
                 }}
               >
-                Get Started
-              </Button>
-            </Box>
-          )}
+                <Button
+                  variant="contained"
+                  onClick={handleNext}
+                  sx={{
+                    ml: 1,
+                    bgcolor: theme.palette.primary.main,
+                    color: theme.palette.common.white,
+                    "&:hover": {
+                      bgcolor: theme.palette.primary.dark,
+                      color: theme.palette.common.white,
+                    },
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: 2,
+                    textTransform: "none",
+                    fontSize: "1rem",
+                  }}
+                >
+                  Get Started
+                </Button>
+              </Box>
+            )}
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </AppTheme>
   );
 };
 

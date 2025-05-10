@@ -7,6 +7,7 @@ import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { useTheme } from "../context/ThemeContext";
+import { alpha } from "@mui/material/styles";
 
 interface TopAppBarProps {
   csvPanelOpen: boolean;
@@ -101,7 +102,16 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
           <IconButton
             color={csvPanelOpen ? "primary" : "default"}
             onClick={onToggleCSVPanel}
-            sx={{ mr: 1, width: 56, height: 56 }}
+            sx={{
+              mr: 1,
+              width: 56,
+              height: 56,
+              border: "none",
+              bgcolor: "transparent",
+              "&:hover": {
+                bgcolor: (theme) => alpha(theme.palette.action.hover, 0.04),
+              },
+            }}
           >
             <DescriptionIcon sx={{ fontSize: 34 }} />
           </IconButton>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Stack,
@@ -16,7 +16,7 @@ const Competitors: React.FC<{
   setFormData: (data: any) => void;
   onBack?: () => void;
   onNext?: () => void;
-}> = ({ onBack, onNext }) => {
+}> = ({ formData, setFormData, onBack, onNext }) => {
   const theme = useTheme();
   const borderRadius = 3;
   const buttonStyles = {
@@ -43,18 +43,31 @@ const Competitors: React.FC<{
     { name: "", description: "" },
   ]);
 
+  // Sync with formData
+  useEffect(() => {
+    if (formData.competitors) {
+      setCompetitors(formData.competitors);
+    }
+  }, [formData.competitors]);
+
   const handleAdd = () => {
-    setCompetitors([...competitors, { name: "", description: "" }]);
+    const newCompetitors = [...competitors, { name: "", description: "" }];
+    setCompetitors(newCompetitors);
+    setFormData({ ...formData, competitors: newCompetitors });
   };
 
   const handleDelete = (idx: number) => {
-    setCompetitors(competitors.filter((_, i) => i !== idx));
+    const newCompetitors = competitors.filter((_, i) => i !== idx);
+    setCompetitors(newCompetitors);
+    setFormData({ ...formData, competitors: newCompetitors });
   };
 
   const handleChange = (idx: number, field: string, value: string) => {
-    setCompetitors(
-      competitors.map((c, i) => (i === idx ? { ...c, [field]: value } : c))
+    const newCompetitors = competitors.map((c, i) =>
+      i === idx ? { ...c, [field]: value } : c
     );
+    setCompetitors(newCompetitors);
+    setFormData({ ...formData, competitors: newCompetitors });
   };
 
   return (
@@ -87,6 +100,11 @@ const Competitors: React.FC<{
             onClick={() => handleDelete(idx)}
             color="error"
             aria-label="delete"
+            sx={{
+              "&:hover": {
+                bgcolor: (theme) => theme.palette.error.light + "20",
+              },
+            }}
           >
             <DeleteIcon />
           </IconButton>
@@ -94,7 +112,15 @@ const Competitors: React.FC<{
       ))}
       <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
         <Box sx={{ flexGrow: 1 }} />
-        <IconButton onClick={handleAdd} sx={buttonStyles} aria-label="add">
+        <IconButton
+          onClick={handleAdd}
+          sx={{
+            ...buttonStyles,
+            width: 40,
+            height: 40,
+          }}
+          aria-label="add"
+        >
           <AddIcon />
         </IconButton>
       </Box>

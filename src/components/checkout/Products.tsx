@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Stack, TextField, IconButton, Button } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -9,7 +9,7 @@ const Products: React.FC<{
   setFormData: (data: any) => void;
   onBack?: () => void;
   onNext?: () => void;
-}> = ({ onBack, onNext }) => {
+}> = ({ formData, setFormData, onBack, onNext }) => {
   const theme = useTheme();
   const borderRadius = 3;
   const buttonStyles = {
@@ -36,18 +36,34 @@ const Products: React.FC<{
     { name: "", description: "", priority: "" },
   ]);
 
+  // Sync with formData
+  useEffect(() => {
+    if (formData.products) {
+      setProducts(formData.products);
+    }
+  }, [formData.products]);
+
   const handleAdd = () => {
-    setProducts([...products, { name: "", description: "", priority: "" }]);
+    const newProducts = [
+      ...products,
+      { name: "", description: "", priority: "" },
+    ];
+    setProducts(newProducts);
+    setFormData({ ...formData, products: newProducts });
   };
 
   const handleDelete = (idx: number) => {
-    setProducts(products.filter((_, i) => i !== idx));
+    const newProducts = products.filter((_, i) => i !== idx);
+    setProducts(newProducts);
+    setFormData({ ...formData, products: newProducts });
   };
 
   const handleChange = (idx: number, field: string, value: string) => {
-    setProducts(
-      products.map((p, i) => (i === idx ? { ...p, [field]: value } : p))
+    const newProducts = products.map((p, i) =>
+      i === idx ? { ...p, [field]: value } : p
     );
+    setProducts(newProducts);
+    setFormData({ ...formData, products: newProducts });
   };
 
   return (
@@ -88,6 +104,11 @@ const Products: React.FC<{
             onClick={() => handleDelete(idx)}
             color="error"
             aria-label="delete"
+            sx={{
+              "&:hover": {
+                bgcolor: (theme) => theme.palette.error.light + "20",
+              },
+            }}
           >
             <DeleteIcon />
           </IconButton>
@@ -95,7 +116,15 @@ const Products: React.FC<{
       ))}
       <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
         <Box sx={{ flexGrow: 1 }} />
-        <IconButton onClick={handleAdd} sx={buttonStyles} aria-label="add">
+        <IconButton
+          onClick={handleAdd}
+          sx={{
+            ...buttonStyles,
+            width: 40,
+            height: 40,
+          }}
+          aria-label="add"
+        >
           <AddIcon />
         </IconButton>
       </Box>
