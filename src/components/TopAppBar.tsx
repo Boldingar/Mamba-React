@@ -83,7 +83,7 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
         >
           {logoSvg}
         </Box>
-        <Typography
+        {/* <Typography
           variant="h6"
           sx={{
             fontWeight: 600,
@@ -96,7 +96,7 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
           }}
         >
           Lily - Senior SEO Engineer
-        </Typography>
+        </Typography> */}
         <Box sx={{ flex: 1 }} />
         {hasDataToShow && (
           <IconButton
