@@ -46,11 +46,13 @@ const ListItemAvatar = styled(MuiListItemAvatar)({
 interface SelectContentProps {
   onClose: () => void;
   onProjectChange?: () => void;
+  isDisabled?: boolean;
 }
 
 export default function SelectContent({
   onClose,
   onProjectChange,
+  isDisabled = false,
 }: SelectContentProps) {
   const [selectedProject, setSelectedProject] = React.useState("");
   const [projects, setProjects] = React.useState<Project[]>([]);
@@ -103,26 +105,15 @@ export default function SelectContent({
         // Store the selected project
         localStorage.setItem("currentProject", JSON.stringify(project));
 
-        // Notify parent about project change to trigger loading state
+        // Notify parent about project change to trigger loading state and fetch conversations
         if (onProjectChange) {
           onProjectChange();
         }
 
-        // Fetch conversations for the selected project
-        const response = await axiosInstance.get(
-          `/projects/${project.id}/conversations`
-        );
-
-        // Store new conversations
-        localStorage.setItem(
-          "conversations",
-          JSON.stringify(response.data || [])
-        );
-
         onClose();
       }
     } catch (error) {
-      console.error("Error fetching project conversations:", error);
+      console.error("Error updating project:", error);
     }
   };
 
@@ -135,6 +126,7 @@ export default function SelectContent({
       displayEmpty
       inputProps={{ "aria-label": "Select project" }}
       fullWidth
+      disabled={isDisabled}
       sx={{
         maxHeight: 56,
         width: 250,
@@ -147,6 +139,9 @@ export default function SelectContent({
           alignItems: "center",
           gap: "2px",
           pl: 1,
+        },
+        "&.Mui-disabled": {
+          opacity: 0.5,
         },
       }}
     >

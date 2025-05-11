@@ -154,12 +154,30 @@ const UserPanel: React.FC<UserPanelProps> = ({
     }
   }, []);
 
+  // Fetch conversations for first project after login
+  useEffect(() => {
+    const currentProject = JSON.parse(
+      localStorage.getItem("currentProject") ||
+        sessionStorage.getItem("currentProject") ||
+        "{}"
+    );
+
+    // If there's a current project, fetch its conversations
+    if (currentProject.id) {
+      fetchConversations();
+    }
+  }, []); // Run only once on component mount
+
   const handleProjectChange = () => {
     // Clear current conversations
     setLocalChats([]);
     setPinnedChats([]);
     // Set loading state
     setIsLoading(true);
+    // Trigger new chat if callback exists
+    if (onNewChat) {
+      onNewChat();
+    }
     // Fetch new conversations after a short delay to show loading state
     setTimeout(() => {
       fetchConversations();
@@ -689,6 +707,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
             <SelectContent
               onClose={() => setIsSelectContentOpen(false)}
               onProjectChange={handleProjectChange}
+              isDisabled={isAwaitingResponse}
             />
             <List sx={{ width: "100%" }}>
               {/* New Chat Button */}
