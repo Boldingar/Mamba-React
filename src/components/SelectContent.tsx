@@ -65,16 +65,30 @@ export default function SelectContent({
         const response = await axiosInstance.get("/projects");
         setProjects(response.data);
 
-        // Set the current project if one is stored
+        // Get current project from storage
         const currentProject =
           localStorage.getItem("currentProject") ||
           sessionStorage.getItem("currentProject");
+
         if (currentProject) {
           const project = JSON.parse(currentProject);
           // Check if the stored project still exists in the fetched projects
           if (response.data.some((p: Project) => p.id === project.id)) {
             setSelectedProject(project.id);
+          } else if (response.data.length > 0) {
+            // If stored project doesn't exist, select first project
+            const firstProject = response.data[0];
+            setSelectedProject(firstProject.id);
+            localStorage.setItem(
+              "currentProject",
+              JSON.stringify(firstProject)
+            );
           }
+        } else if (response.data.length > 0) {
+          // No project in storage, select first project
+          const firstProject = response.data[0];
+          setSelectedProject(firstProject.id);
+          localStorage.setItem("currentProject", JSON.stringify(firstProject));
         }
       } catch (error) {
         console.error("Error fetching projects:", error);

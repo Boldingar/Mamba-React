@@ -75,7 +75,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
         password,
       });
 
-      const { access_token, user } = loginResponse.data;
+      const { access_token, user, projects } = loginResponse.data;
 
       // Set the auth token for subsequent requests
       axiosInstance.defaults.headers.common[
@@ -88,7 +88,13 @@ const LoginPage: React.FC<LoginPageProps> = ({
       storage.setItem("userData", JSON.stringify(user));
 
       if (setIsAuthenticated) setIsAuthenticated(true);
-      navigate("/chat");
+
+      // Redirect based on whether user has projects
+      if (!projects || projects.length === 0) {
+        navigate("/new-project");
+      } else {
+        navigate("/chat");
+      }
     } catch (error) {
       console.error("Login error:", error);
       if (error.response?.status === 401) {
@@ -107,7 +113,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
         token: googleUser.token,
       });
 
-      const { access_token, user } = loginResponse.data;
+      const { access_token, user, projects } = loginResponse.data;
 
       // Set the auth token for subsequent requests
       axiosInstance.defaults.headers.common[
@@ -119,7 +125,13 @@ const LoginPage: React.FC<LoginPageProps> = ({
       localStorage.setItem("userData", JSON.stringify(user));
 
       if (setIsAuthenticated) setIsAuthenticated(true);
-      navigate("/chat");
+
+      // Redirect based on whether user has projects
+      if (!projects || projects.length === 0) {
+        navigate("/new-project");
+      } else {
+        navigate("/chat");
+      }
     } catch (error) {
       setError(
         error.response?.data?.detail ||
