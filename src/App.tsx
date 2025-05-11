@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { CssBaseline, Box } from "@mui/material";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import { Experimental_CssVarsProvider as CssVarsProvider } from "@mui/material/styles";
 import AppTheme from "../shared-theme/AppTheme";
@@ -10,11 +17,18 @@ import RegisterPage from "./pages/RegisterPage";
 import NewProject from "./pages/NewProject";
 import TopAppBar from "./components/TopAppBar";
 import SignInSide from "./pages/sign-in-side/SignInSide";
+import { useAuthRedirect } from "./utils/authRedirect";
 
 function checkAuth() {
   const localToken = localStorage.getItem("authToken");
   const sessionToken = sessionStorage.getItem("authToken");
   return !!(localToken || sessionToken);
+}
+
+// Wrapper component to handle route-level auth redirects
+function AuthRedirectHandler({ children }: { children: React.ReactNode }) {
+  useAuthRedirect(); // Use our custom hook
+  return <>{children}</>;
 }
 
 function App() {
@@ -45,61 +59,73 @@ function App() {
             }}
           >
             <BrowserRouter>
-              <Routes>
-                <Route
-                  path="/login"
-                  element={
-                    isAuthenticated ? (
-                      <Navigate to="/" replace />
-                    ) : (
-                      <SignInSide setIsAuthenticated={setIsAuthenticated} />
-                    )
-                  }
-                />
-                <Route
-                  path="/register"
-                  element={
-                    isAuthenticated ? (
-                      <Navigate to="/" replace />
-                    ) : (
-                      <RegisterPage />
-                    )
-                  }
-                />
-                <Route
-                  path="/chat"
-                  element={
-                    isAuthenticated ? (
-                      <>
-                        <TopAppBar
-                          csvPanelOpen={false}
-                          onToggleCSVPanel={() => {}}
-                        />
-                        <ChatPage setIsAuthenticated={setIsAuthenticated} />
-                      </>
-                    ) : (
-                      <Navigate to="/login" replace />
-                    )
-                  }
-                />
-                <Route
-                  path="/new-project"
-                  element={
-                    isAuthenticated ? (
-                      <>
-                        {/* <TopAppBar
-                          csvPanelOpen={false}
-                          onToggleCSVPanel={() => {}}
-                        /> */}
-                        <NewProject />
-                      </>
-                    ) : (
-                      <Navigate to="/login" replace />
-                    )
-                  }
-                />
-                <Route path="/" element={<Navigate to="/chat" replace />} />
-              </Routes>
+              <AuthRedirectHandler>
+                <Routes>
+                  <Route
+                    path="/login"
+                    element={
+                      isAuthenticated ? (
+                        <Navigate to="/" replace />
+                      ) : (
+                        <SignInSide setIsAuthenticated={setIsAuthenticated} />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/register"
+                    element={
+                      isAuthenticated ? (
+                        <Navigate to="/" replace />
+                      ) : (
+                        <RegisterPage />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      isAuthenticated ? (
+                        <Navigate to="/chat" replace />
+                      ) : (
+                        <Navigate to="/login" replace />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/chat"
+                    element={
+                      isAuthenticated ? (
+                        <>
+                          <TopAppBar
+                            csvPanelOpen={false}
+                            onToggleCSVPanel={() => {}}
+                          />
+                          <ChatPage setIsAuthenticated={setIsAuthenticated} />
+                        </>
+                      ) : (
+                        <Navigate to="/login" replace />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/new-project"
+                    element={
+                      isAuthenticated ? (
+                        <>
+                          {/* <TopAppBar
+                            csvPanelOpen={false}
+                            onToggleCSVPanel={() => {}}
+                          /> */}
+                          <NewProject />
+                        </>
+                      ) : (
+                        <Navigate to="/login" replace />
+                      )
+                    }
+                  />
+                  <Route path="/" element={<Navigate to="/chat" replace />} />
+                </Routes>
+              </AuthRedirectHandler>
             </BrowserRouter>
           </Box>
         </AppTheme>
