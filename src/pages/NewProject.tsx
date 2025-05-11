@@ -3,6 +3,7 @@ import { Box, Stack } from "@mui/material";
 import Onboarding from "../components/onboarding/Onboarding";
 import WelcomeSection from "../components/onboarding/WelcomeSection";
 import { ThemeProvider } from "../context/ThemeContext";
+import AppTheme from "../../shared-theme/AppTheme";
 
 const steps = [
   "Website",
@@ -52,6 +53,7 @@ const NewProject: React.FC = () => {
   const [activeStep, setActiveStep] = React.useState(0);
   // We'll pass setActiveStep to Onboarding so it can update the step
   return (
+    <AppTheme>
     <ThemeProvider>
       <Box
         sx={{
@@ -102,6 +104,7 @@ const NewProject: React.FC = () => {
         </Stack>
       </Box>
     </ThemeProvider>
+    </AppTheme>
   );
 };
 
