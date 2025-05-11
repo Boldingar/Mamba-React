@@ -9,6 +9,9 @@ import Select, { SelectChangeEvent, selectClasses } from "@mui/material/Select";
 import Divider from "@mui/material/Divider";
 import { styled } from "@mui/material/styles";
 import DevicesRoundedIcon from "@mui/icons-material/DevicesRounded";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import AddIcon from "@mui/icons-material/Add";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axios";
 
 interface Project {
@@ -46,6 +49,7 @@ interface SelectContentProps {
 export default function SelectContent({ onClose }: SelectContentProps) {
   const [selectedProject, setSelectedProject] = React.useState("");
   const [projects, setProjects] = React.useState<Project[]>([]);
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     // Load projects from storage
@@ -67,6 +71,14 @@ export default function SelectContent({ onClose }: SelectContentProps) {
 
   const handleChange = async (event: SelectChangeEvent) => {
     const projectId = event.target.value;
+
+    // Handle new project selection
+    if (projectId === "new") {
+      navigate("/new-project");
+      onClose();
+      return;
+    }
+
     setSelectedProject(projectId);
 
     try {
@@ -118,6 +130,21 @@ export default function SelectContent({ onClose }: SelectContentProps) {
         },
       }}
     >
+      <MenuItem value="new" sx={{ color: "primary.main" }}>
+        <ListItemAvatar>
+          {/* <Avatar sx={{ bgcolor: "primary.main", color: "white" }}> */}
+          <AddIcon sx={{ fontSize: "1.9rem", paddingTop: "6px" }} />
+          {/* </Avatar> */}
+        </ListItemAvatar>
+        <ListItemText
+          primary={
+            <span style={{ fontWeight: 600, color: "inherit" }}>
+              New Project
+            </span>
+          }
+        />
+      </MenuItem>
+      <Divider sx={{ my: 1 }} />
       <ListSubheader sx={{ backgroundColor: "transparent", pt: 0 }}>
         Projects
       </ListSubheader>
@@ -130,7 +157,13 @@ export default function SelectContent({ onClose }: SelectContentProps) {
           </ListItemAvatar>
           <ListItemText
             primary={<span style={{ fontWeight: 600 }}>{project.name}</span>}
-            secondary={project.website_url}
+            secondary={
+              project.website_url
+                ? project.website_url
+                    .replace(/^@/, "")
+                    .replace(/\/[a-z]{2}-[a-z]{2}$/, "")
+                : ""
+            }
           />
         </MenuItem>
       ))}
