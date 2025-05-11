@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Stack, TextField, IconButton, Button } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import ClearIcon from "@mui/icons-material/Clear";
 import { useTheme } from "@mui/material/styles";
 import { FormDataType, Persona } from "./Onboarding";
 
@@ -67,6 +68,19 @@ const Personas: React.FC<PersonasProps> = ({
     setFormData({ ...formData, personas: newPersonas });
   };
 
+  const handleClear = (idx: number) => {
+    const newPersonas = formData.personas.map((p, i) =>
+      i === idx
+        ? {
+            name: "",
+            description: "",
+            priority: 5,
+          }
+        : p
+    );
+    setFormData({ ...formData, personas: newPersonas });
+  };
+
   return (
     <Box
       sx={{
@@ -113,6 +127,18 @@ const Personas: React.FC<PersonasProps> = ({
               sx={textFieldSx}
               inputProps={{ min: 1, max: 10 }}
             />
+            <IconButton
+              onClick={() => handleClear(idx)}
+              color="primary"
+              aria-label="clear"
+              sx={{
+                "&:hover": {
+                  bgcolor: (theme) => theme.palette.primary.light + "20",
+                },
+              }}
+            >
+              <ClearIcon />
+            </IconButton>
             <IconButton
               onClick={() => handleDelete(idx)}
               color="error"
