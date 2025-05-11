@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Stack, TextField, IconButton, Button } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import ClearIcon from "@mui/icons-material/Clear";
 import { useTheme } from "@mui/material/styles";
 import { FormDataType } from "./Onboarding";
 
@@ -19,6 +20,7 @@ const Products: React.FC<ProductsProps> = ({
   onNext,
 }) => {
   const theme = useTheme();
+  const [visibleProducts, setVisibleProducts] = useState(2); // Initially show 2 products
   const borderRadius = 3;
   const buttonStyles = {
     bgcolor: theme.palette.primary.main,
@@ -39,23 +41,37 @@ const Products: React.FC<ProductsProps> = ({
     },
   };
 
+  // Ensure we never exceed 5 products
+  React.useEffect(() => {
+    if (formData.products.length > 5) {
+      const limitedProducts = formData.products.slice(0, 5);
+      setFormData({ ...formData, products: limitedProducts });
+    }
+  }, [formData.products]);
+
   const handleAdd = () => {
-    const newProducts = [
-      ...formData.products,
-      {
-        url: "",
-        name: "",
-        language: "en",
-        priority: 5,
-        description: "",
-      },
-    ];
-    setFormData({ ...formData, products: newProducts });
+    if (visibleProducts < Math.min(formData.products.length, 5)) {
+      setVisibleProducts((prev) => prev + 1);
+    } else if (formData.products.length < 5) {
+      const newProducts = [
+        ...formData.products,
+        {
+          url: "",
+          name: "",
+          language: "en",
+          priority: 5,
+          description: "",
+        },
+      ];
+      setFormData({ ...formData, products: newProducts });
+      setVisibleProducts((prev) => prev + 1);
+    }
   };
 
   const handleDelete = (idx: number) => {
     const newProducts = formData.products.filter((_, i) => i !== idx);
     setFormData({ ...formData, products: newProducts });
+    setVisibleProducts((prev) => Math.min(prev, newProducts.length));
   };
 
   const handleChange = (idx: number, field: string, value: string | number) => {
@@ -63,6 +79,31 @@ const Products: React.FC<ProductsProps> = ({
       i === idx ? { ...p, [field]: value } : p
     );
     setFormData({ ...formData, products: newProducts });
+  };
+
+  const handleClear = (idx: number) => {
+    const newProducts = formData.products.map((p, i) =>
+      i === idx
+        ? {
+            url: "",
+            name: "",
+            language: "en",
+            priority: 5,
+            description: "",
+          }
+        : p
+    );
+    setFormData({ ...formData, products: newProducts });
+  };
+
+  const isAddButtonDisabled =
+    visibleProducts >= 5 || formData.products.length >= 5;
+
+  const handleNext = () => {
+    // Only include the visible products in the submission
+    const submittableProducts = formData.products.slice(0, visibleProducts);
+    setFormData({ ...formData, products: submittableProducts });
+    onNext();
   };
 
   return (
@@ -75,7 +116,7 @@ const Products: React.FC<ProductsProps> = ({
       }}
     >
       <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
-        {formData.products.map((product, idx) => (
+        {formData.products.slice(0, visibleProducts).map((product, idx) => (
           <Stack
             key={idx}
             direction="row"
@@ -112,6 +153,18 @@ const Products: React.FC<ProductsProps> = ({
               inputProps={{ min: 1, max: 10 }}
             />
             <IconButton
+              onClick={() => handleClear(idx)}
+              color="primary"
+              aria-label="clear"
+              sx={{
+                "&:hover": {
+                  bgcolor: (theme) => theme.palette.primary.light + "20",
+                },
+              }}
+            >
+              <ClearIcon />
+            </IconButton>
+            <IconButton
               onClick={() => handleDelete(idx)}
               color="error"
               aria-label="delete"
@@ -131,10 +184,15 @@ const Products: React.FC<ProductsProps> = ({
         <Box sx={{ flexGrow: 1 }} />
         <IconButton
           onClick={handleAdd}
+          disabled={isAddButtonDisabled}
           sx={{
             ...buttonStyles,
             width: 40,
             height: 40,
+            "&.Mui-disabled": {
+              bgcolor: theme.palette.action.disabledBackground,
+              color: theme.palette.action.disabled,
+            },
           }}
           aria-label="add"
         >
@@ -162,7 +220,7 @@ const Products: React.FC<ProductsProps> = ({
         <Button
           variant="contained"
           sx={{ ...buttonStyles, px: 6 }}
-          onClick={onNext}
+          onClick={handleNext}
         >
           Keep Moving →
         </Button>

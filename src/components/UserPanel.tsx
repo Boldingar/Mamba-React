@@ -80,6 +80,9 @@ interface UserPanelProps {
   onSelectChat?: (id: string) => void;
   isAwaitingResponse?: boolean;
   selectedConversationId?: string | null;
+  onIntegrationsClick?: () => void;
+  onChatClick?: () => void;
+  showIntegrations?: boolean;
 }
 
 interface PinnedChat {
@@ -111,6 +114,9 @@ const UserPanel: React.FC<UserPanelProps> = ({
   onSelectChat,
   isAwaitingResponse = false,
   selectedConversationId,
+  onIntegrationsClick,
+  onChatClick,
+  showIntegrations = false,
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -671,6 +677,23 @@ const UserPanel: React.FC<UserPanelProps> = ({
       ));
   };
 
+  // Update the Integrations button click handler
+  const handleIntegrationsClick = () => {
+    if (onIntegrationsClick) {
+      onIntegrationsClick();
+    }
+  };
+
+  // Update the New Chat button click handler to also handle switching back to chat view
+  const handleNewChatClick = () => {
+    if (onChatClick) {
+      onChatClick();
+    }
+    if (onNewChat) {
+      onNewChat();
+    }
+  };
+
   return (
     <>
       <Drawer
@@ -714,7 +737,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
               <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
                 <ListItemButton
                   sx={{ borderRadius: 2 }}
-                  onClick={onNewChat}
+                  onClick={handleNewChatClick}
                   disabled={isAwaitingResponse || selectedConversationId === ""}
                 >
                   <ListItemIcon>
@@ -727,13 +750,36 @@ const UserPanel: React.FC<UserPanelProps> = ({
               </ListItem>
               {/* Insights Button */}
               <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
-                <ListItemButton sx={{ borderRadius: 2 }}>
+                <ListItemButton
+                  sx={{
+                    borderRadius: 2,
+                    bgcolor: showIntegrations
+                      ? "rgba(0, 120, 255, 0.1)"
+                      : "transparent",
+                    borderLeft: showIntegrations
+                      ? `3px solid ${theme.palette.primary.main}`
+                      : "none",
+                    paddingLeft: showIntegrations ? 1.7 : 2,
+                  }}
+                  onClick={handleIntegrationsClick}
+                >
                   <ListItemIcon>
-                    <InsightsIcon />
+                    <InsightsIcon
+                      color={showIntegrations ? "primary" : "inherit"}
+                    />
                   </ListItemIcon>
                   <ListItemText
                     primary={
-                      <span style={{ fontWeight: 400 }}>Integrations</span>
+                      <span
+                        style={{
+                          fontWeight: showIntegrations ? 600 : 400,
+                          color: showIntegrations
+                            ? theme.palette.primary.main
+                            : "inherit",
+                        }}
+                      >
+                        Integrations
+                      </span>
                     }
                   />
                 </ListItemButton>

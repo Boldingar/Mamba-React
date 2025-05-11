@@ -2,22 +2,9 @@ import React from "react";
 import { Box, Stack, TextField, IconButton, Button } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
+import ClearIcon from "@mui/icons-material/Clear";
 import { useTheme } from "@mui/material/styles";
-
-interface Competitor {
-  name: string;
-  description: string;
-}
-
-interface FormDataType {
-  name: string;
-  website_url: string;
-  target_market: string;
-  products: any[];
-  personas: any[];
-  competitors: Competitor[];
-  company_summary: string;
-}
+import { FormDataType, Competitor } from "./Onboarding";
 
 interface CompetitorsProps {
   formData: FormDataType;
@@ -80,6 +67,18 @@ const Competitors: React.FC<CompetitorsProps> = ({
     setFormData({ ...formData, competitors: newCompetitors });
   };
 
+  const handleClear = (idx: number) => {
+    const newCompetitors = formData.competitors.map((c, i) =>
+      i === idx
+        ? {
+            name: "",
+            description: "",
+          }
+        : c
+    );
+    setFormData({ ...formData, competitors: newCompetitors });
+  };
+
   return (
     <Box
       sx={{
@@ -114,6 +113,18 @@ const Competitors: React.FC<CompetitorsProps> = ({
               placeholder="Description"
               sx={textFieldSx}
             />
+            <IconButton
+              onClick={() => handleClear(idx)}
+              color="primary"
+              aria-label="clear"
+              sx={{
+                "&:hover": {
+                  bgcolor: (theme) => theme.palette.primary.light + "20",
+                },
+              }}
+            >
+              <ClearIcon />
+            </IconButton>
             <IconButton
               onClick={() => handleDelete(idx)}
               color="error"

@@ -45,6 +45,7 @@ const MessageList = styled(Box)(({ theme }) => ({
   flex: 1,
   overflowY: "auto",
   padding: theme.spacing(3),
+  paddingTop: theme.spacing(7),
   display: "flex",
   flexDirection: "column",
   gap: theme.spacing(1.5),

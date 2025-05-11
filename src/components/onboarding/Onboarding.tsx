@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Stepper, Step, StepLabel, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import WebsiteForm from "./WebsiteForm";
+import NoWebsite from "./NoWebsite";
 import Products from "./Products";
 import Personas from "./Personas";
 import Competitors from "./Competitors";
@@ -36,9 +37,17 @@ export interface FormDataType {
   personas: Persona[];
   competitors: Competitor[];
   company_summary: string;
+  target_personas?: Persona[];
 }
 
-const steps = ["Website", "Products", "Personas", "Competitors", "Success"];
+const steps = [
+  "Website",
+  "Business Info",
+  "Products",
+  "Personas",
+  "Competitors",
+  "Success",
+];
 
 interface OnboardingProps {
   activeStep: number;
@@ -51,6 +60,7 @@ const Onboarding: React.FC<OnboardingProps> = ({
 }) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [hasWebsite, setHasWebsite] = useState<boolean | null>(null);
   const [formData, setFormData] = useState<FormDataType>({
     name: "",
     website_url: "",
@@ -73,6 +83,21 @@ const Onboarding: React.FC<OnboardingProps> = ({
     setActiveStep(activeStep - 1);
   };
 
+  const handleWebsiteAnalysis = () => {
+    setHasWebsite(true);
+    setIsLoading(true);
+  };
+
+  const handleNoWebsite = () => {
+    setHasWebsite(false);
+    setActiveStep(1); // Move to NoWebsite step
+  };
+
+  const handleAnalysisComplete = () => {
+    setIsLoading(false);
+    setActiveStep(2); // Go to Products step
+  };
+
   const handleSubmit = async () => {
     try {
       await axios.post("/projects", {
@@ -83,6 +108,7 @@ const Onboarding: React.FC<OnboardingProps> = ({
           personas: formData.personas,
           competitors: formData.competitors,
           company_summary: formData.company_summary,
+          geo_market: formData.target_market,
         },
       });
 
@@ -90,20 +116,7 @@ const Onboarding: React.FC<OnboardingProps> = ({
       navigate("/chat");
     } catch (error) {
       console.error("Error creating project:", error);
-      // Handle error (you might want to show an error message to the user)
     }
-  };
-
-  const handleWebsiteAnalysis = () => {
-    setIsLoading(true);
-  };
-
-  const handleAnalysisComplete = () => {
-    // Let the loading transition complete naturally
-    setTimeout(() => {
-      setIsLoading(false);
-      setActiveStep(activeStep + 1);
-    }, 1000);
   };
 
   const getStepContent = (step: number) => {
@@ -112,21 +125,63 @@ const Onboarding: React.FC<OnboardingProps> = ({
         return (
           <WebsiteForm
             formData={formData}
-            setFormData={setFormData}
+            setFormData={(data) => {
+              // If we have target_personas in the response, use that for personas
+              if (data.target_personas) {
+                setFormData({
+                  ...data,
+                  personas: data.target_personas,
+                });
+              } else {
+                setFormData(data);
+              }
+            }}
             onNext={handleWebsiteAnalysis}
             onComplete={handleAnalysisComplete}
+            onNoWebsite={handleNoWebsite}
           />
         );
       case 1:
+        return (
+          <NoWebsite
+            formData={formData}
+            setFormData={(data) => {
+              // If we have target_personas in the response, use that for personas
+              if (data.target_personas) {
+                setFormData({
+                  ...data,
+                  personas: data.target_personas,
+                });
+              } else {
+                setFormData(data);
+              }
+            }}
+            onBack={handleBack}
+            onNext={() => {
+              setIsLoading(true);
+            }}
+            setActiveStep={setActiveStep}
+            setIsLoading={setIsLoading}
+          />
+        );
+      case 2:
         return (
           <Products
             formData={formData}
             setFormData={setFormData}
             onBack={handleBack}
-            onNext={handleNext}
+            onNext={() => {
+              if (!formData.personas || !Array.isArray(formData.personas)) {
+                setFormData({
+                  ...formData,
+                  personas: [],
+                });
+              }
+              setActiveStep(3);
+            }}
           />
         );
-      case 2:
+      case 3:
         return (
           <Personas
             formData={formData}
@@ -135,7 +190,7 @@ const Onboarding: React.FC<OnboardingProps> = ({
             onNext={handleNext}
           />
         );
-      case 3:
+      case 4:
         return (
           <Competitors
             formData={formData}
@@ -144,7 +199,7 @@ const Onboarding: React.FC<OnboardingProps> = ({
             onNext={handleNext}
           />
         );
-      case 4:
+      case 5:
         return <Success onBack={handleBack} onNext={handleSubmit} />;
       default:
         throw new Error("Unknown step");
@@ -178,7 +233,10 @@ const Onboarding: React.FC<OnboardingProps> = ({
 
       <Box sx={{ flex: 1, width: "100%" }}>
         {isLoading ? (
-          <LoadingTransition isLoading={isLoading} onComplete={() => {}} />
+          <LoadingTransition
+            isLoading={isLoading}
+            onComplete={handleAnalysisComplete}
+          />
         ) : (
           getStepContent(activeStep)
         )}
