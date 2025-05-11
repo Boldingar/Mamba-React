@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Box, Button, Avatar, Typography, Paper } from "@mui/material";
 
 interface GoogleLoginProps {
@@ -21,22 +21,20 @@ export default function GoogleLogin({
 }: GoogleLoginProps) {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [user, setUser] = useState<GoogleUser | null>(null);
+  const buttonIdRef = useRef(
+    `google-signin-button-${Math.random().toString(36).substr(2, 9)}`
+  );
 
   const initializeGoogleSignIn = useCallback(() => {
-    console.log("Initializing Google Sign-In...");
     if (!window.google || !isScriptLoaded) {
-      console.log("Google API not yet available");
       return;
     }
-
     try {
       window.google.accounts.id.initialize({
         client_id: clientId,
         callback: handleCredentialResponse,
       });
-
-      console.log("Rendering Google Sign-In button...");
-      const buttonElement = document.getElementById("google-signin-button");
+      const buttonElement = document.getElementById(buttonIdRef.current);
       if (buttonElement) {
         window.google.accounts.id.renderButton(buttonElement, {
           theme: "outline",
@@ -45,61 +43,41 @@ export default function GoogleLogin({
           text: "signin_with",
           shape: "rectangular",
         });
-      } else {
-        console.error("Google Sign-In button element not found");
       }
     } catch (error) {
-      console.error("Error initializing Google Sign-In:", error);
-      if (onError) {
-        onError(error as Error);
-      }
+      if (onError) onError(error as Error);
     }
   }, [clientId, isScriptLoaded, onError]);
 
   useEffect(() => {
-    // Check if the script is already loaded
-    const existingScript = document.querySelector(
-      'script[src="https://accounts.google.com/gsi/client"]'
-    );
-
-    if (existingScript) {
-      console.log("Google API script already loaded");
+    let script: HTMLScriptElement | null = null;
+    if (!window.google) {
+      script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        setIsScriptLoaded(true);
+      };
+      script.onerror = (error) => {
+        if (onError) onError(new Error("Failed to load Google API script"));
+      };
+      document.body.appendChild(script);
+    } else {
       setIsScriptLoaded(true);
-      initializeGoogleSignIn();
-      return;
     }
-
-    console.log("Loading Google API script...");
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      console.log("Google API script loaded successfully");
-      setIsScriptLoaded(true);
-      initializeGoogleSignIn();
-    };
-    script.onerror = (error) => {
-      console.error("Error loading Google API script:", error);
-      if (onError) {
-        onError(new Error("Failed to load Google API script"));
-      }
-    };
-    document.body.appendChild(script);
-
     return () => {
-      if (script.parentNode) {
+      if (script && script.parentNode) {
         script.parentNode.removeChild(script);
       }
     };
-  }, [initializeGoogleSignIn]);
+  }, [onError]);
 
-  // Re-initialize when clientId changes
   useEffect(() => {
     if (isScriptLoaded) {
       initializeGoogleSignIn();
     }
-  }, [clientId, isScriptLoaded, initializeGoogleSignIn]);
+  }, [isScriptLoaded, clientId]);
 
   const handleCredentialResponse = async (response: any) => {
     try {
@@ -145,7 +123,7 @@ export default function GoogleLogin({
     >
       {!user ? (
         <Box
-          id="google-signin-button"
+          id={buttonIdRef.current}
           sx={{ width: "100%", display: "flex", justifyContent: "center" }}
         />
       ) : (
