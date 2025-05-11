@@ -22,7 +22,7 @@ interface WebsiteFormProps {
   setFormData: (data: FormDataType) => void;
   onNext: () => void;
   onComplete: () => void;
-  onSkipToProducts?: () => void;
+  onNoWebsite: () => void;
 }
 
 const WebsiteForm: React.FC<WebsiteFormProps> = ({
@@ -30,7 +30,7 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
   setFormData,
   onNext,
   onComplete,
-  onSkipToProducts,
+  onNoWebsite,
 }) => {
   const theme = useTheme();
   const [errors, setErrors] = useState({
@@ -101,7 +101,6 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
         ...errors,
         website_url: "Failed to analyze website. Please try again.",
       });
-      // TODO: Add a way to go back to the form in case of error
     }
   };
 
@@ -164,35 +163,7 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
                   });
                   return;
                 }
-                // Initialize with empty fields for products, personas, and competitors
-                setFormData({
-                  ...formData,
-                  products: [
-                    {
-                      name: "",
-                      description: "",
-                      url: "",
-                      language: "",
-                      priority: 5,
-                    },
-                  ],
-                  personas: [
-                    {
-                      name: "",
-                      description: "",
-                      priority: 5,
-                    },
-                  ],
-                  competitors: [
-                    {
-                      name: "",
-                      description: "",
-                    },
-                  ],
-                  company_summary: "",
-                });
-                // Directly complete without showing loading state
-                onComplete();
+                onNoWebsite();
               }}
               sx={{
                 textDecoration: "none",
@@ -223,11 +194,11 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
               borderRadius: 2,
             }}
           >
-            <MenuItem value="USA">United States</MenuItem>
-            <MenuItem value="UK">United Kingdom</MenuItem>
-            <MenuItem value="EU">European Union</MenuItem>
-            <MenuItem value="CA">Canada</MenuItem>
-            <MenuItem value="AU">Australia</MenuItem>
+            <MenuItem value="USA">United States 🇺🇸</MenuItem>
+            <MenuItem value="UK">United Kingdom 🇬🇧</MenuItem>
+            <MenuItem value="EU">European Union 🇪🇺</MenuItem>
+            <MenuItem value="CA">Canada 🇨🇦</MenuItem>
+            <MenuItem value="AU">Australia 🇦🇺</MenuItem>
           </Select>
         </FormControl>
         <Box

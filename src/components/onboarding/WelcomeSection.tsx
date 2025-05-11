@@ -5,7 +5,26 @@ const WelcomeSection: React.FC<{
   title?: string;
   subtitle?: string;
   bigTitle?: boolean;
-}> = ({ title, subtitle, bigTitle }) => {
+  step?: string;
+}> = ({ title, subtitle, bigTitle, step }) => {
+  const getDefaultTitle = () => {
+    switch (step) {
+      case "Business Info":
+        return "Tell us a little bit about your business.";
+      default:
+        return "Welcome to Mamba AI 👋";
+    }
+  };
+
+  const getDefaultSubtitle = () => {
+    switch (step) {
+      case "Business Info":
+        return "We'll help you build a strong SEO strategy even without a website. Let's understand your business better.";
+      default:
+        return "Let's begin the journey of building a successful SEO Program together.";
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -29,7 +48,7 @@ const WelcomeSection: React.FC<{
           lineHeight: 1.2,
         }}
       >
-        {title || "Welcome to Mamba AI 👋"}
+        {title || getDefaultTitle()}
       </Typography>
 
       <Typography
@@ -39,11 +58,10 @@ const WelcomeSection: React.FC<{
           lineHeight: 1.5,
         }}
       >
-        {subtitle ||
-          "Let's begin the journey of building a successful SEO Program together."}
+        {subtitle || getDefaultSubtitle()}
       </Typography>
 
-      {!title && (
+      {!title && step !== "Business Info" && (
         <Typography
           sx={{
             fontSize: "1.1rem",

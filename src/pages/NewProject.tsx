@@ -4,7 +4,21 @@ import Onboarding from "../components/onboarding/Onboarding";
 import WelcomeSection from "../components/onboarding/WelcomeSection";
 import { ThemeProvider } from "../context/ThemeContext";
 
+const steps = [
+  "Website",
+  "Business Info",
+  "Products",
+  "Personas",
+  "Competitors",
+  "Success",
+];
+
 const stepWelcomeContent = [
+  {
+    title: undefined,
+    subtitle: undefined,
+    bigTitle: false,
+  },
   {
     title: undefined,
     subtitle: undefined,
@@ -48,29 +62,39 @@ const NewProject: React.FC = () => {
           overflow: "hidden",
           margin: "0 auto",
           marginTop: "20px",
+          maxWidth: "100%",
         }}
       >
         <Stack
           direction={{ xs: "column", md: "row" }}
-          sx={{ width: "100%", height: "100%" }}
+          sx={{
+            width: "100%",
+            height: "100%",
+            maxWidth: "100%",
+          }}
         >
           {/* Left Column - Welcome Text */}
           <Box
             sx={{
-              width: { xs: "100%", md: "60%" },
+              width: { xs: "100%", md: "40%" },
               height: "100%",
               display: { xs: "none", md: "block" }, // Hide on mobile
             }}
           >
-            <WelcomeSection {...stepWelcomeContent[activeStep]} />
+            <WelcomeSection
+              {...stepWelcomeContent[activeStep]}
+              step={steps[activeStep]}
+            />
           </Box>
 
           {/* Right Column - Onboarding Form */}
           <Box
             sx={{
               width: { xs: "100%", md: "60%" },
-              height: "90%",
-              overflow: "auto",
+              height: "80vh",
+              overflowY: "auto",
+              overflowX: "hidden",
+              padding: "0 20px",
             }}
           >
             <Onboarding activeStep={activeStep} setActiveStep={setActiveStep} />
