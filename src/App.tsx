@@ -9,6 +9,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import NewProject from "./pages/NewProject";
 import TopAppBar from "./components/TopAppBar";
+import SignInSide from "./pages/sign-in-side/SignInSide";
 
 function checkAuth() {
   const localToken = localStorage.getItem("authToken");
@@ -36,7 +37,7 @@ function App() {
             sx={{
               width: "100vw",
               height: "90vh",
-              marginTop: "5vh",
+              marginTop: "0vh",
               padding: 0,
               overflow: "hidden",
               display: "flex",
@@ -51,7 +52,7 @@ function App() {
                     isAuthenticated ? (
                       <Navigate to="/" replace />
                     ) : (
-                      <LoginPage setIsAuthenticated={setIsAuthenticated} />
+                      <SignInSide setIsAuthenticated={setIsAuthenticated} />
                     )
                   }
                 />
