@@ -1,25 +1,30 @@
-import React from "react";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Button, Stack, Typography, Snackbar, Alert } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import axiosInstance from "../../utils/axios";
 
 const GoogleIntegrations: React.FC = () => {
+  const [error, setError] = useState<string | null>(null);
+
   const handleGoogleAnalytics = async () => {
     try {
       // Make a GET request to our backend OAuth endpoint
       const response = await axiosInstance.get("/api/google/oauth/authorize", {
         params: {
           product: "ga4",
-          redirect_uri: "https://mamba.genta.agency/oauth/callback", // Must match Google Cloud Console
+          redirect_uri: "https://mamba.genta.agency/oauth2callback", // Updated to match the actual endpoint
         },
       });
 
       // The backend will return the Google OAuth URL, redirect to it
       if (response.data?.authUrl) {
         window.location.href = response.data.authUrl;
+      } else {
+        setError("Missing authentication URL in response");
       }
     } catch (error) {
       console.error("Error initiating Google Analytics OAuth:", error);
+      setError("Failed to connect to Google Analytics");
     }
   };
 
@@ -29,17 +34,24 @@ const GoogleIntegrations: React.FC = () => {
       const response = await axiosInstance.get("/api/google/oauth/authorize", {
         params: {
           product: "search_console",
-          redirect_uri: "https://mamba.genta.agency/oauth/callback", // Must match Google Cloud Console
+          redirect_uri: "https://mamba.genta.agency/oauth2callback", // Updated to match the actual endpoint
         },
       });
 
       // The backend will return the Google OAuth URL, redirect to it
       if (response.data?.authUrl) {
         window.location.href = response.data.authUrl;
+      } else {
+        setError("Missing authentication URL in response");
       }
     } catch (error) {
       console.error("Error initiating Search Console OAuth:", error);
+      setError("Failed to connect to Google Search Console");
     }
+  };
+
+  const handleCloseError = () => {
+    setError(null);
   };
 
   return (
@@ -101,6 +113,13 @@ const GoogleIntegrations: React.FC = () => {
           Google Analytics (GA4)
         </Button>
       </Stack>
+
+      {/* Error notification */}
+      <Snackbar open={!!error} autoHideDuration={6000} onClose={handleCloseError}>
+        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
