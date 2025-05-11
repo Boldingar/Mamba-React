@@ -11,6 +11,7 @@ import TopAppBar from "../components/TopAppBar";
 import { API_BASE_URL } from "../utils/axios";
 import UserProfile from "../components/UserProfile";
 import axiosInstance from "../utils/axios";
+import Integrations from "../components/integrations/Integrations";
 
 interface Data {
   [key: string]: string | number;
@@ -135,6 +136,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   const [dataPanelWidth, setDataPanelWidth] = useState(500);
   const skipNextFetch = useRef(false);
+  const [showIntegrations, setShowIntegrations] = useState(false);
 
   const handleNewChat = () => {
     if (isAwaitingResponse) return;
@@ -602,6 +604,16 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     setDataPanelWidth(width);
   };
 
+  // Add this handler
+  const handleIntegrationsClick = () => {
+    setShowIntegrations(true);
+  };
+
+  // Add this handler
+  const handleChatClick = () => {
+    setShowIntegrations(false);
+  };
+
   return (
     <>
       {showProfile && (
@@ -645,6 +657,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           onSelectChat={handleSelectChat}
           isAwaitingResponse={isAwaitingResponse}
           selectedConversationId={conversationId}
+          onIntegrationsClick={handleIntegrationsClick}
+          onChatClick={handleChatClick}
+          showIntegrations={showIntegrations}
         />
         <Box
           sx={{
@@ -664,7 +679,6 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
               width: showDataPanel
                 ? `calc(100% - ${dataPanelWidth}px)`
                 : "100%",
-              // transition: "width 0.3s cubic-bezier(.4,0,.2,1)",
               height: "100%",
               display: "flex",
               alignItems: "center",
@@ -672,18 +686,22 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
               overflow: "hidden", // Prevent scrolling
             }}
           >
-            <ChatComponent
-              onTableReady={fetchTableData}
-              updates={updates}
-              agentProcessing={agentProcessing}
-              showForm={showForm}
-              conversationId={conversationId}
-              onNewConversation={addNewConversation}
-              setIsAwaitingResponse={setIsAwaitingResponse}
-              messages={messages}
-              isLoadingMessages={isLoading}
-              updateMessages={updateMessages}
-            />
+            {showIntegrations ? (
+              <Integrations />
+            ) : (
+              <ChatComponent
+                onTableReady={fetchTableData}
+                updates={updates}
+                agentProcessing={agentProcessing}
+                showForm={showForm}
+                conversationId={conversationId}
+                onNewConversation={addNewConversation}
+                setIsAwaitingResponse={setIsAwaitingResponse}
+                messages={messages}
+                isLoadingMessages={isLoading}
+                updateMessages={updateMessages}
+              />
+            )}
           </Box>
           {showDataPanel && (
             <DataPanel
