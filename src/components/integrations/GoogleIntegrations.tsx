@@ -6,10 +6,18 @@ import axiosInstance from "../../utils/axios";
 const GoogleIntegrations: React.FC = () => {
   const handleGoogleAnalytics = async () => {
     try {
-      // Let the browser handle the redirect naturally
-      await axiosInstance.get("/api/google/oauth/authorize?product=ga4", {
-        withCredentials: true,
+      // Make a GET request to our backend OAuth endpoint
+      const response = await axiosInstance.get("/api/google/oauth/authorize", {
+        params: {
+          product: "ga4",
+          redirect_uri: "https://mamba.genta.agency/oauth/callback", // Must match Google Cloud Console
+        },
       });
+
+      // The backend will return the Google OAuth URL, redirect to it
+      if (response.data?.authUrl) {
+        window.location.href = response.data.authUrl;
+      }
     } catch (error) {
       console.error("Error initiating Google Analytics OAuth:", error);
     }
@@ -17,13 +25,18 @@ const GoogleIntegrations: React.FC = () => {
 
   const handleSearchConsole = async () => {
     try {
-      // Let the browser handle the redirect naturally
-      await axiosInstance.get(
-        "/api/google/oauth/authorize?product=search_console",
-        {
-          withCredentials: true,
-        }
-      );
+      // Make a GET request to our backend OAuth endpoint
+      const response = await axiosInstance.get("/api/google/oauth/authorize", {
+        params: {
+          product: "search_console",
+          redirect_uri: "https://mamba.genta.agency/oauth/callback", // Must match Google Cloud Console
+        },
+      });
+
+      // The backend will return the Google OAuth URL, redirect to it
+      if (response.data?.authUrl) {
+        window.location.href = response.data.authUrl;
+      }
     } catch (error) {
       console.error("Error initiating Search Console OAuth:", error);
     }
