@@ -1,60 +1,69 @@
 import React from "react";
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { useNavigate } from "react-router-dom";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
-const Success: React.FC<{ onBack?: () => void; onNext?: () => void }> = ({
-  onBack,
-  onNext,
-}) => {
+interface SuccessProps {
+  onBack: () => void;
+  onNext: () => void;
+}
+
+const Success: React.FC<SuccessProps> = ({ onBack, onNext }) => {
   const theme = useTheme();
-  const navigate = useNavigate();
+  const borderRadius = 3;
   const buttonStyles = {
     bgcolor: theme.palette.primary.main,
-    color: theme.palette.common.white,
+    color: "common.white",
     boxShadow: "none",
-    borderRadius: 2,
+    borderRadius,
     textTransform: "none",
     "&:hover": {
       bgcolor: theme.palette.primary.dark,
-      color: theme.palette.common.white,
+      color: "common.white",
     },
-  };
-
-  const handleStart = () => {
-    navigate("/chat");
   };
 
   return (
     <Box
       sx={{
-        width: "100%",
-        height: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        py: 8,
+        height: "100%",
+        p: 4,
       }}
     >
-      {/* <Typography
-        variant="h3"
-        sx={{ fontWeight: 700, mb: 2, display: "flex", alignItems: "center" }}
-      >
-        You're all set{" "}
-        <span style={{ marginLeft: 8, fontSize: "2rem" }}>✅</span>
-      </Typography> */}
-      <Typography sx={{ fontSize: "1.1rem", color: "text.primary", mb: 4 }}>
-        Let's get to building a comprehensive SEO Strategy for your business!
+      <CheckCircleOutlineIcon
+        sx={{
+          fontSize: 80,
+          color: "success.main",
+          mb: 3,
+        }}
+      />
+      <Typography variant="h4" align="center" gutterBottom>
+        Great! Your project is ready
       </Typography>
+      <Typography
+        variant="body1"
+        align="center"
+        color="text.secondary"
+        sx={{ mb: 6, maxWidth: 600 }}
+      >
+        We've analyzed your website and prepared everything. You can now start
+        exploring your project and get AI-powered insights about your business.
+      </Typography>
+
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           width: "100%",
           maxWidth: 400,
-          mt: 2,
-          gap: 2,
+          mt: 4,
+          pt: 2,
+          borderTop: "1px solid",
+          borderColor: "divider",
         }}
       >
         <Button
@@ -62,14 +71,14 @@ const Success: React.FC<{ onBack?: () => void; onNext?: () => void }> = ({
           sx={{ ...buttonStyles, px: 3 }}
           onClick={onBack}
         >
-          Forgot something ?
+          Back
         </Button>
         <Button
           variant="contained"
           sx={{ ...buttonStyles, px: 6 }}
-          onClick={handleStart}
+          onClick={onNext}
         >
-          Get Started.
+          Get Started →
         </Button>
       </Box>
     </Box>

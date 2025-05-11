@@ -8,10 +8,19 @@ import ListSubheader from "@mui/material/ListSubheader";
 import Select, { SelectChangeEvent, selectClasses } from "@mui/material/Select";
 import Divider from "@mui/material/Divider";
 import { styled } from "@mui/material/styles";
-import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import DevicesRoundedIcon from "@mui/icons-material/DevicesRounded";
-import SmartphoneRoundedIcon from "@mui/icons-material/SmartphoneRounded";
-import ConstructionRoundedIcon from "@mui/icons-material/ConstructionRounded";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import AddIcon from "@mui/icons-material/Add";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../utils/axios";
+
+interface Project {
+  id: string;
+  name: string;
+  website_url: string;
+  project_data: any;
+  user_email: string;
+}
 
 const Avatar = styled(MuiAvatar)(({ theme }) => ({
   width: 28,
@@ -34,22 +43,90 @@ const ListItemAvatar = styled(MuiListItemAvatar)({
   marginRight: 30,
 });
 
-export default function SelectContent() {
-  const [company, setCompany] = React.useState("");
+interface SelectContentProps {
+  onClose: () => void;
+  onProjectChange?: () => void;
+  isDisabled?: boolean;
+}
 
-  const handleChange = (event: SelectChangeEvent) => {
-    setCompany(event.target.value as string);
+export default function SelectContent({
+  onClose,
+  onProjectChange,
+  isDisabled = false,
+}: SelectContentProps) {
+  const [selectedProject, setSelectedProject] = React.useState("");
+  const [projects, setProjects] = React.useState<Project[]>([]);
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    // Load projects from API
+    const fetchProjects = async () => {
+      try {
+        const response = await axiosInstance.get("/projects");
+        setProjects(response.data);
+
+        // Set the current project if one is stored
+        const currentProject =
+          localStorage.getItem("currentProject") ||
+          sessionStorage.getItem("currentProject");
+        if (currentProject) {
+          const project = JSON.parse(currentProject);
+          // Check if the stored project still exists in the fetched projects
+          if (response.data.some((p: Project) => p.id === project.id)) {
+            setSelectedProject(project.id);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  const handleChange = async (event: SelectChangeEvent) => {
+    const projectId = event.target.value;
+
+    // Handle new project selection
+    if (projectId === "new") {
+      navigate("/new-project");
+      onClose();
+      return;
+    }
+
+    setSelectedProject(projectId);
+
+    try {
+      // Find the selected project
+      const project = projects.find((p) => p.id === projectId);
+      if (project) {
+        // Clear existing conversations first
+        localStorage.setItem("conversations", JSON.stringify([]));
+        // Store the selected project
+        localStorage.setItem("currentProject", JSON.stringify(project));
+
+        // Notify parent about project change to trigger loading state and fetch conversations
+        if (onProjectChange) {
+          onProjectChange();
+        }
+
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error updating project:", error);
+    }
   };
 
   return (
     <Select
-      labelId="company-select"
-      id="company-simple-select"
-      value={company}
+      labelId="project-select"
+      id="project-simple-select"
+      value={selectedProject}
       onChange={handleChange}
       displayEmpty
-      inputProps={{ "aria-label": "Select company" }}
+      inputProps={{ "aria-label": "Select project" }}
       fullWidth
+      disabled={isDisabled}
       sx={{
         maxHeight: 56,
         width: 250,
@@ -63,68 +140,46 @@ export default function SelectContent() {
           gap: "2px",
           pl: 1,
         },
+        "&.Mui-disabled": {
+          opacity: 0.5,
+        },
       }}
     >
+      <MenuItem value="new" sx={{ color: "primary.main" }}>
+        <ListItemAvatar>
+          <AddIcon sx={{ fontSize: "1.9rem", paddingTop: "6px" }} />
+        </ListItemAvatar>
+        <ListItemText
+          primary={
+            <span style={{ fontWeight: 600, color: "inherit" }}>
+              New Project
+            </span>
+          }
+        />
+      </MenuItem>
+      <Divider sx={{ my: 1 }} />
       <ListSubheader sx={{ backgroundColor: "transparent", pt: 0 }}>
-        Production
+        Projects
       </ListSubheader>
-      <MenuItem value="">
-        <ListItemAvatar>
-          <Avatar alt="Sitemark web">
-            <DevicesRoundedIcon sx={{ fontSize: "1rem" }} />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText
-          primary={<span style={{ fontWeight: 600 }}>Sitemark-web</span>}
-          secondary="Web app"
-        />
-      </MenuItem>
-      <MenuItem value={10}>
-        <ListItemAvatar>
-          <Avatar alt="Sitemark App">
-            <SmartphoneRoundedIcon sx={{ fontSize: "1rem" }} />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText
-          primary={<span style={{ fontWeight: 600 }}>Sitemark-app</span>}
-          secondary="Mobile application"
-        />
-      </MenuItem>
-      <MenuItem value={20}>
-        <ListItemAvatar>
-          <Avatar alt="Sitemark Store">
-            <DevicesRoundedIcon sx={{ fontSize: "1rem" }} />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText
-          primary={<span style={{ fontWeight: 600 }}>Sitemark-Store</span>}
-          secondary="Web app"
-        />
-      </MenuItem>
-      <ListSubheader sx={{ backgroundColor: "transparent" }}>
-        Development
-      </ListSubheader>
-      <MenuItem value={30}>
-        <ListItemAvatar>
-          <Avatar alt="Sitemark Store">
-            <ConstructionRoundedIcon sx={{ fontSize: "1rem" }} />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText
-          primary={<span style={{ fontWeight: 600 }}>Sitemark-Admin</span>}
-          secondary="Web app"
-        />
-      </MenuItem>
-      <Divider sx={{ mx: -1 }} />
-      <MenuItem value={40}>
-        <ListItemIcon>
-          <AddRoundedIcon />
-        </ListItemIcon>
-        <ListItemText
-          primary={<span style={{ fontWeight: 600 }}>Add product</span>}
-          secondary="Web app"
-        />
-      </MenuItem>
+      {projects.map((project) => (
+        <MenuItem key={project.id} value={project.id}>
+          <ListItemAvatar>
+            <Avatar>
+              <DevicesRoundedIcon sx={{ fontSize: "1rem" }} />
+            </Avatar>
+          </ListItemAvatar>
+          <ListItemText
+            primary={<span style={{ fontWeight: 600 }}>{project.name}</span>}
+            secondary={
+              project.website_url
+                ? project.website_url
+                    .replace(/^https?:\/\//, "")
+                    .replace(/\/[a-z]{2}-[a-z]{2}$/, "")
+                : ""
+            }
+          />
+        </MenuItem>
+      ))}
     </Select>
   );
 }
