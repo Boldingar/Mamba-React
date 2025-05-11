@@ -67,53 +67,63 @@ const Products: React.FC<{
   };
 
   return (
-    <Box sx={{ width: "100%" }}>
-      {products.map((product, idx) => (
-        <Stack
-          key={idx}
-          direction="row"
-          spacing={2}
-          alignItems="center"
-          sx={{ mb: 2 }}
-        >
-          <TextField
-            fullWidth
-            variant="outlined"
-            value={product.name}
-            onChange={(e) => handleChange(idx, "name", e.target.value)}
-            placeholder="Product"
-            sx={textFieldSx}
-          />
-          <TextField
-            fullWidth
-            variant="outlined"
-            value={product.description}
-            onChange={(e) => handleChange(idx, "description", e.target.value)}
-            placeholder="Description"
-            sx={textFieldSx}
-          />
-          <TextField
-            fullWidth
-            variant="outlined"
-            value={product.priority}
-            onChange={(e) => handleChange(idx, "priority", e.target.value)}
-            placeholder="Priority"
-            sx={textFieldSx}
-          />
-          <IconButton
-            onClick={() => handleDelete(idx)}
-            color="error"
-            aria-label="delete"
-            sx={{
-              "&:hover": {
-                bgcolor: (theme) => theme.palette.error.light + "20",
-              },
-            }}
+    <Box
+      sx={{
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+      }}
+    >
+      <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
+        {products.map((product, idx) => (
+          <Stack
+            key={idx}
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            sx={{ mb: 2 }}
           >
-            <DeleteIcon />
-          </IconButton>
-        </Stack>
-      ))}
+            <TextField
+              fullWidth
+              variant="outlined"
+              value={product.name}
+              onChange={(e) => handleChange(idx, "name", e.target.value)}
+              placeholder="Product"
+              sx={textFieldSx}
+            />
+            <TextField
+              fullWidth
+              variant="outlined"
+              value={product.description}
+              onChange={(e) => handleChange(idx, "description", e.target.value)}
+              placeholder="Description"
+              sx={textFieldSx}
+            />
+            <TextField
+              fullWidth
+              variant="outlined"
+              value={product.priority}
+              onChange={(e) => handleChange(idx, "priority", e.target.value)}
+              placeholder="Priority"
+              sx={textFieldSx}
+            />
+            <IconButton
+              onClick={() => handleDelete(idx)}
+              color="error"
+              aria-label="delete"
+              sx={{
+                "&:hover": {
+                  bgcolor: (theme) => theme.palette.error.light + "20",
+                },
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Stack>
+        ))}
+      </Box>
+
       <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
         <Box sx={{ flexGrow: 1 }} />
         <IconButton
@@ -128,7 +138,17 @@ const Products: React.FC<{
           <AddIcon />
         </IconButton>
       </Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
+
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          mt: 4,
+          pt: 2,
+          borderTop: "1px solid",
+          borderColor: "divider",
+        }}
+      >
         <Button
           variant="contained"
           sx={{ ...buttonStyles, px: 3 }}
