@@ -154,6 +154,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     setSelectedDatasetId(null);
     setShowDataPanel(false);
 
+    // Switch back to chat view if we're in integrations
+    if (showIntegrations) {
+      setShowIntegrations(false);
+    }
+
     localStorage.setItem("lastConversationWasNew", "true");
     setConversationId("");
   };
@@ -479,6 +484,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
 
       // Set the new conversation ID
       setConversationId(id);
+
+      // Switch back to chat view if we're in integrations
+      if (showIntegrations) {
+        setShowIntegrations(false);
+      }
 
       // Note: isAwaitingResponse will be set to false in fetchMessages
       // when the messages are successfully loaded
