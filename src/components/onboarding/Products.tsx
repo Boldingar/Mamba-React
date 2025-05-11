@@ -20,7 +20,9 @@ const Products: React.FC<ProductsProps> = ({
   onNext,
 }) => {
   const theme = useTheme();
-  const [visibleProducts, setVisibleProducts] = useState(2); // Initially show 2 products
+  const [visibleProducts, setVisibleProducts] = useState(
+    Math.min(2, formData.products.length) // Initially show 2 products or all if less than 2
+  );
   const borderRadius = 3;
   const buttonStyles = {
     bgcolor: theme.palette.primary.main,
@@ -50,9 +52,11 @@ const Products: React.FC<ProductsProps> = ({
   }, [formData.products]);
 
   const handleAdd = () => {
-    if (visibleProducts < Math.min(formData.products.length, 5)) {
+    if (visibleProducts < formData.products.length) {
+      // If we have products that are not visible yet, show one more
       setVisibleProducts((prev) => prev + 1);
     } else if (formData.products.length < 5) {
+      // If all products are visible but we have less than 5, add a new one
       const newProducts = [
         ...formData.products,
         {
@@ -96,8 +100,8 @@ const Products: React.FC<ProductsProps> = ({
     setFormData({ ...formData, products: newProducts });
   };
 
-  const isAddButtonDisabled =
-    visibleProducts >= 5 || formData.products.length >= 5;
+  // The Add button should only be disabled when we have 5 visible products
+  const isAddButtonDisabled = visibleProducts >= 5;
 
   const handleNext = () => {
     // Only include the visible products in the submission

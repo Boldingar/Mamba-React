@@ -218,7 +218,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
             width: "100%",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
+          <Box sx={{ mt: 5, display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
             <Typography variant="h6">CSV Data View</Typography>
             <FormControl size="small" sx={{ minWidth: 200, flex: 1 }}>
               <InputLabel>Select Dataset</InputLabel>
@@ -248,11 +248,17 @@ const DataPanel: React.FC<DataPanelProps> = ({
               </Select>
             </FormControl>
           </Box>
-          <IconButton onClick={onClose} size="small">
+          {/* <IconButton onClick={onClose} size="small">
             <CloseIcon />
-          </IconButton>
+          </IconButton> */}
         </Box>
-        <Box sx={{ flex: 1, overflow: "auto", width: "100%" }}>
+        <Box
+          sx={{
+            flex: 1,
+            overflow: "auto",
+            mt: 2,
+          }}
+        >
           {data.length > 0 ? (
             <BusinessDataTable data={data} onDataFilter={setFilteredData} />
           ) : (

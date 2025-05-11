@@ -392,7 +392,11 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
 
       <TableContainer
         component={Paper}
-        sx={{ width: "100%", overflowX: "auto" }}
+        sx={{
+          width: "100%",
+          overflowX: "auto",
+          pt: 1, // Add padding at the top
+        }}
       >
         <Table stickyHeader sx={{ width: "100%" }}>
           <TableHead>

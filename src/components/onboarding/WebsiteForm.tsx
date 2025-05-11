@@ -194,11 +194,102 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
               borderRadius: 2,
             }}
           >
-            <MenuItem value="USA">United States 🇺🇸</MenuItem>
-            <MenuItem value="UK">United Kingdom 🇬🇧</MenuItem>
-            <MenuItem value="EU">European Union 🇪🇺</MenuItem>
-            <MenuItem value="CA">Canada 🇨🇦</MenuItem>
-            <MenuItem value="AU">Australia 🇦🇺</MenuItem>
+            <MenuItem value="Algeria">Algeria</MenuItem>
+            <MenuItem value="Angola">Angola</MenuItem>
+            <MenuItem value="Azerbaijan">Azerbaijan</MenuItem>
+            <MenuItem value="Argentina">Argentina</MenuItem>
+            <MenuItem value="Australia">Australia</MenuItem>
+            <MenuItem value="Austria">Austria</MenuItem>
+            <MenuItem value="Bahrain">Bahrain</MenuItem>
+            <MenuItem value="Bangladesh">Bangladesh</MenuItem>
+            <MenuItem value="Armenia">Armenia</MenuItem>
+            <MenuItem value="Belgium">Belgium</MenuItem>
+            <MenuItem value="Bolivia">Bolivia</MenuItem>
+            <MenuItem value="Bosnia and Herzegovina">
+              Bosnia and Herzegovina
+            </MenuItem>
+            <MenuItem value="Brazil">Brazil</MenuItem>
+            <MenuItem value="Bulgaria">Bulgaria</MenuItem>
+            <MenuItem value="Myanmar (Burma)">Myanmar (Burma)</MenuItem>
+            <MenuItem value="Cambodia">Cambodia</MenuItem>
+            <MenuItem value="Cameroon">Cameroon</MenuItem>
+            <MenuItem value="Canada">Canada</MenuItem>
+            <MenuItem value="Sri Lanka">Sri Lanka</MenuItem>
+            <MenuItem value="Chile">Chile</MenuItem>
+            <MenuItem value="Taiwan">Taiwan</MenuItem>
+            <MenuItem value="Colombia">Colombia</MenuItem>
+            <MenuItem value="Costa Rica">Costa Rica</MenuItem>
+            <MenuItem value="Croatia">Croatia</MenuItem>
+            <MenuItem value="Cyprus">Cyprus</MenuItem>
+            <MenuItem value="Czechia">Czechia</MenuItem>
+            <MenuItem value="Denmark">Denmark</MenuItem>
+            <MenuItem value="Ecuador">Ecuador</MenuItem>
+            <MenuItem value="El Salvador">El Salvador</MenuItem>
+            <MenuItem value="Estonia">Estonia</MenuItem>
+            <MenuItem value="Finland">Finland</MenuItem>
+            <MenuItem value="France">France</MenuItem>
+            <MenuItem value="Germany">Germany</MenuItem>
+            <MenuItem value="Ghana">Ghana</MenuItem>
+            <MenuItem value="Greece">Greece</MenuItem>
+            <MenuItem value="Guatemala">Guatemala</MenuItem>
+            <MenuItem value="Hong Kong">Hong Kong</MenuItem>
+            <MenuItem value="Hungary">Hungary</MenuItem>
+            <MenuItem value="India">India</MenuItem>
+            <MenuItem value="Indonesia">Indonesia</MenuItem>
+            <MenuItem value="Ireland">Ireland</MenuItem>
+            <MenuItem value="Israel">Israel</MenuItem>
+            <MenuItem value="Italy">Italy</MenuItem>
+            <MenuItem value="Cote d'Ivoire">Cote d'Ivoire</MenuItem>
+            <MenuItem value="Japan">Japan</MenuItem>
+            <MenuItem value="Kazakhstan">Kazakhstan</MenuItem>
+            <MenuItem value="Jordan">Jordan</MenuItem>
+            <MenuItem value="Kenya">Kenya</MenuItem>
+            <MenuItem value="South Korea">South Korea</MenuItem>
+            <MenuItem value="Latvia">Latvia</MenuItem>
+            <MenuItem value="Lithuania">Lithuania</MenuItem>
+            <MenuItem value="Malaysia">Malaysia</MenuItem>
+            <MenuItem value="Malta">Malta</MenuItem>
+            <MenuItem value="Mexico">Mexico</MenuItem>
+            <MenuItem value="Moldova">Moldova</MenuItem>
+            <MenuItem value="Morocco">Morocco</MenuItem>
+            <MenuItem value="Netherlands">Netherlands</MenuItem>
+            <MenuItem value="New Zealand">New Zealand</MenuItem>
+            <MenuItem value="Nicaragua">Nicaragua</MenuItem>
+            <MenuItem value="Nigeria">Nigeria</MenuItem>
+            <MenuItem value="Norway">Norway</MenuItem>
+            <MenuItem value="Pakistan">Pakistan</MenuItem>
+            <MenuItem value="Panama">Panama</MenuItem>
+            <MenuItem value="Paraguay">Paraguay</MenuItem>
+            <MenuItem value="Peru">Peru</MenuItem>
+            <MenuItem value="Philippines">Philippines</MenuItem>
+            <MenuItem value="Poland">Poland</MenuItem>
+            <MenuItem value="Portugal">Portugal</MenuItem>
+            <MenuItem value="Romania">Romania</MenuItem>
+            <MenuItem value="Saudi Arabia">Saudi Arabia</MenuItem>
+            <MenuItem value="Senegal">Senegal</MenuItem>
+            <MenuItem value="Serbia">Serbia</MenuItem>
+            <MenuItem value="Singapore">Singapore</MenuItem>
+            <MenuItem value="Slovakia">Slovakia</MenuItem>
+            <MenuItem value="Vietnam">Vietnam</MenuItem>
+            <MenuItem value="Slovenia">Slovenia</MenuItem>
+            <MenuItem value="South Africa">South Africa</MenuItem>
+            <MenuItem value="Spain">Spain</MenuItem>
+            <MenuItem value="Sweden">Sweden</MenuItem>
+            <MenuItem value="Switzerland">Switzerland</MenuItem>
+            <MenuItem value="Thailand">Thailand</MenuItem>
+            <MenuItem value="United Arab Emirates">
+              United Arab Emirates
+            </MenuItem>
+            <MenuItem value="Tunisia">Tunisia</MenuItem>
+            <MenuItem value="Turkiye">Turkiye</MenuItem>
+            <MenuItem value="Ukraine">Ukraine</MenuItem>
+            <MenuItem value="North Macedonia">North Macedonia</MenuItem>
+            <MenuItem value="Egypt">Egypt</MenuItem>
+            <MenuItem value="United Kingdom">United Kingdom</MenuItem>
+            <MenuItem value="United States">United States</MenuItem>
+            <MenuItem value="Burkina Faso">Burkina Faso</MenuItem>
+            <MenuItem value="Uruguay">Uruguay</MenuItem>
+            <MenuItem value="Venezuela">Venezuela</MenuItem>
           </Select>
         </FormControl>
         <Box
