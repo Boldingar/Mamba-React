@@ -2,92 +2,83 @@ import React, { useState, useEffect } from "react";
 import { Box, Button, Stack, Typography, Snackbar, Alert } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import axiosInstance from "../../utils/axios";
-import { useNavigate, useLocation } from "react-router-dom";
+import { getIntegrationStatus } from "../../utils/authRedirect";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 const GoogleIntegrations: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
-  const [isSearchConsoleConnected, setIsSearchConsoleConnected] =
-    useState(false);
-  const [isGa4Connected, setIsGa4Connected] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [success, setSuccess] = useState<string | null>(null);
+  const [searchConsoleConnected, setSearchConsoleConnected] = useState(false);
+  const [analyticsConnected, setAnalyticsConnected] = useState(false);
 
-  // Check authentication status when component mounts or URL has google_auth_status
+  // Check integration status on component mount
   useEffect(() => {
-    // Check if we're being redirected back from Google OAuth
-    const queryParams = new URLSearchParams(location.search);
-    const authStatus = queryParams.get("google_auth_status");
-    const service = queryParams.get("service");
+    setSearchConsoleConnected(getIntegrationStatus("search_console"));
+    setAnalyticsConnected(getIntegrationStatus("ga4"));
+  }, []);
 
-    if (authStatus === "success" && service) {
-      // Update the connection status based on which service was connected
-      if (service === "search_console") {
-        setIsSearchConsoleConnected(true);
-        // Store in localStorage to persist between sessions
-        localStorage.setItem("isSearchConsoleConnected", "true");
-      } else if (service === "ga4") {
-        setIsGa4Connected(true);
-        localStorage.setItem("isGa4Connected", "true");
-      }
-
-      // Redirect back to chat page
-      navigate("/chat");
-    } else {
-      // Check localStorage for previously connected services
-      setIsSearchConsoleConnected(
-        localStorage.getItem("isSearchConsoleConnected") === "true"
-      );
-      setIsGa4Connected(localStorage.getItem("isGa4Connected") === "true");
+  const handleGoogleAnalytics = async () => {
+    if (analyticsConnected) {
+      // Show already connected message
+      setSuccess("Already connected to Google Analytics (GA4)");
+      return;
     }
-  }, [location, navigate]);
 
-  const handleGoogleAnalytics = () => {
-    // If already connected, don't do anything
-    if (isGa4Connected) return;
+    try {
+      // Make a GET request to our backend OAuth endpoint
+      const response = await axiosInstance.get("/api/google/oauth/authorize", {
+        params: {
+          product: "ga4",
+          redirect_uri: "https://mamba.genta.agency/oauth2callback", // Updated to match the actual endpoint
+        },
+      });
 
-    // Create and submit a form
-    const form = document.createElement("form");
-    form.method = "GET";
-    form.action = "/api/google/oauth/authorize";
-
-    // Add product parameter
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = "product";
-    input.value = "ga4";
-    form.appendChild(input);
-
-    // Submit the form
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
+      // The backend will return the Google OAuth URL, redirect to it
+      if (response.data?.authUrl) {
+        window.location.href = response.data.authUrl;
+      } else {
+        setError("Missing authentication URL in response");
+      }
+    } catch (error) {
+      console.error("Error initiating Google Analytics OAuth:", error);
+      setError("Failed to connect to Google Analytics");
+    }
   };
 
-  const handleSearchConsole = () => {
-    // If already connected, don't do anything
-    if (isSearchConsoleConnected) return;
+  const handleSearchConsole = async () => {
+    if (searchConsoleConnected) {
+      // Show already connected message
+      setSuccess("Already connected to Google Search Console");
+      return;
+    }
 
-    // Create and submit a form
-    const form = document.createElement("form");
-    form.method = "GET";
-    form.action = "/api/google/oauth/authorize";
+    try {
+      // Make a GET request to our backend OAuth endpoint
+      const response = await axiosInstance.get("/api/google/oauth/authorize", {
+        params: {
+          product: "search_console",
+          redirect_uri: "https://mamba.genta.agency/oauth2callback", // Updated to match the actual endpoint
+        },
+      });
 
-    // Add product parameter
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = "product";
-    input.value = "search_console";
-    form.appendChild(input);
-
-    // Submit the form
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
+      // The backend will return the Google OAuth URL, redirect to it
+      if (response.data?.authUrl) {
+        window.location.href = response.data.authUrl;
+      } else {
+        setError("Missing authentication URL in response");
+      }
+    } catch (error) {
+      console.error("Error initiating Search Console OAuth:", error);
+      setError("Failed to connect to Google Search Console");
+    }
   };
 
   const handleCloseError = () => {
     setError(null);
+  };
+
+  const handleCloseSuccess = () => {
+    setSuccess(null);
   };
 
   return (
@@ -98,7 +89,7 @@ const GoogleIntegrations: React.FC = () => {
           fullWidth
           onClick={handleSearchConsole}
           sx={{
-            bgcolor: isSearchConsoleConnected ? "#4CAF50" : "#6366F1", // Green if connected, purple if not
+            bgcolor: searchConsoleConnected ? "#4CAF50" : "#6366F1", // Green if connected, purple if not
             color: "white",
             p: 3,
             borderRadius: 2,
@@ -107,7 +98,7 @@ const GoogleIntegrations: React.FC = () => {
             fontSize: "1rem",
             fontWeight: 600,
             "&:hover": {
-              bgcolor: isSearchConsoleConnected
+              bgcolor: searchConsoleConnected
                 ? alpha("#4CAF50", 0.9)
                 : alpha("#6366F1", 0.9),
             },
@@ -117,7 +108,7 @@ const GoogleIntegrations: React.FC = () => {
             variant="body1"
             sx={{ fontWeight: 400, fontSize: "1rem" }}
           >
-            {isSearchConsoleConnected ? (
+            {searchConsoleConnected ? (
               <>
                 <CheckCircleIcon sx={{ mr: 1, fontSize: "1.2rem" }} />
                 Connected
@@ -135,7 +126,7 @@ const GoogleIntegrations: React.FC = () => {
           fullWidth
           onClick={handleGoogleAnalytics}
           sx={{
-            bgcolor: isGa4Connected ? "#4CAF50" : "#6366F1", // Green if connected, purple if not
+            bgcolor: analyticsConnected ? "#4CAF50" : "#6366F1", // Green if connected, purple if not
             color: "white",
             p: 3,
             borderRadius: 2,
@@ -144,7 +135,7 @@ const GoogleIntegrations: React.FC = () => {
             minHeight: 70,
             fontWeight: 600,
             "&:hover": {
-              bgcolor: isGa4Connected
+              bgcolor: analyticsConnected
                 ? alpha("#4CAF50", 0.9)
                 : alpha("#6366F1", 0.9),
             },
@@ -154,7 +145,7 @@ const GoogleIntegrations: React.FC = () => {
             variant="body1"
             sx={{ fontWeight: 400, fontSize: "1rem" }}
           >
-            {isGa4Connected ? (
+            {analyticsConnected ? (
               <>
                 <CheckCircleIcon sx={{ mr: 1, fontSize: "1.2rem" }} />
                 Connected
@@ -180,6 +171,21 @@ const GoogleIntegrations: React.FC = () => {
           sx={{ width: "100%" }}
         >
           {error}
+        </Alert>
+      </Snackbar>
+
+      {/* Success notification */}
+      <Snackbar
+        open={!!success}
+        autoHideDuration={4000}
+        onClose={handleCloseSuccess}
+      >
+        <Alert
+          onClose={handleCloseSuccess}
+          severity="success"
+          sx={{ width: "100%" }}
+        >
+          {success}
         </Alert>
       </Snackbar>
     </Box>
