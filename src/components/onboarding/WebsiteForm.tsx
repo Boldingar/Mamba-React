@@ -37,6 +37,7 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
     website_url: "",
     name: "",
   });
+  const [isSkippingWebsite, setIsSkippingWebsite] = useState(false);
 
   const validateUrl = (url: string) => {
     try {
@@ -48,6 +49,12 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
   };
 
   const handleSubmit = async () => {
+    // If skipping website flow, just complete without loading
+    if (isSkippingWebsite) {
+      onComplete();
+      return;
+    }
+
     // Validate fields
     const newErrors = {
       website_url: "",
@@ -116,6 +123,16 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
         <Box>
           <TextField
             required
+            fullWidth
+            label="Project Name"
+            value={formData.name || ""}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            error={!!errors.name}
+            helperText={errors.name}
+            sx={{ mb: 3 }}
+          />
+          <TextField
+            required
             id="website"
             name="website_url"
             label="Website URL"
@@ -133,12 +150,49 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
             error={!!errors.website_url}
             helperText={errors.website_url}
           />
+
           <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
             <Link
               href="#"
               onClick={(e) => {
                 e.preventDefault();
-                if (onSkipToProducts) onSkipToProducts();
+                // Validate project name
+                if (!formData.name?.trim()) {
+                  setErrors({
+                    ...errors,
+                    name: "Project name is required",
+                  });
+                  return;
+                }
+                // Initialize with empty fields for products, personas, and competitors
+                setFormData({
+                  ...formData,
+                  products: [
+                    {
+                      name: "",
+                      description: "",
+                      url: "",
+                      language: "",
+                      priority: 5,
+                    },
+                  ],
+                  personas: [
+                    {
+                      name: "",
+                      description: "",
+                      priority: 5,
+                    },
+                  ],
+                  competitors: [
+                    {
+                      name: "",
+                      description: "",
+                    },
+                  ],
+                  company_summary: "",
+                });
+                // Directly complete without showing loading state
+                onComplete();
               }}
               sx={{
                 textDecoration: "none",
@@ -176,15 +230,6 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
             <MenuItem value="AU">Australia</MenuItem>
           </Select>
         </FormControl>
-        <TextField
-          fullWidth
-          label="Project Name"
-          value={formData.name || ""}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          error={!!errors.name}
-          helperText={errors.name}
-          sx={{ mb: 3 }}
-        />
         <Box
           sx={{
             display: "flex",
