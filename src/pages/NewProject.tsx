@@ -57,7 +57,7 @@ const NewProject: React.FC = () => {
           {/* Left Column - Welcome Text */}
           <Box
             sx={{
-              width: "60%",
+              width: { xs: "100%", md: "60%" },
               height: "100%",
               display: { xs: "none", md: "block" }, // Hide on mobile
             }}
@@ -69,7 +69,7 @@ const NewProject: React.FC = () => {
           <Box
             sx={{
               width: { xs: "100%", md: "60%" },
-              height: "100%",
+              height: "90%",
               overflow: "auto",
             }}
           >

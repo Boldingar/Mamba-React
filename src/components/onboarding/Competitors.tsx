@@ -1,22 +1,37 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Stack,
-  TextField,
-  Typography,
-  Button,
-  IconButton,
-} from "@mui/material";
+import React from "react";
+import { Box, Stack, TextField, IconButton, Button } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material/styles";
 
-const Competitors: React.FC<{
-  formData: any;
-  setFormData: (data: any) => void;
-  onBack?: () => void;
-  onNext?: () => void;
-}> = ({ formData, setFormData, onBack, onNext }) => {
+interface Competitor {
+  name: string;
+  description: string;
+}
+
+interface FormDataType {
+  name: string;
+  website_url: string;
+  target_market: string;
+  products: any[];
+  personas: any[];
+  competitors: Competitor[];
+  company_summary: string;
+}
+
+interface CompetitorsProps {
+  formData: FormDataType;
+  setFormData: (data: FormDataType) => void;
+  onBack: () => void;
+  onNext: () => void;
+}
+
+const Competitors: React.FC<CompetitorsProps> = ({
+  formData,
+  setFormData,
+  onBack,
+  onNext,
+}) => {
   const theme = useTheme();
   const borderRadius = 3;
   const buttonStyles = {
@@ -38,35 +53,30 @@ const Competitors: React.FC<{
     },
   };
 
-  const [competitors, setCompetitors] = useState([
-    { name: "", description: "" },
-    { name: "", description: "" },
-  ]);
-
-  // Sync with formData
-  useEffect(() => {
-    if (formData.competitors) {
-      setCompetitors(formData.competitors);
-    }
-  }, [formData.competitors]);
-
   const handleAdd = () => {
-    const newCompetitors = [...competitors, { name: "", description: "" }];
-    setCompetitors(newCompetitors);
+    const newCompetitors = [
+      ...formData.competitors,
+      {
+        name: "",
+        description: "",
+      },
+    ];
     setFormData({ ...formData, competitors: newCompetitors });
   };
 
   const handleDelete = (idx: number) => {
-    const newCompetitors = competitors.filter((_, i) => i !== idx);
-    setCompetitors(newCompetitors);
+    const newCompetitors = formData.competitors.filter((_, i) => i !== idx);
     setFormData({ ...formData, competitors: newCompetitors });
   };
 
-  const handleChange = (idx: number, field: string, value: string) => {
-    const newCompetitors = competitors.map((c, i) =>
+  const handleChange = (
+    idx: number,
+    field: keyof Competitor,
+    value: string
+  ) => {
+    const newCompetitors = formData.competitors.map((c, i) =>
       i === idx ? { ...c, [field]: value } : c
     );
-    setCompetitors(newCompetitors);
     setFormData({ ...formData, competitors: newCompetitors });
   };
 
@@ -80,7 +90,7 @@ const Competitors: React.FC<{
       }}
     >
       <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
-        {competitors.map((competitor, idx) => (
+        {formData.competitors.map((competitor, idx) => (
           <Stack
             key={idx}
             direction="row"
@@ -93,7 +103,7 @@ const Competitors: React.FC<{
               variant="outlined"
               value={competitor.name}
               onChange={(e) => handleChange(idx, "name", e.target.value)}
-              placeholder="Competitor"
+              placeholder="Competitor Name"
               sx={textFieldSx}
             />
             <TextField

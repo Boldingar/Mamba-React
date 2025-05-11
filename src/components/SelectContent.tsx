@@ -19,6 +19,7 @@ interface Project {
   name: string;
   website_url: string;
   project_data: any;
+  user_email: string;
 }
 
 const Avatar = styled(MuiAvatar)(({ theme }) => ({
@@ -44,29 +45,41 @@ const ListItemAvatar = styled(MuiListItemAvatar)({
 
 interface SelectContentProps {
   onClose: () => void;
+  onProjectChange?: () => void;
 }
 
-export default function SelectContent({ onClose }: SelectContentProps) {
+export default function SelectContent({
+  onClose,
+  onProjectChange,
+}: SelectContentProps) {
   const [selectedProject, setSelectedProject] = React.useState("");
   const [projects, setProjects] = React.useState<Project[]>([]);
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    // Load projects from storage
-    const storedProjects =
-      localStorage.getItem("projects") || sessionStorage.getItem("projects");
-    if (storedProjects) {
-      setProjects(JSON.parse(storedProjects));
-    }
+    // Load projects from API
+    const fetchProjects = async () => {
+      try {
+        const response = await axiosInstance.get("/projects");
+        setProjects(response.data);
 
-    // Load current project
-    const currentProject =
-      localStorage.getItem("currentProject") ||
-      sessionStorage.getItem("currentProject");
-    if (currentProject) {
-      const project = JSON.parse(currentProject);
-      setSelectedProject(project.id);
-    }
+        // Set the current project if one is stored
+        const currentProject =
+          localStorage.getItem("currentProject") ||
+          sessionStorage.getItem("currentProject");
+        if (currentProject) {
+          const project = JSON.parse(currentProject);
+          // Check if the stored project still exists in the fetched projects
+          if (response.data.some((p: Project) => p.id === project.id)) {
+            setSelectedProject(project.id);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      }
+    };
+
+    fetchProjects();
   }, []);
 
   const handleChange = async (event: SelectChangeEvent) => {
@@ -85,15 +98,22 @@ export default function SelectContent({ onClose }: SelectContentProps) {
       // Find the selected project
       const project = projects.find((p) => p.id === projectId);
       if (project) {
+        // Clear existing conversations first
+        localStorage.setItem("conversations", JSON.stringify([]));
         // Store the selected project
         localStorage.setItem("currentProject", JSON.stringify(project));
+
+        // Notify parent about project change to trigger loading state
+        if (onProjectChange) {
+          onProjectChange();
+        }
 
         // Fetch conversations for the selected project
         const response = await axiosInstance.get(
           `/projects/${project.id}/conversations`
         );
 
-        // Store conversations
+        // Store new conversations
         localStorage.setItem(
           "conversations",
           JSON.stringify(response.data || [])
@@ -132,9 +152,7 @@ export default function SelectContent({ onClose }: SelectContentProps) {
     >
       <MenuItem value="new" sx={{ color: "primary.main" }}>
         <ListItemAvatar>
-          {/* <Avatar sx={{ bgcolor: "primary.main", color: "white" }}> */}
           <AddIcon sx={{ fontSize: "1.9rem", paddingTop: "6px" }} />
-          {/* </Avatar> */}
         </ListItemAvatar>
         <ListItemText
           primary={
@@ -160,7 +178,7 @@ export default function SelectContent({ onClose }: SelectContentProps) {
             secondary={
               project.website_url
                 ? project.website_url
-                    .replace(/^@/, "")
+                    .replace(/^https?:\/\//, "")
                     .replace(/\/[a-z]{2}-[a-z]{2}$/, "")
                 : ""
             }

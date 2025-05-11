@@ -1,15 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Box, Stack, TextField, IconButton, Button } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material/styles";
+import { FormDataType } from "./Onboarding";
 
-const Products: React.FC<{
-  formData: any;
-  setFormData: (data: any) => void;
-  onBack?: () => void;
-  onNext?: () => void;
-}> = ({ formData, setFormData, onBack, onNext }) => {
+interface ProductsProps {
+  formData: FormDataType;
+  setFormData: (data: FormDataType) => void;
+  onBack: () => void;
+  onNext: () => void;
+}
+
+const Products: React.FC<ProductsProps> = ({
+  formData,
+  setFormData,
+  onBack,
+  onNext,
+}) => {
   const theme = useTheme();
   const borderRadius = 3;
   const buttonStyles = {
@@ -31,38 +39,29 @@ const Products: React.FC<{
     },
   };
 
-  const [products, setProducts] = useState([
-    { name: "", description: "", priority: "" },
-    { name: "", description: "", priority: "" },
-  ]);
-
-  // Sync with formData
-  useEffect(() => {
-    if (formData.products) {
-      setProducts(formData.products);
-    }
-  }, [formData.products]);
-
   const handleAdd = () => {
     const newProducts = [
-      ...products,
-      { name: "", description: "", priority: "" },
+      ...formData.products,
+      {
+        url: "",
+        name: "",
+        language: "en",
+        priority: 5,
+        description: "",
+      },
     ];
-    setProducts(newProducts);
     setFormData({ ...formData, products: newProducts });
   };
 
   const handleDelete = (idx: number) => {
-    const newProducts = products.filter((_, i) => i !== idx);
-    setProducts(newProducts);
+    const newProducts = formData.products.filter((_, i) => i !== idx);
     setFormData({ ...formData, products: newProducts });
   };
 
-  const handleChange = (idx: number, field: string, value: string) => {
-    const newProducts = products.map((p, i) =>
+  const handleChange = (idx: number, field: string, value: string | number) => {
+    const newProducts = formData.products.map((p, i) =>
       i === idx ? { ...p, [field]: value } : p
     );
-    setProducts(newProducts);
     setFormData({ ...formData, products: newProducts });
   };
 
@@ -76,7 +75,7 @@ const Products: React.FC<{
       }}
     >
       <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
-        {products.map((product, idx) => (
+        {formData.products.map((product, idx) => (
           <Stack
             key={idx}
             direction="row"
@@ -89,7 +88,7 @@ const Products: React.FC<{
               variant="outlined"
               value={product.name}
               onChange={(e) => handleChange(idx, "name", e.target.value)}
-              placeholder="Product"
+              placeholder="Product Name"
               sx={textFieldSx}
             />
             <TextField
@@ -102,11 +101,15 @@ const Products: React.FC<{
             />
             <TextField
               fullWidth
+              type="number"
               variant="outlined"
               value={product.priority}
-              onChange={(e) => handleChange(idx, "priority", e.target.value)}
+              onChange={(e) =>
+                handleChange(idx, "priority", Number(e.target.value))
+              }
               placeholder="Priority"
               sx={textFieldSx}
+              inputProps={{ min: 1, max: 10 }}
             />
             <IconButton
               onClick={() => handleDelete(idx)}

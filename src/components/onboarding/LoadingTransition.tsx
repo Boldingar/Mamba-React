@@ -9,30 +9,68 @@ import { useTheme } from "@mui/material/styles";
 
 interface LoadingTransitionProps {
   onComplete: () => void;
-  durationSeconds?: number; // total duration for the loading (default: 2 seconds)
+  isLoading: boolean;
 }
 
 const LoadingTransition: React.FC<LoadingTransitionProps> = ({
   onComplete,
-  durationSeconds = 30,
+  isLoading,
 }) => {
   const [progress, setProgress] = useState(0);
+  const [message, setMessage] = useState("Analyzing website...");
   const theme = useTheme();
 
   useEffect(() => {
-    const durationMs = durationSeconds * 1000;
-    const start = Date.now();
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - start;
-      const percent = Math.min(100, Math.round((elapsed / durationMs) * 100));
-      setProgress(percent);
-      if (percent >= 100) {
-        clearInterval(interval);
-        setTimeout(onComplete, 400); // small delay for smoothness
+    if (!isLoading) {
+      // If loading is complete, quickly finish the progress
+      setProgress(100);
+      return;
+    }
+
+    const messages = [
+      "Analyzing website structure...",
+      "Identifying products and services...",
+      "Analyzing target audience...",
+      "Researching competitors...",
+      "Generating insights...",
+    ];
+
+    let currentProgress = 0;
+    const maxTime = 180000; // 3 minutes
+    const interval = 100; // Update every 100ms
+    const steps = maxTime / interval;
+    const increment = 99 / steps; // Max at 99% in case API takes longer
+
+    const progressTimer = setInterval(() => {
+      currentProgress += increment;
+      if (currentProgress >= 99) {
+        clearInterval(progressTimer);
+        clearInterval(messageTimer);
+        setProgress(99);
+        setMessage("Almost there...");
+      } else {
+        setProgress(currentProgress);
       }
-    }, 30);
-    return () => clearInterval(interval);
-  }, [durationSeconds, onComplete]);
+    }, interval);
+
+    const messageTimer = setInterval(() => {
+      setMessage(messages[Math.floor(Math.random() * messages.length)]);
+    }, 3000);
+
+    return () => {
+      clearInterval(progressTimer);
+      clearInterval(messageTimer);
+    };
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (progress >= 100) {
+      const timeout = setTimeout(() => {
+        onComplete();
+      }, 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [progress, onComplete]);
 
   return (
     <Box
@@ -66,14 +104,21 @@ const LoadingTransition: React.FC<LoadingTransitionProps> = ({
           color="text.primary"
           sx={{ fontSize: { xs: 28, md: 38 } }}
         >
-          Analyzing your website...
+          {message}
         </Typography>
       </Box>
       <Box sx={{ width: 480, maxWidth: "95%", mb: 2 }}>
         <LinearProgress
           variant="determinate"
           value={progress}
-          sx={{ height: 14, borderRadius: 7, bgcolor: "grey.100" }}
+          sx={{
+            height: 14,
+            borderRadius: 7,
+            bgcolor: "grey.100",
+            "& .MuiLinearProgress-bar": {
+              borderRadius: 7,
+            },
+          }}
         />
       </Box>
       <Typography
@@ -81,7 +126,7 @@ const LoadingTransition: React.FC<LoadingTransitionProps> = ({
         color="text.secondary"
         sx={{ fontSize: { xs: 18, md: 22 } }}
       >
-        {progress}% completed
+        {Math.round(progress)}% completed
       </Typography>
     </Box>
   );
