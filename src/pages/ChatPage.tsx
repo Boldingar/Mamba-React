@@ -624,6 +624,26 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     setShowIntegrations(false);
   };
 
+  // Update the component to handle Google OAuth redirects
+  useEffect(() => {
+    // Check if we're being redirected from Google OAuth
+    const queryParams = new URLSearchParams(window.location.search);
+    const googleAuthStatus = queryParams.get("google_auth_status");
+    const service = queryParams.get("service");
+
+    if (googleAuthStatus === "success" && service) {
+      // Store the connected service in localStorage
+      if (service === "search_console") {
+        localStorage.setItem("isSearchConsoleConnected", "true");
+      } else if (service === "ga4") {
+        localStorage.setItem("isGa4Connected", "true");
+      }
+
+      // Remove the query parameters from the URL without page reload
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   return (
     <>
       {showProfile && (
