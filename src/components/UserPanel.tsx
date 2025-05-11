@@ -137,11 +137,11 @@ const UserPanel: React.FC<UserPanelProps> = ({
     last_name?: string;
     email?: string;
   }>({});
+  const [isSelectContentOpen, setIsSelectContentOpen] = useState(false);
+  const apiCalledRef = useRef(false);
 
   // Create a ref for the text input
   const renameInputRef = useRef<HTMLInputElement>(null);
-  // Create a ref to track if the API call has been made
-  const apiCalledRef = useRef(false);
 
   // Get scrollbar style based on current theme
   const chatScrollbarStyle = getScrollbarStyle(theme);
@@ -157,58 +157,61 @@ const UserPanel: React.FC<UserPanelProps> = ({
   // Fetch conversations from the API on page load
   useEffect(() => {
     const fetchConversations = async () => {
-      // Make sure we don't call the API twice
-      if (apiCalledRef.current) return;
-      apiCalledRef.current = true;
-
-      // Check if we're already logged in
-      const hasToken =
-        localStorage.getItem("authToken") ||
-        sessionStorage.getItem("authToken");
-      if (!hasToken) return;
-
       try {
         setIsLoading(true);
-        const response = await axiosInstance.get<ConversationResponse>(
-          "/user/conversations"
+        const currentProject = JSON.parse(
+          localStorage.getItem("currentProject") ||
+            sessionStorage.getItem("currentProject") ||
+            "{}"
+        );
+        if (!currentProject.id) {
+          console.error("No project selected");
+          return;
+        }
+
+        const response = await axiosInstance.get(
+          `/projects/${currentProject.id}/conversations`
         );
 
-        if (response.data && response.data.conversations) {
-          // Convert the API response to our local format
-          const conversations = response.data.conversations.map((conv) => ({
+        // Format the conversations data
+        const formattedChats = (response.data.conversations || []).map(
+          (conv: any) => ({
             id: conv.id,
-            title: conv.name || `Chat ${conv.id}`,
-            isPinned: conv.is_pinned,
-          }));
+            title: conv.name,
+            isPinned: conv.is_pinned || false,
+            updatedAt: conv.updated_at,
+          })
+        );
 
-          // Update local chats
-          setLocalChats(conversations);
+        // Sort conversations by updated_at in descending order (newest first)
+        formattedChats.sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        );
 
-          // Update storage with the new conversations
-          const storage = localStorage.getItem("authToken")
-            ? localStorage
-            : sessionStorage;
-          const conversationsForStorage = response.data.conversations.map(
-            (conv) => ({
-              id: conv.id,
-              name: conv.name || `Chat ${conv.id}`,
-            })
-          );
-          storage.setItem(
-            "conversations",
-            JSON.stringify(conversationsForStorage)
-          );
+        // Update local state
+        setLocalChats(formattedChats);
 
-          // Extract pinned chats directly from the API response
-          const pinnedFromServer = response.data.conversations
-            .filter((conv) => conv.is_pinned)
-            .map((conv) => ({
-              id: conv.id,
-              title: conv.name || `Chat ${conv.id}`,
-            }));
+        // Update storage with the new conversations
+        const storage = localStorage.getItem("authToken")
+          ? localStorage
+          : sessionStorage;
 
-          setPinnedChats(pinnedFromServer);
-        }
+        storage.setItem(
+          "conversations",
+          JSON.stringify(
+            formattedChats.map((chat) => ({
+              id: chat.id,
+              name: chat.title,
+            }))
+          )
+        );
+
+        // Set pinned chats
+        const pinnedConversations = formattedChats.filter(
+          (chat) => chat.isPinned
+        );
+        setPinnedChats(pinnedConversations);
       } catch (error) {
         console.error("Error fetching conversations:", error);
       } finally {
@@ -696,7 +699,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
         >
           {/* Top section with New Chat button */}
           <Box sx={{ p: 2 }}>
-            <SelectContent />
+            <SelectContent onClose={() => setIsSelectContentOpen(false)} />
             <List sx={{ width: "100%" }}>
               {/* New Chat Button */}
               <ListItem disablePadding sx={{ borderRadius: 2, mb: 1 }}>
@@ -720,7 +723,9 @@ const UserPanel: React.FC<UserPanelProps> = ({
                     <InsightsIcon />
                   </ListItemIcon>
                   <ListItemText
-                    primary={<span style={{ fontWeight: 400 }}>Integrations</span>}
+                    primary={
+                      <span style={{ fontWeight: 400 }}>Integrations</span>
+                    }
                   />
                 </ListItemButton>
               </ListItem>

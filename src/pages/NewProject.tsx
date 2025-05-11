@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Stack } from "@mui/material";
 import Onboarding from "../components/onboarding/Onboarding";
-import WelcomeSection from "../components/Onboarding/WelcomeSection";
+import WelcomeSection from "../components/onboarding/WelcomeSection";
 import { ThemeProvider } from "../context/ThemeContext";
 
 const stepWelcomeContent = [

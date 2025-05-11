@@ -73,28 +73,25 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
         password,
       });
 
-      const { access_token, user, conversations, token_type } = response.data;
+      const { access_token, user, projects, token_type } = response.data;
 
-      // Store the token, user data, and conversations if remember me is checked
+      // Store the token, user data, and projects
       if (rememberMe) {
         localStorage.setItem("authToken", access_token);
         localStorage.setItem("userData", JSON.stringify(user));
-        localStorage.setItem(
-          "conversations",
-          JSON.stringify(conversations || [])
-        );
+        localStorage.setItem("projects", JSON.stringify(projects || []));
       } else {
-        // For non-remember-me sessions, store in sessionStorage instead
-        // This will be cleared when the browser/tab is closed
         sessionStorage.setItem("authToken", access_token);
         sessionStorage.setItem("userData", JSON.stringify(user));
-        sessionStorage.setItem(
-          "conversations",
-          JSON.stringify(conversations || [])
-        );
+        sessionStorage.setItem("projects", JSON.stringify(projects || []));
       }
 
-      // Redirect to chat page after successful login
+      // If there are projects, store the first one as current
+      if (projects && projects.length > 0) {
+        const storage = rememberMe ? localStorage : sessionStorage;
+        storage.setItem("currentProject", JSON.stringify(projects[0]));
+      }
+
       if (setIsAuthenticated) setIsAuthenticated(true);
       navigate("/chat");
     } catch (err: any) {
@@ -141,21 +138,21 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
 
   const handleGoogleSuccess = async (googleUser: any) => {
     try {
-      // Send the Google token to your backend
       const response = await axiosInstance.post("/auth/google", {
         token: googleUser.token,
       });
 
-      // Assuming your backend returns access_token, user, conversations, etc.
-      const { access_token, user, conversations, token_type } = response.data;
+      const { access_token, user, projects, token_type } = response.data;
 
-      // Store the token and user data (using localStorage for now)
+      // Store the token, user data, and projects
       localStorage.setItem("authToken", access_token);
       localStorage.setItem("userData", JSON.stringify(user));
-      localStorage.setItem(
-        "conversations",
-        JSON.stringify(conversations || [])
-      );
+      localStorage.setItem("projects", JSON.stringify(projects || []));
+
+      // If there are projects, store the first one as current
+      if (projects && projects.length > 0) {
+        localStorage.setItem("currentProject", JSON.stringify(projects[0]));
+      }
 
       if (setIsAuthenticated) setIsAuthenticated(true);
       navigate("/chat");

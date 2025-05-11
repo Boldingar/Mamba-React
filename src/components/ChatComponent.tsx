@@ -388,25 +388,20 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   }, [showForm, messages, updateMessages, conversationId]);
 
-  const sendMessage = (messageText: string) => {
-    if (!messageText.trim() || isFormVisible) return;
+  const sendMessage = async (content: string) => {
+    if (!content.trim() || isFormVisible) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: messageText,
+      text: content,
       sender: "user",
       timestamp: new Date(),
       type: "text",
     };
 
-    // Update local messages state
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
-
-    // Update parent component's messages state if callback exists
-    if (updateMessages) {
-      updateMessages(newMessages);
-    }
+    // Add user message immediately to show it in the UI
+    const messagesWithUser = [...messages, userMessage];
+    setMessages(messagesWithUser);
 
     setInputMessage("");
     setIsLoading(true);
@@ -416,40 +411,36 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       setIsAwaitingResponse(true);
     }
 
-    // Call the API
-    handleMessageAPI(messageText, newMessages);
-  };
-
-  const handleMessageAPI = async (
-    messageText: string,
-    currentMessages: Message[]
-  ) => {
     try {
-      let endpoint;
-      let data;
-      let newConversationId: string | null = null;
+      const currentProject = JSON.parse(
+        localStorage.getItem("currentProject") ||
+          sessionStorage.getItem("currentProject") ||
+          "{}"
+      );
 
-      // If conversationId is empty/null, it's a new chat
+      // Determine the endpoint based on whether it's a new chat or existing conversation
+      let endpoint;
       if (!conversationId) {
-        endpoint = `${API_BASE_URL}/chat`;
+        endpoint = `/chat`;
       } else {
-        endpoint = `${API_BASE_URL}/chat/${conversationId}`;
+        endpoint = `/chat/${conversationId}`;
       }
 
       const response = await axiosInstance.post(endpoint, {
-        message: messageText,
+        message: content,
+        project_id: currentProject.id,
       });
 
       if (response.status !== 200) {
         throw new Error("Failed to send message");
       }
 
-      data = response.data;
+      const data = response.data;
 
       // For new chats, capture the conversation ID from the response
       if (!conversationId && data && data.conversation_id) {
         // Store the new conversation ID
-        newConversationId = data.conversation_id;
+        const newConversationId = data.conversation_id;
 
         // Check if we have a collect_business_info action
         const hasBusinessInfoAction =
@@ -549,6 +540,18 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             type: "text",
           };
 
+          // For existing conversations, append the agent response to current messages
+          if (conversationId) {
+            // Keep the user message and add agent response
+            const updatedMessages = [...messagesWithUser, agentMessage];
+            setMessages(updatedMessages);
+
+            // Update parent component's messages
+            if (updateMessages) {
+              updateMessages(updatedMessages);
+            }
+          }
+
           // Check if there's an action in the response
           // Handle legacy action format (string-based)
           if (data.action === "collect_business_info") {
@@ -561,9 +564,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
               type: "form",
             };
 
-            // Update with both the text response and the form
+            // Keep the user message and add agent response and form
             const messagesWithForm = [
-              ...currentMessages,
+              ...messagesWithUser,
               agentMessage,
               formMessage,
             ];
@@ -594,10 +597,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
               );
 
               // Only add form if we have a valid conversation (not in "New Chat")
-              if (
-                newConversationId ||
-                (conversationId && conversationId !== "")
-              ) {
+              if (conversationId && conversationId !== "") {
                 // Add a form message
                 const formMessage: Message = {
                   id: Date.now().toString() + "-form",
@@ -609,7 +609,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
                 // Update with both the text response and the form
                 const messagesWithForm = [
-                  ...currentMessages,
+                  ...messagesWithUser,
                   agentMessage,
                   formMessage,
                 ];
@@ -626,14 +626,17 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                 // Force window event to ensure parent component knows form should be shown
                 const parentUpdateEvent = new CustomEvent("formRequested", {
                   detail: {
-                    conversationId: newConversationId || conversationId,
+                    conversationId: conversationId,
                     timestamp: Date.now(),
                   },
                 });
                 window.dispatchEvent(parentUpdateEvent);
               } else {
                 // Just add the text response without a form for "New Chat"
-                const messagesWithResponse = [...currentMessages, agentMessage];
+                const messagesWithResponse = [
+                  ...messagesWithUser,
+                  agentMessage,
+                ];
                 setMessages(messagesWithResponse);
 
                 // Update parent component's messages
@@ -645,7 +648,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             // Handle keywords_ready action type
             else if (actionType === "keywords_ready") {
               // First update the messages array to show the agent's response
-              const messagesWithResponse = [...currentMessages, agentMessage];
+              const messagesWithResponse = [...messagesWithUser, agentMessage];
               setMessages(messagesWithResponse);
 
               // Update parent component's messages
@@ -732,7 +735,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
               }
             } else {
               // Regular text response without any action
-              const messagesWithResponse = [...currentMessages, agentMessage];
+              const messagesWithResponse = [...messagesWithUser, agentMessage];
               setMessages(messagesWithResponse);
 
               // Update parent component's messages
@@ -742,7 +745,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             }
           } else {
             // Regular text response without any action
-            const messagesWithResponse = [...currentMessages, agentMessage];
+            const messagesWithResponse = [...messagesWithUser, agentMessage];
             setMessages(messagesWithResponse);
 
             // Update parent component's messages
@@ -762,7 +765,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           };
 
           // Update local messages with agent's response
-          const messagesWithResponse = [...currentMessages, agentMessage];
+          const messagesWithResponse = [...messagesWithUser, agentMessage];
           setMessages(messagesWithResponse);
 
           // Update parent component's messages
@@ -787,7 +790,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       };
 
       // Update local messages with error
-      const messagesWithError = [...currentMessages, errorMessage];
+      const messagesWithError = [...messagesWithUser, errorMessage];
       setMessages(messagesWithError);
 
       // Update parent component's messages
