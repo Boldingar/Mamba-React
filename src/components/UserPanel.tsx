@@ -555,9 +555,11 @@ const UserPanel: React.FC<UserPanelProps> = ({
   // Function to render chat item with the appropriate controls
   const renderChatItem = (
     chat: { id: string; title: string; isPinned?: boolean },
-    isPinned: boolean = false
+    isPinned: boolean = false,
+    isIntegrationsView: boolean = false
   ) => {
-    const isSelected = chat.id === selectedConversationId;
+    const isSelected =
+      chat.id === selectedConversationId && !isIntegrationsView;
     const isCurrentlyRenaming = isRenaming && currentChatId === chat.id;
 
     return (
@@ -738,7 +740,10 @@ const UserPanel: React.FC<UserPanelProps> = ({
                 <ListItemButton
                   sx={{ borderRadius: 2 }}
                   onClick={handleNewChatClick}
-                  disabled={isAwaitingResponse || selectedConversationId === ""}
+                  disabled={
+                    isAwaitingResponse ||
+                    (selectedConversationId === "" && !showIntegrations)
+                  }
                 >
                   <ListItemIcon>
                     <AddIcon />
@@ -835,7 +840,9 @@ const UserPanel: React.FC<UserPanelProps> = ({
                       (chat) =>
                         !pinnedChats.some((pinned) => pinned.id === chat.id)
                     )
-                    .map((chat) => renderChatItem(chat))}
+                    .map((chat) =>
+                      renderChatItem(chat, false, showIntegrations)
+                    )}
                 </List>
               </>
             )}
