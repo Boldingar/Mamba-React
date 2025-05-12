@@ -103,7 +103,10 @@ const Competitors: React.FC<CompetitorsProps> = ({
               value={competitor.name}
               onChange={(e) => handleChange(idx, "name", e.target.value)}
               placeholder="Competitor Name"
-              sx={textFieldSx}
+              sx={{
+                ...textFieldSx,
+                width: "35%",
+              }}
             />
             <TextField
               fullWidth
@@ -111,7 +114,10 @@ const Competitors: React.FC<CompetitorsProps> = ({
               value={competitor.description}
               onChange={(e) => handleChange(idx, "description", e.target.value)}
               placeholder="Description"
-              sx={textFieldSx}
+              sx={{
+                ...textFieldSx,
+                width: "65%",
+              }}
             />
             <IconButton
               onClick={() => handleClear(idx)}

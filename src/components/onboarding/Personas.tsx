@@ -105,7 +105,10 @@ const Personas: React.FC<PersonasProps> = ({
               value={persona.name}
               onChange={(e) => handleChange(idx, "name", e.target.value)}
               placeholder="Persona Name"
-              sx={textFieldSx}
+              sx={{
+                ...textFieldSx,
+                width: "30%",
+              }}
             />
             <TextField
               fullWidth
@@ -113,7 +116,10 @@ const Personas: React.FC<PersonasProps> = ({
               value={persona.description}
               onChange={(e) => handleChange(idx, "description", e.target.value)}
               placeholder="Description"
-              sx={textFieldSx}
+              sx={{
+                ...textFieldSx,
+                width: "55%",
+              }}
             />
             <TextField
               fullWidth
@@ -124,7 +130,10 @@ const Personas: React.FC<PersonasProps> = ({
                 handleChange(idx, "priority", Number(e.target.value))
               }
               placeholder="Priority"
-              sx={textFieldSx}
+              sx={{
+                ...textFieldSx,
+                width: "15%",
+              }}
               inputProps={{ min: 1, max: 10 }}
             />
             <IconButton

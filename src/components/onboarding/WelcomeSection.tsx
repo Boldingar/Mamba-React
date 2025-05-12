@@ -34,7 +34,8 @@ const WelcomeSection: React.FC<{
         p: 6,
         height: "100%",
         maxWidth: "600px",
-        margin: "0 auto",
+        margin: 0,
+        pl: 0,
       }}
     >
       <Typography
