@@ -134,7 +134,10 @@ const Products: React.FC<ProductsProps> = ({
               value={product.name}
               onChange={(e) => handleChange(idx, "name", e.target.value)}
               placeholder="Product Name"
-              sx={textFieldSx}
+              sx={{
+                ...textFieldSx,
+                width: "30%",
+              }}
             />
             <TextField
               fullWidth
@@ -142,7 +145,10 @@ const Products: React.FC<ProductsProps> = ({
               value={product.description}
               onChange={(e) => handleChange(idx, "description", e.target.value)}
               placeholder="Description"
-              sx={textFieldSx}
+              sx={{
+                ...textFieldSx,
+                width: "55%",
+              }}
             />
             <TextField
               fullWidth
@@ -153,7 +159,10 @@ const Products: React.FC<ProductsProps> = ({
                 handleChange(idx, "priority", Number(e.target.value))
               }
               placeholder="Priority"
-              sx={textFieldSx}
+              sx={{
+                ...textFieldSx,
+                width: "15%",
+              }}
               inputProps={{ min: 1, max: 10 }}
             />
             <IconButton
