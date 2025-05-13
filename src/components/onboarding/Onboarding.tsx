@@ -52,24 +52,25 @@ const steps = [
 interface OnboardingProps {
   activeStep: number;
   setActiveStep: (step: number) => void;
+  formData: FormDataType;
+  setFormData: React.Dispatch<React.SetStateAction<FormDataType>>;
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  hasWebsite: boolean | null;
+  setHasWebsite: React.Dispatch<React.SetStateAction<boolean | null>>;
 }
 
 const Onboarding: React.FC<OnboardingProps> = ({
   activeStep,
   setActiveStep,
+  formData,
+  setFormData,
+  isLoading,
+  setIsLoading,
+  hasWebsite,
+  setHasWebsite,
 }) => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasWebsite, setHasWebsite] = useState<boolean | null>(null);
-  const [formData, setFormData] = useState<FormDataType>({
-    name: "",
-    website_url: "",
-    target_market: "USA",
-    products: [],
-    personas: [],
-    competitors: [],
-    company_summary: "",
-  });
 
   const handleNext = () => {
     if (activeStep === steps.length - 1) {
@@ -125,17 +126,7 @@ const Onboarding: React.FC<OnboardingProps> = ({
         return (
           <WebsiteForm
             formData={formData}
-            setFormData={(data) => {
-              // If we have target_personas in the response, use that for personas
-              if (data.target_personas) {
-                setFormData({
-                  ...data,
-                  personas: data.target_personas,
-                });
-              } else {
-                setFormData(data);
-              }
-            }}
+            setFormData={setFormData}
             onNext={handleWebsiteAnalysis}
             onComplete={handleAnalysisComplete}
             onNoWebsite={handleNoWebsite}
@@ -145,17 +136,7 @@ const Onboarding: React.FC<OnboardingProps> = ({
         return (
           <NoWebsite
             formData={formData}
-            setFormData={(data) => {
-              // If we have target_personas in the response, use that for personas
-              if (data.target_personas) {
-                setFormData({
-                  ...data,
-                  personas: data.target_personas,
-                });
-              } else {
-                setFormData(data);
-              }
-            }}
+            setFormData={setFormData}
             onBack={handleBack}
             onNext={() => {
               setIsLoading(true);

@@ -387,6 +387,8 @@ export const inputsCustomizations: Components<Theme> = {
       root: ({ theme }) => ({
         typography: theme.typography.caption,
         marginBottom: 8,
+        color: theme.palette.text.primary,
+        fontWeight: 500,
       }),
     },
   },

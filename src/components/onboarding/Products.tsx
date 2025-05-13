@@ -175,7 +175,11 @@ const Products: React.FC<ProductsProps> = ({
                 },
               }}
             >
-              <ClearAllIcon />
+              <img
+                src="/clear.png"
+                alt="Clear"
+                style={{ width: 20, height: 20 }}
+              />
             </IconButton>
             <IconButton
               onClick={() => handleDelete(idx)}

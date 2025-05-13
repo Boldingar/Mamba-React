@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Box, Button, Stack, Typography, Snackbar, Alert } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import axiosInstance from "../../utils/axios";
-import { getIntegrationStatus } from "../../utils/authRedirect";
+import {
+  getIntegrationStatus,
+  saveIntegrationStatus,
+} from "../../utils/authRedirect";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 const GoogleIntegrations: React.FC = () => {
@@ -13,11 +16,29 @@ const GoogleIntegrations: React.FC = () => {
 
   // Check integration status on component mount
   useEffect(() => {
-    setSearchConsoleConnected(getIntegrationStatus("search_console"));
-    setAnalyticsConnected(getIntegrationStatus("ga4"));
+    console.log("GoogleIntegrations component mounted");
+
+    // Get integration status from localStorage
+    const searchConsoleStatus = getIntegrationStatus("search_console");
+    const analyticsStatus = getIntegrationStatus("ga4");
+
+    console.log("Integration status from localStorage:", {
+      searchConsole: searchConsoleStatus,
+      analytics: analyticsStatus,
+    });
+
+    // Update component state
+    setSearchConsoleConnected(searchConsoleStatus);
+    setAnalyticsConnected(analyticsStatus);
+
+    return () => {
+      console.log("GoogleIntegrations component unmounted");
+    };
   }, []);
 
-  const handleGoogleAnalytics = async () => {
+  const handleGoogleAnalytics = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+
     if (analyticsConnected) {
       // Show already connected message
       setSuccess("Already connected to Google Analytics (GA4)");
@@ -35,6 +56,8 @@ const GoogleIntegrations: React.FC = () => {
 
       // The backend will return the Google OAuth URL, redirect to it
       if (response.data?.authUrl) {
+        // Save that we're attempting to connect to GA4
+        localStorage.setItem("connecting_to_ga4", "true");
         window.location.href = response.data.authUrl;
       } else {
         setError("Missing authentication URL in response");
@@ -45,7 +68,9 @@ const GoogleIntegrations: React.FC = () => {
     }
   };
 
-  const handleSearchConsole = async () => {
+  const handleSearchConsole = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+
     if (searchConsoleConnected) {
       // Show already connected message
       setSuccess("Already connected to Google Search Console");
@@ -63,6 +88,8 @@ const GoogleIntegrations: React.FC = () => {
 
       // The backend will return the Google OAuth URL, redirect to it
       if (response.data?.authUrl) {
+        // Save that we're attempting to connect to Search Console
+        localStorage.setItem("connecting_to_search_console", "true");
         window.location.href = response.data.authUrl;
       } else {
         setError("Missing authentication URL in response");
@@ -164,6 +191,8 @@ const GoogleIntegrations: React.FC = () => {
         open={!!error}
         autoHideDuration={6000}
         onClose={handleCloseError}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        sx={{ zIndex: 9999 }}
       >
         <Alert
           onClose={handleCloseError}
@@ -179,6 +208,8 @@ const GoogleIntegrations: React.FC = () => {
         open={!!success}
         autoHideDuration={4000}
         onClose={handleCloseSuccess}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        sx={{ zIndex: 9999 }}
       >
         <Alert
           onClose={handleCloseSuccess}

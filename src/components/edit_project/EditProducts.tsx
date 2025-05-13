@@ -6,10 +6,11 @@ import {
   IconButton,
   Button,
   Paper,
+  FormControl,
+  FormLabel,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import ClearAllIcon from "@mui/icons-material/ClearAll";
 import { useTheme } from "@mui/material/styles";
 import { FormDataType } from "../onboarding/Onboarding";
 
@@ -93,21 +94,6 @@ const Products: React.FC<ProductsProps> = ({
     setFormData({ ...formData, products: newProducts });
   };
 
-  const handleClear = (idx: number) => {
-    const newProducts = formData.products.map((p, i) =>
-      i === idx
-        ? {
-            url: "",
-            name: "",
-            language: "en",
-            priority: 5,
-            description: "",
-          }
-        : p
-    );
-    setFormData({ ...formData, products: newProducts });
-  };
-
   // The Add button should only be disabled when we have 5 visible products
   const isAddButtonDisabled = visibleProducts >= 5;
 
@@ -141,6 +127,7 @@ const Products: React.FC<ProductsProps> = ({
               backgroundColor: "transparent",
               minHeight: "220px",
               pt: 9,
+              zIndex: 1,
             }}
           >
             <Box
@@ -153,18 +140,6 @@ const Products: React.FC<ProductsProps> = ({
                 zIndex: 1,
               }}
             >
-              <IconButton
-                onClick={() => handleClear(idx)}
-                color="primary"
-                aria-label="clear"
-                sx={{
-                  "&:hover": {
-                    bgcolor: (theme) => theme.palette.primary.light + "20",
-                  },
-                }}
-              >
-                <ClearAllIcon />
-              </IconButton>
               <IconButton
                 onClick={() => handleDelete(idx)}
                 color="error"
@@ -182,70 +157,76 @@ const Products: React.FC<ProductsProps> = ({
 
             <Stack spacing={4}>
               {/* URL field on its own row */}
-              <TextField
-                fullWidth
-                variant="outlined"
-                label="Website URL"
-                value={product.url}
-                onChange={(e) => handleChange(idx, "url", e.target.value)}
-                placeholder="https://example.com"
-                sx={textFieldSx}
-              />
+              <FormControl fullWidth>
+                <FormLabel htmlFor={`product-url-${idx}`}>
+                  Website URL
+                </FormLabel>
+                <TextField
+                  id={`product-url-${idx}`}
+                  fullWidth
+                  placeholder="https://example.com"
+                  value={product.url}
+                  onChange={(e) => handleChange(idx, "url", e.target.value)}
+                />
+              </FormControl>
 
               {/* Name and Priority in a row */}
-              <Stack direction="row" spacing={2} alignItems="center">
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  label="Product Name"
-                  value={product.name}
-                  onChange={(e) => handleChange(idx, "name", e.target.value)}
-                  placeholder="Enter product name"
-                  sx={{
-                    ...textFieldSx,
-                    width: "80%",
-                  }}
-                />
-                <TextField
-                  fullWidth
-                  type="number"
-                  variant="outlined"
-                  label="Priority"
-                  value={product.priority}
-                  onChange={(e) =>
-                    handleChange(idx, "priority", Number(e.target.value))
-                  }
-                  placeholder="1-10"
-                  sx={{
-                    ...textFieldSx,
-                    width: "20%",
-                  }}
-                  inputProps={{ min: 1, max: 10 }}
-                />
+              <Stack direction="row" spacing={2} alignItems="flex-start">
+                <FormControl sx={{ width: "80%" }}>
+                  <FormLabel htmlFor={`product-name-${idx}`}>
+                    Product Name
+                  </FormLabel>
+                  <TextField
+                    id={`product-name-${idx}`}
+                    fullWidth
+                    placeholder="Enter product name"
+                    value={product.name}
+                    onChange={(e) => handleChange(idx, "name", e.target.value)}
+                  />
+                </FormControl>
+                <FormControl sx={{ width: "20%" }}>
+                  <FormLabel htmlFor={`product-priority-${idx}`}>
+                    Priority
+                  </FormLabel>
+                  <TextField
+                    id={`product-priority-${idx}`}
+                    fullWidth
+                    type="number"
+                    placeholder="1-10"
+                    value={product.priority}
+                    onChange={(e) =>
+                      handleChange(idx, "priority", Number(e.target.value))
+                    }
+                    inputProps={{ min: 1, max: 10 }}
+                  />
+                </FormControl>
               </Stack>
 
               {/* Description on its own row */}
-              <TextField
-                fullWidth
-                variant="outlined"
-                label="Description"
-                value={product.description}
-                onChange={(e) =>
-                  handleChange(idx, "description", e.target.value)
-                }
-                placeholder="Enter product description"
-                multiline
-                rows={4}
-                sx={{
-                  ...textFieldSx,
-                  "& .MuiInputBase-root": {
-                    minHeight: "120px",
-                  },
-                  "& .MuiOutlinedInput-input": {
-                    height: "auto !important",
-                  },
-                }}
-              />
+              <FormControl fullWidth>
+                <FormLabel htmlFor={`product-desc-${idx}`}>
+                  Description
+                </FormLabel>
+                <TextField
+                  id={`product-desc-${idx}`}
+                  fullWidth
+                  placeholder="Enter product description"
+                  value={product.description}
+                  onChange={(e) =>
+                    handleChange(idx, "description", e.target.value)
+                  }
+                  multiline
+                  rows={4}
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      minHeight: "120px",
+                    },
+                    "& .MuiOutlinedInput-input": {
+                      height: "auto !important",
+                    },
+                  }}
+                />
+              </FormControl>
             </Stack>
           </Paper>
         ))}
@@ -270,32 +251,6 @@ const Products: React.FC<ProductsProps> = ({
           aria-label="add"
         >
           Add Product
-        </Button>
-      </Box>
-
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          mt: 4,
-          pt: 2,
-          borderTop: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Button
-          variant="contained"
-          sx={{ ...buttonStyles, px: 3 }}
-          onClick={onBack}
-        >
-          Back
-        </Button>
-        <Button
-          variant="contained"
-          sx={{ ...buttonStyles, px: 6 }}
-          onClick={handleNext}
-        >
-          Keep Moving →
         </Button>
       </Box>
     </Box>

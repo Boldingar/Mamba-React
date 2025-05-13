@@ -15,6 +15,7 @@ import {
   MenuItem,
   SelectChangeEvent,
   Container,
+  FormLabel,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import EditProducts from "./EditProducts";
@@ -107,6 +108,20 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
     }, 100);
   };
 
+  const handleStepClick = (step: number) => {
+    // For the first step (Business Info), validate required fields before allowing navigation
+    if (activeStep === 0 && !formData.target_market) {
+      setValidationError(
+        "Please select a target market before navigating to other steps"
+      );
+      return;
+    }
+
+    setValidationError(null);
+    setActiveStep(step);
+    scrollToTop();
+  };
+
   const handleNext = () => {
     // For the first step (Business Info), validate required fields
     if (activeStep === 0) {
@@ -175,6 +190,7 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
                 width: "100%",
                 maxWidth: "600px",
                 margin: "0 auto",
+                pb: 10, // Add bottom padding to prevent overlap with fixed buttons
               }}
             >
               {/* <Typography
@@ -185,24 +201,40 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
                 Business Information
               </Typography> */}
 
-              <TextField
-                fullWidth
-                label="Project Name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                sx={{ mb: 3 }}
-              />
+              <FormControl fullWidth sx={{ mb: 3 }}>
+                <FormLabel htmlFor="project-name">Project Name</FormLabel>
+                <TextField
+                  id="project-name"
+                  fullWidth
+                  placeholder="Enter project name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                />
+              </FormControl>
+
+              {formData.website_url && (
+                <FormControl fullWidth sx={{ mb: 3 }}>
+                  <FormLabel htmlFor="website-url">Website URL</FormLabel>
+                  <TextField
+                    id="website-url"
+                    fullWidth
+                    placeholder="https://example.com"
+                    value={formData.website_url}
+                    InputProps={{
+                      readOnly: true,
+                    }}
+                  />
+                </FormControl>
+              )}
 
               <FormControl fullWidth required sx={{ mb: 3 }}>
-                <InputLabel id="target-market-label">Target Market</InputLabel>
+                <FormLabel htmlFor="target-market">Target Market</FormLabel>
                 <Select
+                  id="target-market"
                   labelId="target-market-label"
-                  id="targetMarket"
                   value={formData.target_market}
-                  label="Target Market"
-                  required
                   displayEmpty
                   error={!!validationError && !formData.target_market}
                   onChange={(e: SelectChangeEvent) =>
@@ -358,14 +390,14 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
                   width: "100%",
                 }}
               >
-                <Button
+                {/* <Button
                   variant="contained"
                   color="primary"
                   sx={{ px: 4 }}
                   onClick={handleNext}
                 >
                   Next
-                </Button>
+                </Button> */}
               </Box>
             </Box>
           </Container>
@@ -389,6 +421,7 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
                 width: "100%",
                 height: "100%",
                 pr: 4, // Reduced right padding
+                pb: 10, // Add bottom padding to prevent overlap with fixed buttons
               }}
             >
               <EditProducts
@@ -419,6 +452,7 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
                 width: "100%",
                 height: "100%",
                 pr: 4, // Reduced right padding
+                pb: 10, // Add bottom padding to prevent overlap with fixed buttons
               }}
             >
               <EditPersonas
@@ -449,6 +483,7 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
                 width: "100%",
                 height: "100%",
                 pr: 4, // Reduced right padding
+                pb: 10, // Add bottom padding to prevent overlap with fixed buttons
               }}
             >
               <EditCompetitors
@@ -537,7 +572,7 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
         margin: "0 auto", // Center the component
         borderRadius: 1, // Fixed border radius of 1
         borderColor: "divider",
-        // boxShadow: 3, // Add a subtle shadow
+        position: "relative", // Add position relative for absolute positioning
       }}
     >
       <Stepper
@@ -547,17 +582,69 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
           "& .MuiStepLabel-label": {
             color: "text.primary",
           },
+          "& .MuiStepLabel-root": {
+            cursor: "pointer",
+          },
         }}
       >
-        {steps.map((label) => (
+        {steps.map((label, index) => (
           <Step key={label}>
-            <StepLabel>{label}</StepLabel>
+            <StepLabel onClick={() => handleStepClick(index)}>
+              {label}
+            </StepLabel>
           </Step>
         ))}
       </Stepper>
 
       <Box sx={{ flex: 1, width: "100%", overflow: "hidden" }}>
         {getStepContent(activeStep)}
+      </Box>
+
+      {/* Fixed Save/Next Button - visible on all steps */}
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: 2,
+          backgroundColor: "background.default",
+          borderTop: "1px solid",
+          borderColor: "divider",
+          display: "flex",
+          justifyContent: "space-between",
+          zIndex: 10, // Add a higher z-index to ensure it's above other elements
+          boxShadow: "0px -2px 4px rgba(0,0,0,0.05)", // Add subtle shadow for visual separation
+        }}
+      >
+        {activeStep > 0 && (
+          <Button
+            variant="contained"
+            onClick={handleBack}
+            sx={{
+              px: 3,
+              boxShadow: "none",
+              borderRadius: 1,
+              textTransform: "none",
+            }}
+          >
+            Back
+          </Button>
+        )}
+        <Box sx={{ flex: 1 }} />
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
+          sx={{
+            px: 6,
+            boxShadow: "none",
+            borderRadius: 1,
+            textTransform: "none",
+          }}
+        >
+          {activeStep === steps.length - 1 ? "Save" : "Next"}
+        </Button>
       </Box>
     </Box>
   );

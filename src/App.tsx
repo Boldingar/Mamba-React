@@ -18,6 +18,7 @@ import NewProject from "./pages/NewProject";
 import TopAppBar from "./components/TopAppBar";
 import SignInSide from "./pages/sign-in-side/SignInSide";
 import { useAuthRedirect } from "./utils/authRedirect";
+import { redirectIfNoProjects } from "./utils/projectUtils";
 
 function checkAuth() {
   const localToken = localStorage.getItem("authToken");
@@ -30,6 +31,33 @@ function AuthRedirectHandler({ children }: { children: React.ReactNode }) {
   useAuthRedirect(); // Use our custom hook
   return <>{children}</>;
 }
+
+// Project Guard component to check if user has projects
+const ProjectGuard = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if user has projects and redirect if not
+    const checkUserProjects = async () => {
+      try {
+        await redirectIfNoProjects(navigate);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error in ProjectGuard:", error);
+        setLoading(false);
+      }
+    };
+
+    checkUserProjects();
+  }, [navigate]);
+
+  if (loading) {
+    return null; // Or a loading spinner
+  }
+
+  return <>{children}</>;
+};
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(checkAuth());
@@ -95,13 +123,13 @@ function App() {
                     path="/chat"
                     element={
                       isAuthenticated ? (
-                        <>
+                        <ProjectGuard>
                           <TopAppBar
                             csvPanelOpen={false}
                             onToggleCSVPanel={() => {}}
                           />
                           <ChatPage setIsAuthenticated={setIsAuthenticated} />
-                        </>
+                        </ProjectGuard>
                       ) : (
                         <Navigate to="/login" replace />
                       )
@@ -123,7 +151,18 @@ function App() {
                       )
                     }
                   />
-                  <Route path="/" element={<Navigate to="/chat" replace />} />
+                  <Route
+                    path="/"
+                    element={
+                      isAuthenticated ? (
+                        <ProjectGuard>
+                          <Navigate to="/chat" replace />
+                        </ProjectGuard>
+                      ) : (
+                        <Navigate to="/login" replace />
+                      )
+                    }
+                  />
                 </Routes>
               </AuthRedirectHandler>
             </BrowserRouter>

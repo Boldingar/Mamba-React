@@ -13,6 +13,8 @@ import UserProfile from "../components/UserProfile";
 import axiosInstance from "../utils/axios";
 import Integrations from "../components/integrations/Integrations";
 import EditProject from "../components/edit_project/EditProject";
+import { useNavigate } from "react-router-dom";
+import { redirectIfNoProjects } from "../utils/projectUtils";
 
 interface Data {
   [key: string]: string | number;
@@ -120,6 +122,7 @@ const ScrollbarStyle = {
 };
 
 const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(
@@ -140,6 +143,22 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [showIntegrations, setShowIntegrations] = useState(false);
   const [showEditProject, setShowEditProject] = useState(false);
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
+
+  // Check if user has projects when component mounts
+  useEffect(() => {
+    redirectIfNoProjects(navigate);
+
+    // Listen for popstate events (browser back/forward buttons)
+    const handlePopState = () => {
+      redirectIfNoProjects(navigate);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [navigate]);
 
   const handleNewChat = () => {
     if (isAwaitingResponse) return;
@@ -647,8 +666,13 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
 
   // Add this handler
   const handleEditProject = (projectId: string) => {
-    setEditProjectId(projectId);
-    setShowEditProject(true);
+    console.log(`Editing project: ${projectId}`);
+    // Always set these states in this order to ensure proper UI transition
+    setShowIntegrations(false);
+    setTimeout(() => {
+      setEditProjectId(projectId);
+      setShowEditProject(true);
+    }, 0);
   };
 
   // Update this function or add as needed
@@ -660,7 +684,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   // Listen for project edit requests
   useEffect(() => {
     const handleProjectEditRequested = (event: CustomEvent) => {
+      console.log("Project edit requested event received:", event.detail);
       if (event.detail && event.detail.projectId) {
+        console.log(`Handling edit for project: ${event.detail.projectId}`);
         handleEditProject(event.detail.projectId);
       }
     };
@@ -693,6 +719,47 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
       window.removeEventListener("closeEditProject", handleCloseEditProject);
     };
   }, [showEditProject]);
+
+  // Add a global event listener for debugging
+  useEffect(() => {
+    const debugEventListener = (event: Event) => {
+      if (event.type.includes("project") || event.type.includes("edit")) {
+        console.log(`Debug - Event detected: ${event.type}`, event);
+      }
+    };
+
+    // Add capture phase to ensure we see all events
+    window.addEventListener("projectEditRequested", debugEventListener, true);
+    window.addEventListener("closeEditProject", debugEventListener, true);
+    window.addEventListener("projectUpdated", debugEventListener, true);
+
+    return () => {
+      window.removeEventListener(
+        "projectEditRequested",
+        debugEventListener,
+        true
+      );
+      window.removeEventListener("closeEditProject", debugEventListener, true);
+      window.removeEventListener("projectUpdated", debugEventListener, true);
+    };
+  }, []);
+
+  // Listen for exit integrations view requests
+  useEffect(() => {
+    const handleExitIntegrationsView = () => {
+      console.log("Exiting integrations view");
+      setShowIntegrations(false);
+    };
+
+    window.addEventListener("exitIntegrationsView", handleExitIntegrationsView);
+
+    return () => {
+      window.removeEventListener(
+        "exitIntegrationsView",
+        handleExitIntegrationsView
+      );
+    };
+  }, []);
 
   return (
     <>

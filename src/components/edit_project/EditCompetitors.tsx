@@ -6,10 +6,11 @@ import {
   IconButton,
   Button,
   Paper,
+  FormControl,
+  FormLabel,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import ClearAllIcon from "@mui/icons-material/ClearAll";
 import { useTheme } from "@mui/material/styles";
 import { FormDataType, Competitor } from "../onboarding/Onboarding";
 
@@ -80,18 +81,6 @@ const Competitors: React.FC<CompetitorsProps> = ({
     setFormData({ ...formData, competitors: newCompetitors });
   };
 
-  const handleClear = (idx: number) => {
-    const newCompetitors = formData.competitors.map((c, i) =>
-      i === idx
-        ? {
-            name: "",
-            description: "",
-          }
-        : c
-    );
-    setFormData({ ...formData, competitors: newCompetitors });
-  };
-
   return (
     <Box
       sx={{
@@ -115,6 +104,7 @@ const Competitors: React.FC<CompetitorsProps> = ({
               backgroundColor: "transparent",
               minHeight: "220px",
               pt: 9,
+              zIndex: 1,
             }}
           >
             {/* Action buttons positioned at the top right */}
@@ -128,18 +118,6 @@ const Competitors: React.FC<CompetitorsProps> = ({
                 zIndex: 1,
               }}
             >
-              <IconButton
-                onClick={() => handleClear(idx)}
-                color="primary"
-                aria-label="clear"
-                sx={{
-                  "&:hover": {
-                    bgcolor: (theme) => theme.palette.primary.light + "20",
-                  },
-                }}
-              >
-                <ClearAllIcon />
-              </IconButton>
               <IconButton
                 onClick={() => handleDelete(idx)}
                 color="error"
@@ -157,38 +135,44 @@ const Competitors: React.FC<CompetitorsProps> = ({
 
             <Stack spacing={4}>
               {/* Competitor Name */}
-              <TextField
-                fullWidth
-                variant="outlined"
-                label="Competitor Name"
-                value={competitor.name}
-                onChange={(e) => handleChange(idx, "name", e.target.value)}
-                placeholder="Enter competitor name"
-                sx={textFieldSx}
-              />
+              <FormControl fullWidth>
+                <FormLabel htmlFor={`competitor-name-${idx}`}>
+                  Competitor Name
+                </FormLabel>
+                <TextField
+                  id={`competitor-name-${idx}`}
+                  fullWidth
+                  placeholder="Enter competitor name"
+                  value={competitor.name}
+                  onChange={(e) => handleChange(idx, "name", e.target.value)}
+                />
+              </FormControl>
 
               {/* Description on its own row */}
-              <TextField
-                fullWidth
-                variant="outlined"
-                label="Description"
-                value={competitor.description}
-                onChange={(e) =>
-                  handleChange(idx, "description", e.target.value)
-                }
-                placeholder="Enter competitor description"
-                multiline
-                rows={4}
-                sx={{
-                  ...textFieldSx,
-                  "& .MuiInputBase-root": {
-                    minHeight: "120px",
-                  },
-                  "& .MuiOutlinedInput-input": {
-                    height: "auto !important",
-                  },
-                }}
-              />
+              <FormControl fullWidth>
+                <FormLabel htmlFor={`competitor-desc-${idx}`}>
+                  Description
+                </FormLabel>
+                <TextField
+                  id={`competitor-desc-${idx}`}
+                  fullWidth
+                  placeholder="Enter competitor description"
+                  value={competitor.description}
+                  onChange={(e) =>
+                    handleChange(idx, "description", e.target.value)
+                  }
+                  multiline
+                  rows={4}
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      minHeight: "120px",
+                    },
+                    "& .MuiOutlinedInput-input": {
+                      height: "auto !important",
+                    },
+                  }}
+                />
+              </FormControl>
             </Stack>
           </Paper>
         ))}
@@ -212,32 +196,6 @@ const Competitors: React.FC<CompetitorsProps> = ({
           aria-label="add"
         >
           Add Competitor
-        </Button>
-      </Box>
-
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          mt: 4,
-          pt: 2,
-          borderTop: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Button
-          variant="contained"
-          sx={{ ...buttonStyles, px: 3 }}
-          onClick={onBack}
-        >
-          Back
-        </Button>
-        <Button
-          variant="contained"
-          sx={{ ...buttonStyles, px: 6 }}
-          onClick={onNext}
-        >
-          Save
         </Button>
       </Box>
     </Box>
