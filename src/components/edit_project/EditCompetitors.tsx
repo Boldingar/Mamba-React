@@ -6,6 +6,8 @@ import {
   IconButton,
   Button,
   Paper,
+  FormControl,
+  FormLabel,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -157,38 +159,44 @@ const Competitors: React.FC<CompetitorsProps> = ({
 
             <Stack spacing={4}>
               {/* Competitor Name */}
-              <TextField
-                fullWidth
-                variant="outlined"
-                label="Competitor Name"
-                value={competitor.name}
-                onChange={(e) => handleChange(idx, "name", e.target.value)}
-                placeholder="Enter competitor name"
-                sx={textFieldSx}
-              />
+              <FormControl fullWidth>
+                <FormLabel htmlFor={`competitor-name-${idx}`}>
+                  Competitor Name
+                </FormLabel>
+                <TextField
+                  id={`competitor-name-${idx}`}
+                  fullWidth
+                  placeholder="Enter competitor name"
+                  value={competitor.name}
+                  onChange={(e) => handleChange(idx, "name", e.target.value)}
+                />
+              </FormControl>
 
               {/* Description on its own row */}
-              <TextField
-                fullWidth
-                variant="outlined"
-                label="Description"
-                value={competitor.description}
-                onChange={(e) =>
-                  handleChange(idx, "description", e.target.value)
-                }
-                placeholder="Enter competitor description"
-                multiline
-                rows={4}
-                sx={{
-                  ...textFieldSx,
-                  "& .MuiInputBase-root": {
-                    minHeight: "120px",
-                  },
-                  "& .MuiOutlinedInput-input": {
-                    height: "auto !important",
-                  },
-                }}
-              />
+              <FormControl fullWidth>
+                <FormLabel htmlFor={`competitor-desc-${idx}`}>
+                  Description
+                </FormLabel>
+                <TextField
+                  id={`competitor-desc-${idx}`}
+                  fullWidth
+                  placeholder="Enter competitor description"
+                  value={competitor.description}
+                  onChange={(e) =>
+                    handleChange(idx, "description", e.target.value)
+                  }
+                  multiline
+                  rows={4}
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      minHeight: "120px",
+                    },
+                    "& .MuiOutlinedInput-input": {
+                      height: "auto !important",
+                    },
+                  }}
+                />
+              </FormControl>
             </Stack>
           </Paper>
         ))}

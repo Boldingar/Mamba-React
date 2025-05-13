@@ -6,6 +6,8 @@ import {
   IconButton,
   Button,
   Paper,
+  FormControl,
+  FormLabel,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
@@ -153,59 +155,62 @@ const Personas: React.FC<PersonasProps> = ({
 
             <Stack spacing={4}>
               {/* Name and Priority in a row */}
-              <Stack direction="row" spacing={2} alignItems="center">
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  label="Persona Name"
-                  value={persona.name}
-                  onChange={(e) => handleChange(idx, "name", e.target.value)}
-                  placeholder="Enter persona name"
-                  sx={{
-                    ...textFieldSx,
-                    width: "80%",
-                  }}
-                />
-                <TextField
-                  fullWidth
-                  type="number"
-                  variant="outlined"
-                  label="Priority"
-                  value={persona.priority}
-                  onChange={(e) =>
-                    handleChange(idx, "priority", Number(e.target.value))
-                  }
-                  placeholder="1-10"
-                  sx={{
-                    ...textFieldSx,
-                    width: "20%",
-                  }}
-                  inputProps={{ min: 1, max: 10 }}
-                />
+              <Stack direction="row" spacing={2} alignItems="flex-start">
+                <FormControl sx={{ width: "80%" }}>
+                  <FormLabel htmlFor={`persona-name-${idx}`}>
+                    Persona Name
+                  </FormLabel>
+                  <TextField
+                    id={`persona-name-${idx}`}
+                    fullWidth
+                    placeholder="Enter persona name"
+                    value={persona.name}
+                    onChange={(e) => handleChange(idx, "name", e.target.value)}
+                  />
+                </FormControl>
+                <FormControl sx={{ width: "20%" }}>
+                  <FormLabel htmlFor={`persona-priority-${idx}`}>
+                    Priority
+                  </FormLabel>
+                  <TextField
+                    id={`persona-priority-${idx}`}
+                    fullWidth
+                    type="number"
+                    placeholder="1-10"
+                    value={persona.priority}
+                    onChange={(e) =>
+                      handleChange(idx, "priority", Number(e.target.value))
+                    }
+                    inputProps={{ min: 1, max: 10 }}
+                  />
+                </FormControl>
               </Stack>
 
               {/* Description on its own row */}
-              <TextField
-                fullWidth
-                variant="outlined"
-                label="Description"
-                value={persona.description}
-                onChange={(e) =>
-                  handleChange(idx, "description", e.target.value)
-                }
-                placeholder="Enter persona description"
-                multiline
-                rows={4}
-                sx={{
-                  ...textFieldSx,
-                  "& .MuiInputBase-root": {
-                    minHeight: "120px",
-                  },
-                  "& .MuiOutlinedInput-input": {
-                    height: "auto !important",
-                  },
-                }}
-              />
+              <FormControl fullWidth>
+                <FormLabel htmlFor={`persona-desc-${idx}`}>
+                  Description
+                </FormLabel>
+                <TextField
+                  id={`persona-desc-${idx}`}
+                  fullWidth
+                  placeholder="Enter persona description"
+                  value={persona.description}
+                  onChange={(e) =>
+                    handleChange(idx, "description", e.target.value)
+                  }
+                  multiline
+                  rows={4}
+                  sx={{
+                    "& .MuiInputBase-root": {
+                      minHeight: "120px",
+                    },
+                    "& .MuiOutlinedInput-input": {
+                      height: "auto !important",
+                    },
+                  }}
+                />
+              </FormControl>
             </Stack>
           </Paper>
         ))}

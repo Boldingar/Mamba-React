@@ -15,6 +15,7 @@ import {
   MenuItem,
   SelectChangeEvent,
   Container,
+  FormLabel,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import EditProducts from "./EditProducts";
@@ -185,36 +186,40 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
                 Business Information
               </Typography> */}
 
-              <TextField
-                fullWidth
-                label="Project Name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                sx={{ mb: 3 }}
-              />
+              <FormControl fullWidth sx={{ mb: 3 }}>
+                <FormLabel htmlFor="project-name">Project Name</FormLabel>
+                <TextField
+                  id="project-name"
+                  fullWidth
+                  placeholder="Enter project name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                />
+              </FormControl>
 
               {formData.website_url && (
-                <TextField
-                  fullWidth
-                  label="Website URL"
-                  value={formData.website_url}
-                  InputProps={{
-                    readOnly: true,
-                  }}
-                  sx={{ mb: 3 }}
-                />
+                <FormControl fullWidth sx={{ mb: 3 }}>
+                  <FormLabel htmlFor="website-url">Website URL</FormLabel>
+                  <TextField
+                    id="website-url"
+                    fullWidth
+                    placeholder="https://example.com"
+                    value={formData.website_url}
+                    InputProps={{
+                      readOnly: true,
+                    }}
+                  />
+                </FormControl>
               )}
 
               <FormControl fullWidth required sx={{ mb: 3 }}>
-                <InputLabel id="target-market-label">Target Market</InputLabel>
+                <FormLabel htmlFor="target-market">Target Market</FormLabel>
                 <Select
+                  id="target-market"
                   labelId="target-market-label"
-                  id="targetMarket"
                   value={formData.target_market}
-                  label="Target Market"
-                  required
                   displayEmpty
                   error={!!validationError && !formData.target_market}
                   onChange={(e: SelectChangeEvent) =>
