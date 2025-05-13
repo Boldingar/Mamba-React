@@ -148,9 +148,10 @@ const Competitors: React.FC<CompetitorsProps> = ({
                   "&:hover": {
                     bgcolor: (theme) => theme.palette.error.light + "20",
                   },
+                  color: theme.palette.error.main,
                 }}
               >
-                <DeleteIcon />
+                <DeleteIcon color="inherit" />
               </IconButton>
             </Box>
 
