@@ -101,11 +101,22 @@ export default function SelectContent({
     setMenuAnchorEl(null);
 
     if (activeProject) {
-      // Dispatch a custom event to notify the ChatPage that a project edit was requested
-      const editEvent = new CustomEvent("projectEditRequested", {
-        detail: { projectId: activeProject.id },
-      });
-      window.dispatchEvent(editEvent);
+      console.log(
+        `Dispatching projectEditRequested event for project: ${activeProject.id}`
+      );
+
+      // First, dispatch an event to exit integrations view
+      const exitIntegrationsEvent = new CustomEvent("exitIntegrationsView");
+      window.dispatchEvent(exitIntegrationsEvent);
+
+      // Small delay to ensure state updates in the right order
+      setTimeout(() => {
+        // Then dispatch the edit project event
+        const editEvent = new CustomEvent("projectEditRequested", {
+          detail: { projectId: activeProject.id },
+        });
+        window.dispatchEvent(editEvent);
+      }, 50);
 
       // Close the select dropdown
       onClose();

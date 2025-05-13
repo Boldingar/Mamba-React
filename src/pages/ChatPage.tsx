@@ -647,10 +647,13 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
 
   // Add this handler
   const handleEditProject = (projectId: string) => {
-    setEditProjectId(projectId);
-    setShowEditProject(true);
-    // Ensure we exit Integrations view when editing a project
+    console.log(`Editing project: ${projectId}`);
+    // Always set these states in this order to ensure proper UI transition
     setShowIntegrations(false);
+    setTimeout(() => {
+      setEditProjectId(projectId);
+      setShowEditProject(true);
+    }, 0);
   };
 
   // Update this function or add as needed
@@ -662,7 +665,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   // Listen for project edit requests
   useEffect(() => {
     const handleProjectEditRequested = (event: CustomEvent) => {
+      console.log("Project edit requested event received:", event.detail);
       if (event.detail && event.detail.projectId) {
+        console.log(`Handling edit for project: ${event.detail.projectId}`);
         handleEditProject(event.detail.projectId);
       }
     };
@@ -695,6 +700,47 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
       window.removeEventListener("closeEditProject", handleCloseEditProject);
     };
   }, [showEditProject]);
+
+  // Add a global event listener for debugging
+  useEffect(() => {
+    const debugEventListener = (event: Event) => {
+      if (event.type.includes("project") || event.type.includes("edit")) {
+        console.log(`Debug - Event detected: ${event.type}`, event);
+      }
+    };
+
+    // Add capture phase to ensure we see all events
+    window.addEventListener("projectEditRequested", debugEventListener, true);
+    window.addEventListener("closeEditProject", debugEventListener, true);
+    window.addEventListener("projectUpdated", debugEventListener, true);
+
+    return () => {
+      window.removeEventListener(
+        "projectEditRequested",
+        debugEventListener,
+        true
+      );
+      window.removeEventListener("closeEditProject", debugEventListener, true);
+      window.removeEventListener("projectUpdated", debugEventListener, true);
+    };
+  }, []);
+
+  // Listen for exit integrations view requests
+  useEffect(() => {
+    const handleExitIntegrationsView = () => {
+      console.log("Exiting integrations view");
+      setShowIntegrations(false);
+    };
+
+    window.addEventListener("exitIntegrationsView", handleExitIntegrationsView);
+
+    return () => {
+      window.removeEventListener(
+        "exitIntegrationsView",
+        handleExitIntegrationsView
+      );
+    };
+  }, []);
 
   return (
     <>

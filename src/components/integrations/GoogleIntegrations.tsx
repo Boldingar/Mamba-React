@@ -13,11 +13,18 @@ const GoogleIntegrations: React.FC = () => {
 
   // Check integration status on component mount
   useEffect(() => {
+    console.log("GoogleIntegrations component mounted");
     setSearchConsoleConnected(getIntegrationStatus("search_console"));
     setAnalyticsConnected(getIntegrationStatus("ga4"));
+
+    return () => {
+      console.log("GoogleIntegrations component unmounted");
+    };
   }, []);
 
-  const handleGoogleAnalytics = async () => {
+  const handleGoogleAnalytics = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+
     if (analyticsConnected) {
       // Show already connected message
       setSuccess("Already connected to Google Analytics (GA4)");
@@ -45,7 +52,9 @@ const GoogleIntegrations: React.FC = () => {
     }
   };
 
-  const handleSearchConsole = async () => {
+  const handleSearchConsole = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+
     if (searchConsoleConnected) {
       // Show already connected message
       setSuccess("Already connected to Google Search Console");
