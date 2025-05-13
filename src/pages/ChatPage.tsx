@@ -157,6 +157,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     setSelectedDatasetId(null);
     setShowDataPanel(false);
 
+    // Close EditProject component if it's open
+    if (showEditProject) {
+      setShowEditProject(false);
+      setEditProjectId(null);
+    }
+
     // Switch back to chat view if we're in integrations
     if (showIntegrations) {
       setShowIntegrations(false);
@@ -488,6 +494,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
       // Set the new conversation ID
       setConversationId(id);
 
+      // Close EditProject component if it's open
+      if (showEditProject) {
+        setShowEditProject(false);
+        setEditProjectId(null);
+      }
+
       // Switch back to chat view if we're in integrations
       if (showIntegrations) {
         setShowIntegrations(false);
@@ -620,6 +632,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   // Add this handler
   const handleIntegrationsClick = () => {
     setShowIntegrations(true);
+
+    // Close EditProject component if it's open
+    if (showEditProject) {
+      setShowEditProject(false);
+      setEditProjectId(null);
+    }
   };
 
   // Add this handler
@@ -659,6 +677,22 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
       );
     };
   }, []);
+
+  // Listen for close edit project requests
+  useEffect(() => {
+    const handleCloseEditProject = () => {
+      if (showEditProject) {
+        setShowEditProject(false);
+        setEditProjectId(null);
+      }
+    };
+
+    window.addEventListener("closeEditProject", handleCloseEditProject);
+
+    return () => {
+      window.removeEventListener("closeEditProject", handleCloseEditProject);
+    };
+  }, [showEditProject]);
 
   return (
     <>
