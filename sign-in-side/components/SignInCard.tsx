@@ -16,6 +16,7 @@ import { GoogleIcon, FacebookIcon, SitemarkIcon } from "./CustomIcons";
 import axiosInstance from "../../src/utils/axios";
 import { useNavigate } from "react-router-dom";
 import GoogleLogin from "../../src/components/GoogleLogin";
+import { saveIntegrationStatus } from "../../src/utils/authRedirect";
 
 interface SignInCardProps {
   setIsAuthenticated?: (auth: boolean) => void;
@@ -76,7 +77,9 @@ export default function SignInCard({ setIsAuthenticated }: SignInCardProps) {
   const handleLoginSuccess = (
     access_token: string,
     user: any,
-    projects: any[]
+    projects: any[],
+    connected_to_search_console?: boolean,
+    connected_to_ga4?: boolean
   ) => {
     // Set the auth token for subsequent requests
     axiosInstance.defaults.headers.common[
@@ -91,6 +94,15 @@ export default function SignInCard({ setIsAuthenticated }: SignInCardProps) {
     // Update authentication state if prop is provided
     if (setIsAuthenticated) {
       setIsAuthenticated(true);
+    }
+
+    // Save integration status if available in the response
+    if (connected_to_search_console !== undefined) {
+      saveIntegrationStatus("search_console", connected_to_search_console);
+    }
+
+    if (connected_to_ga4 !== undefined) {
+      saveIntegrationStatus("ga4", connected_to_ga4);
     }
 
     // Redirect based on whether user has projects
@@ -111,8 +123,21 @@ export default function SignInCard({ setIsAuthenticated }: SignInCardProps) {
         email,
         password,
       });
-      const { access_token, user, projects } = loginResponse.data;
-      handleLoginSuccess(access_token, user, projects);
+      const {
+        access_token,
+        user,
+        projects,
+        connected_to_search_console,
+        connected_to_ga4,
+      } = loginResponse.data;
+
+      handleLoginSuccess(
+        access_token,
+        user,
+        projects,
+        connected_to_search_console,
+        connected_to_ga4
+      );
     } catch (error: any) {
       if (error.response?.status === 401) setError("Invalid email or password");
       else setError("An error occurred during login. Please try again.");
@@ -127,8 +152,21 @@ export default function SignInCard({ setIsAuthenticated }: SignInCardProps) {
       const loginResponse = await axiosInstance.post("/auth/google", {
         token: googleUser.token,
       });
-      const { access_token, user, projects } = loginResponse.data;
-      handleLoginSuccess(access_token, user, projects);
+      const {
+        access_token,
+        user,
+        projects,
+        connected_to_search_console,
+        connected_to_ga4,
+      } = loginResponse.data;
+
+      handleLoginSuccess(
+        access_token,
+        user,
+        projects,
+        connected_to_search_console,
+        connected_to_ga4
+      );
     } catch (error: any) {
       setError(
         error.response?.data?.detail ||

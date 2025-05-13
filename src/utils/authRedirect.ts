@@ -43,15 +43,31 @@ export const useAuthRedirect = () => {
 
     // If we have redirect parameters, process them
     if (googleAuthStatus && service) {
+      console.log(`OAuth callback received: ${service} - ${googleAuthStatus}`);
+
       if (googleAuthStatus === "success") {
         // Save the successful integration status
         saveIntegrationStatus(service, true);
+
+        // Clear the connecting flag
+        if (service === "search_console") {
+          localStorage.removeItem("connecting_to_search_console");
+        } else if (service === "ga4") {
+          localStorage.removeItem("connecting_to_ga4");
+        }
 
         // Redirect to chat page
         navigate("/chat");
       } else if (googleAuthStatus === "error") {
         // Handle error if needed
         console.error(`Authentication failed for service: ${service}`);
+
+        // Clear the connecting flag
+        if (service === "search_console") {
+          localStorage.removeItem("connecting_to_search_console");
+        } else if (service === "ga4") {
+          localStorage.removeItem("connecting_to_ga4");
+        }
 
         // Still redirect to chat page
         navigate("/chat");

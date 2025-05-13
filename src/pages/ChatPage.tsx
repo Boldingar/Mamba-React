@@ -13,6 +13,8 @@ import UserProfile from "../components/UserProfile";
 import axiosInstance from "../utils/axios";
 import Integrations from "../components/integrations/Integrations";
 import EditProject from "../components/edit_project/EditProject";
+import { useNavigate } from "react-router-dom";
+import { redirectIfNoProjects } from "../utils/projectUtils";
 
 interface Data {
   [key: string]: string | number;
@@ -120,6 +122,7 @@ const ScrollbarStyle = {
 };
 
 const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(
@@ -140,6 +143,22 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [showIntegrations, setShowIntegrations] = useState(false);
   const [showEditProject, setShowEditProject] = useState(false);
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
+
+  // Check if user has projects when component mounts
+  useEffect(() => {
+    redirectIfNoProjects(navigate);
+
+    // Listen for popstate events (browser back/forward buttons)
+    const handlePopState = () => {
+      redirectIfNoProjects(navigate);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [navigate]);
 
   const handleNewChat = () => {
     if (isAwaitingResponse) return;
