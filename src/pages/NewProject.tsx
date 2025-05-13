@@ -4,6 +4,7 @@ import Onboarding from "../components/onboarding/Onboarding";
 import WelcomeSection from "../components/onboarding/WelcomeSection";
 import { ThemeProvider } from "../context/ThemeContext";
 import AppTheme from "../../shared-theme/AppTheme";
+import { FormDataType } from "../components/onboarding/Onboarding";
 
 const steps = [
   "Website",
@@ -51,8 +52,17 @@ const stepWelcomeContent = [
 
 const NewProject: React.FC = () => {
   const [activeStep, setActiveStep] = React.useState(0);
-
-  // Business Info tab uses side-by-side layout, other tabs use vertical layout
+  const [formData, setFormData] = React.useState<FormDataType>({
+    name: "",
+    website_url: "",
+    target_market: "United States",
+    products: [],
+    personas: [],
+    competitors: [],
+    company_summary: "",
+  });
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [hasWebsite, setHasWebsite] = React.useState<boolean | null>(null);
   const isBusinessInfoStep = activeStep === 1;
 
   return (
@@ -60,7 +70,7 @@ const NewProject: React.FC = () => {
       <ThemeProvider>
         <Box
           sx={{
-            maxHeight: "90vh", // Account for AppBar height
+            maxHeight: "90vh",
             display: "flex",
             flexDirection: "column",
             justifyContent: "flex-start",
@@ -73,7 +83,6 @@ const NewProject: React.FC = () => {
           }}
         >
           {isBusinessInfoStep ? (
-            // Side-by-side layout for Business Info tab
             <Stack
               direction={{ xs: "column", md: "row" }}
               sx={{
@@ -82,12 +91,11 @@ const NewProject: React.FC = () => {
                 maxWidth: "100%",
               }}
             >
-              {/* Left Column - Welcome Text */}
               <Box
                 sx={{
                   width: { xs: "100%", md: "40%" },
                   height: "100%",
-                  display: { xs: "none", md: "block" }, // Hide on mobile
+                  display: { xs: "none", md: "block" },
                 }}
               >
                 <WelcomeSection
@@ -95,8 +103,6 @@ const NewProject: React.FC = () => {
                   step={steps[activeStep]}
                 />
               </Box>
-
-              {/* Right Column - Onboarding Form */}
               <Box
                 sx={{
                   width: { xs: "100%", md: "60%" },
@@ -109,14 +115,18 @@ const NewProject: React.FC = () => {
                 <Onboarding
                   activeStep={activeStep}
                   setActiveStep={setActiveStep}
+                  formData={formData}
+                  setFormData={setFormData}
+                  isLoading={isLoading}
+                  setIsLoading={setIsLoading}
+                  hasWebsite={hasWebsite}
+                  setHasWebsite={setHasWebsite}
                 />
               </Box>
             </Stack>
           ) : (
-            // Vertical layout for all other tabs
             <>
               <Box sx={{ justifyContent: "flex-start", width: "100%" }}>
-                {/* Welcome Section - At the top */}
                 <Box
                   sx={{
                     width: "100%",
@@ -131,7 +141,6 @@ const NewProject: React.FC = () => {
                   />
                 </Box>
               </Box>
-              {/* Onboarding Form - Below the Welcome Section */}
               <Box
                 sx={{
                   width: "100%",
@@ -143,6 +152,12 @@ const NewProject: React.FC = () => {
                 <Onboarding
                   activeStep={activeStep}
                   setActiveStep={setActiveStep}
+                  formData={formData}
+                  setFormData={setFormData}
+                  isLoading={isLoading}
+                  setIsLoading={setIsLoading}
+                  hasWebsite={hasWebsite}
+                  setHasWebsite={setHasWebsite}
                 />
               </Box>
             </>
