@@ -213,9 +213,6 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
                     backgroundColor: "background.paper",
                   }}
                 >
-                  <MenuItem value="" disabled>
-                    <em>Select a target market</em>
-                  </MenuItem>
                   <MenuItem value="Algeria">Algeria</MenuItem>
                   <MenuItem value="Angola">Angola</MenuItem>
                   <MenuItem value="Azerbaijan">Azerbaijan</MenuItem>
