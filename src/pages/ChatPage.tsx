@@ -649,6 +649,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const handleEditProject = (projectId: string) => {
     setEditProjectId(projectId);
     setShowEditProject(true);
+    // Ensure we exit Integrations view when editing a project
+    setShowIntegrations(false);
   };
 
   // Update this function or add as needed

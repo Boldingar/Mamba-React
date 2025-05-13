@@ -24,6 +24,7 @@ import {
   DialogActions,
   Button,
   Box,
+  Tooltip,
 } from "@mui/material";
 
 interface Project {
@@ -114,7 +115,11 @@ export default function SelectContent({
   const handleDeleteClick = (event: React.MouseEvent<HTMLElement>) => {
     event.stopPropagation(); // Prevent the Select from opening
     setMenuAnchorEl(null);
-    setDeleteDialogOpen(true);
+
+    // Only allow deletion if there's more than one project
+    if (projects.length > 1) {
+      setDeleteDialogOpen(true);
+    }
   };
 
   const handleDeleteConfirm = async () => {
@@ -384,12 +389,34 @@ export default function SelectContent({
           </ListItemIcon>
           Edit
         </MenuItem>
-        <MenuItem onClick={handleDeleteClick} sx={{ color: "error.main" }}>
-          <ListItemIcon>
-            <DeleteIcon fontSize="small" color="error" />
-          </ListItemIcon>
-          Delete
-        </MenuItem>
+        <Tooltip
+          title={
+            projects.length > 1
+              ? ""
+              : "You cannot delete your only project. Please create another project first."
+          }
+          placement="right"
+        >
+          <div>
+            {" "}
+            {/* Wrapper div is needed for disabled MenuItem */}
+            <MenuItem
+              onClick={handleDeleteClick}
+              sx={{
+                color: projects.length > 1 ? "error.main" : "text.disabled",
+                pointerEvents: projects.length > 1 ? "auto" : "none",
+              }}
+            >
+              <ListItemIcon>
+                <DeleteIcon
+                  fontSize="small"
+                  color={projects.length > 1 ? "error" : "disabled"}
+                />
+              </ListItemIcon>
+              Delete
+            </MenuItem>
+          </div>
+        </Tooltip>
       </Menu>
 
       {/* Delete Confirmation Dialog */}
@@ -400,8 +427,17 @@ export default function SelectContent({
       >
         <DialogTitle id="delete-dialog-title">Delete Project</DialogTitle>
         <DialogContent>
-          Are you sure you want to delete {activeProject?.name}? This action
-          cannot be undone.
+          {projects.length > 1 ? (
+            <>
+              Are you sure you want to delete {activeProject?.name}? This action
+              cannot be undone.
+            </>
+          ) : (
+            <>
+              You cannot delete your only project. Please create another project
+              first.
+            </>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel}>Cancel</Button>
@@ -409,6 +445,7 @@ export default function SelectContent({
             onClick={handleDeleteConfirm}
             color="error"
             variant="contained"
+            disabled={projects.length <= 1}
           >
             Delete
           </Button>

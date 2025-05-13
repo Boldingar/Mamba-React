@@ -695,6 +695,25 @@ const UserPanel: React.FC<UserPanelProps> = ({
     }
   };
 
+  // Add a listener for the projectEditRequested event to ensure we exit Integrations view
+  useEffect(() => {
+    const handleProjectEditRequested = (event: Event) => {
+      // Switch back to chat view if we're in integrations
+      if (showIntegrations && onChatClick) {
+        onChatClick();
+      }
+    };
+
+    window.addEventListener("projectEditRequested", handleProjectEditRequested);
+
+    return () => {
+      window.removeEventListener(
+        "projectEditRequested",
+        handleProjectEditRequested
+      );
+    };
+  }, [showIntegrations, onChatClick]);
+
   // Update the New Chat button click handler to also handle switching back to chat view
   const handleNewChatClick = () => {
     // Dispatch an event to close EditProject if open

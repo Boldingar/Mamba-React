@@ -10,6 +10,11 @@ import {
   Link,
   InputAdornment,
   IconButton,
+  FormControl,
+  FormLabel,
+  Card,
+  Divider,
+  styled,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axiosInstance, { API_BASE_URL } from "../utils/axios";
@@ -20,6 +25,21 @@ interface FieldError {
   field: string;
   message: string;
 }
+
+const StyledCard = styled(Card)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  alignSelf: "center",
+  width: "100%",
+  padding: theme.spacing(5),
+  gap: theme.spacing(2.5),
+  borderRadius: "20px",
+  boxShadow: "0px 4px 35px rgba(0, 0, 0, 0.08)",
+  background: theme.palette.background.paper,
+  [theme.breakpoints.up("sm")]: {
+    width: "450px",
+  },
+}));
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -162,70 +182,100 @@ const RegisterPage: React.FC = () => {
         bgcolor: "background.default",
       }}
     >
-      <Container maxWidth="sm" sx={{ py: 4 }}>
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom align="center">
-            Register
-          </Typography>
+      <StyledCard variant="outlined">
+        <Typography
+          component="h1"
+          variant="h4"
+          sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
+        >
+          Register 👋
+        </Typography>
+        <Typography sx={{ width: "100%", fontSize: "16px" }}>
+          Sign up to start managing your projects
+        </Typography>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          noValidate
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            gap: 2,
+          }}
+        >
+          <FormControl>
+            <FormLabel htmlFor="first_name">First Name</FormLabel>
             <TextField
-              margin="normal"
+              id="first_name"
+              name="first_name"
+              placeholder="John"
+              autoComplete="given-name"
               required
               fullWidth
-              id="firstName"
-              label="First Name"
-              name="first_name"
-              autoComplete="given-name"
+              variant="outlined"
               value={formData.first_name}
               onChange={handleInputChange}
               disabled={isLoading}
               error={!!getFieldError("first_name")}
               helperText={getFieldError("first_name")}
             />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel htmlFor="last_name">Last Name</FormLabel>
             <TextField
-              margin="normal"
+              id="last_name"
+              name="last_name"
+              placeholder="Doe"
+              autoComplete="family-name"
               required
               fullWidth
-              id="lastName"
-              label="Last Name"
-              name="last_name"
-              autoComplete="family-name"
+              variant="outlined"
               value={formData.last_name}
               onChange={handleInputChange}
               disabled={isLoading}
               error={!!getFieldError("last_name")}
               helperText={getFieldError("last_name")}
             />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel htmlFor="email">Email</FormLabel>
             <TextField
-              margin="normal"
+              id="email"
+              name="email"
+              placeholder="your@email.com"
+              autoComplete="email"
               required
               fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
+              variant="outlined"
               value={formData.email}
               onChange={handleInputChange}
               disabled={isLoading}
               error={!!getFieldError("email")}
               helperText={getFieldError("email")}
             />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel htmlFor="password">Password</FormLabel>
             <TextField
-              margin="normal"
+              id="password"
+              name="password"
+              placeholder="••••••"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
               required
               fullWidth
-              name="password"
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              id="password"
-              autoComplete="new-password"
+              variant="outlined"
               value={formData.password}
               onChange={handleInputChange}
               disabled={isLoading}
@@ -249,15 +299,19 @@ const RegisterPage: React.FC = () => {
                 ),
               }}
             />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel htmlFor="confirmPassword">Confirm Password</FormLabel>
             <TextField
-              margin="normal"
+              id="confirmPassword"
+              name="confirmPassword"
+              placeholder="••••••"
+              type={showConfirmPassword ? "text" : "password"}
+              autoComplete="new-password"
               required
               fullWidth
-              name="confirmPassword"
-              label="Confirm Password"
-              type={showConfirmPassword ? "text" : "password"}
-              id="confirmPassword"
-              autoComplete="new-password"
+              variant="outlined"
               value={formData.confirmPassword}
               onChange={handleInputChange}
               disabled={isLoading}
@@ -281,33 +335,26 @@ const RegisterPage: React.FC = () => {
                 ),
               }}
             />
+          </FormControl>
 
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              disabled={isLoading}
-            >
-              {isLoading ? "Registering..." : "Register"}
-            </Button>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            disabled={isLoading}
+            sx={{ mt: 2 }}
+          >
+            {isLoading ? "Registering..." : "Register"}
+          </Button>
 
-            <Box sx={{ textAlign: "center", mt: 2 }}>
-              <Typography variant="body2">
-                Already have an account?{" "}
-                <Link
-                  component="button"
-                  variant="body2"
-                  onClick={() => navigate("/login")}
-                  sx={{ textDecoration: "none" }}
-                >
-                  Login here
-                </Link>
-              </Typography>
-            </Box>
-          </Box>
-        </Paper>
-      </Container>
+          <Typography sx={{ textAlign: "center" }}>
+            Already have an account?{" "}
+            <Link href="/login" variant="body2" sx={{ alignSelf: "center" }}>
+              Login here
+            </Link>
+          </Typography>
+        </Box>
+      </StyledCard>
     </Box>
   );
 };
