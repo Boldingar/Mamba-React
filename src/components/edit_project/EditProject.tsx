@@ -195,6 +195,18 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
                 sx={{ mb: 3 }}
               />
 
+              {formData.website_url && (
+                <TextField
+                  fullWidth
+                  label="Website URL"
+                  value={formData.website_url}
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                  sx={{ mb: 3 }}
+                />
+              )}
+
               <FormControl fullWidth required sx={{ mb: 3 }}>
                 <InputLabel id="target-market-label">Target Market</InputLabel>
                 <Select
