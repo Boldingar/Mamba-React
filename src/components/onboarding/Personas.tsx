@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Stack, TextField, IconButton, Button } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import ClearIcon from "@mui/icons-material/Clear";
+import ClearAllIcon from "@mui/icons-material/ClearAll";
 import { useTheme } from "@mui/material/styles";
 import { FormDataType, Persona } from "./Onboarding";
 
@@ -146,7 +146,7 @@ const Personas: React.FC<PersonasProps> = ({
                 },
               }}
             >
-              <ClearIcon />
+              <ClearAllIcon />
             </IconButton>
             <IconButton
               onClick={() => handleDelete(idx)}
