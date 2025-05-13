@@ -12,6 +12,7 @@ import { API_BASE_URL } from "../utils/axios";
 import UserProfile from "../components/UserProfile";
 import axiosInstance from "../utils/axios";
 import Integrations from "../components/integrations/Integrations";
+import EditProject from "../components/edit_project/EditProject";
 
 interface Data {
   [key: string]: string | number;
@@ -137,6 +138,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [dataPanelWidth, setDataPanelWidth] = useState(500);
   const skipNextFetch = useRef(false);
   const [showIntegrations, setShowIntegrations] = useState(false);
+  const [showEditProject, setShowEditProject] = useState(false);
+  const [editProjectId, setEditProjectId] = useState<string | null>(null);
 
   const handleNewChat = () => {
     if (isAwaitingResponse) return;
@@ -624,6 +627,39 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     setShowIntegrations(false);
   };
 
+  // Add this handler
+  const handleEditProject = (projectId: string) => {
+    setEditProjectId(projectId);
+    setShowEditProject(true);
+  };
+
+  // Update this function or add as needed
+  const handleCloseEditProject = () => {
+    setShowEditProject(false);
+    setEditProjectId(null);
+  };
+
+  // Listen for project edit requests
+  useEffect(() => {
+    const handleProjectEditRequested = (event: CustomEvent) => {
+      if (event.detail && event.detail.projectId) {
+        handleEditProject(event.detail.projectId);
+      }
+    };
+
+    window.addEventListener(
+      "projectEditRequested",
+      handleProjectEditRequested as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "projectEditRequested",
+        handleProjectEditRequested as EventListener
+      );
+    };
+  }, []);
+
   return (
     <>
       {showProfile && (
@@ -698,6 +734,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           >
             {showIntegrations ? (
               <Integrations />
+            ) : showEditProject && editProjectId ? (
+              <EditProject
+                projectId={editProjectId}
+                onClose={handleCloseEditProject}
+              />
             ) : (
               <ChatComponent
                 onTableReady={fetchTableData}
