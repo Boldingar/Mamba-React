@@ -562,6 +562,14 @@ const UserPanel: React.FC<UserPanelProps> = ({
       chat.id === selectedConversationId && !isIntegrationsView;
     const isCurrentlyRenaming = isRenaming && currentChatId === chat.id;
 
+    const handleChatClick = () => {
+      if (!isCurrentlyRenaming && onSelectChat) {
+        onSelectChat(chat.id);
+        // Dispatch an event to close EditProject if open
+        window.dispatchEvent(new CustomEvent("closeEditProject"));
+      }
+    };
+
     return (
       <ListItem key={chat.id} disablePadding sx={{ borderRadius: 2, mb: 0.5 }}>
         <ListItemButton
@@ -582,9 +590,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
               opacity: 0.5,
             },
           }}
-          onClick={() =>
-            !isCurrentlyRenaming && onSelectChat && onSelectChat(chat.id)
-          }
+          onClick={handleChatClick}
           disabled={isAwaitingResponse}
         >
           <ListItemIcon>
@@ -681,6 +687,9 @@ const UserPanel: React.FC<UserPanelProps> = ({
 
   // Update the Integrations button click handler
   const handleIntegrationsClick = () => {
+    // Dispatch an event to close EditProject if open
+    window.dispatchEvent(new CustomEvent("closeEditProject"));
+
     if (onIntegrationsClick) {
       onIntegrationsClick();
     }
@@ -688,6 +697,9 @@ const UserPanel: React.FC<UserPanelProps> = ({
 
   // Update the New Chat button click handler to also handle switching back to chat view
   const handleNewChatClick = () => {
+    // Dispatch an event to close EditProject if open
+    window.dispatchEvent(new CustomEvent("closeEditProject"));
+
     if (onChatClick) {
       onChatClick();
     }

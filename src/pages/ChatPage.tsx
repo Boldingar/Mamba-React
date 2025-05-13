@@ -12,6 +12,7 @@ import { API_BASE_URL } from "../utils/axios";
 import UserProfile from "../components/UserProfile";
 import axiosInstance from "../utils/axios";
 import Integrations from "../components/integrations/Integrations";
+import EditProject from "../components/edit_project/EditProject";
 
 interface Data {
   [key: string]: string | number;
@@ -137,6 +138,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [dataPanelWidth, setDataPanelWidth] = useState(500);
   const skipNextFetch = useRef(false);
   const [showIntegrations, setShowIntegrations] = useState(false);
+  const [showEditProject, setShowEditProject] = useState(false);
+  const [editProjectId, setEditProjectId] = useState<string | null>(null);
 
   const handleNewChat = () => {
     if (isAwaitingResponse) return;
@@ -153,6 +156,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     setDatasets([]);
     setSelectedDatasetId(null);
     setShowDataPanel(false);
+
+    // Close EditProject component if it's open
+    if (showEditProject) {
+      setShowEditProject(false);
+      setEditProjectId(null);
+    }
 
     // Switch back to chat view if we're in integrations
     if (showIntegrations) {
@@ -485,6 +494,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
       // Set the new conversation ID
       setConversationId(id);
 
+      // Close EditProject component if it's open
+      if (showEditProject) {
+        setShowEditProject(false);
+        setEditProjectId(null);
+      }
+
       // Switch back to chat view if we're in integrations
       if (showIntegrations) {
         setShowIntegrations(false);
@@ -617,12 +632,67 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   // Add this handler
   const handleIntegrationsClick = () => {
     setShowIntegrations(true);
+
+    // Close EditProject component if it's open
+    if (showEditProject) {
+      setShowEditProject(false);
+      setEditProjectId(null);
+    }
   };
 
   // Add this handler
   const handleChatClick = () => {
     setShowIntegrations(false);
   };
+
+  // Add this handler
+  const handleEditProject = (projectId: string) => {
+    setEditProjectId(projectId);
+    setShowEditProject(true);
+  };
+
+  // Update this function or add as needed
+  const handleCloseEditProject = () => {
+    setShowEditProject(false);
+    setEditProjectId(null);
+  };
+
+  // Listen for project edit requests
+  useEffect(() => {
+    const handleProjectEditRequested = (event: CustomEvent) => {
+      if (event.detail && event.detail.projectId) {
+        handleEditProject(event.detail.projectId);
+      }
+    };
+
+    window.addEventListener(
+      "projectEditRequested",
+      handleProjectEditRequested as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "projectEditRequested",
+        handleProjectEditRequested as EventListener
+      );
+    };
+  }, []);
+
+  // Listen for close edit project requests
+  useEffect(() => {
+    const handleCloseEditProject = () => {
+      if (showEditProject) {
+        setShowEditProject(false);
+        setEditProjectId(null);
+      }
+    };
+
+    window.addEventListener("closeEditProject", handleCloseEditProject);
+
+    return () => {
+      window.removeEventListener("closeEditProject", handleCloseEditProject);
+    };
+  }, [showEditProject]);
 
   return (
     <>
@@ -698,6 +768,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           >
             {showIntegrations ? (
               <Integrations />
+            ) : showEditProject && editProjectId ? (
+              <EditProject
+                projectId={editProjectId}
+                onClose={handleCloseEditProject}
+              />
             ) : (
               <ChatComponent
                 onTableReady={fetchTableData}
