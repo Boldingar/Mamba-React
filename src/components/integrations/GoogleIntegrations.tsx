@@ -137,7 +137,7 @@ const GoogleIntegrations: React.FC = () => {
           >
             {searchConsoleConnected ? (
               <>
-                <CheckCircleIcon sx={{ mr: 1, fontSize: "1.2rem" }} />
+                {/* <CheckCircleIcon sx={{ mr: 1, fontSize: "1.2rem" }} /> */}
                 Connected
               </>
             ) : (
@@ -174,7 +174,7 @@ const GoogleIntegrations: React.FC = () => {
           >
             {analyticsConnected ? (
               <>
-                <CheckCircleIcon sx={{ mr: 1, fontSize: "1.2rem" }} />
+                {/* <CheckCircleIcon sx={{ mr: 1, fontSize: "1.2rem" }} /> */}
                 Connected
               </>
             ) : (
