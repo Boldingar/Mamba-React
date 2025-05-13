@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import ClearAllIcon from "@mui/icons-material/ClearAll";
 import { useTheme } from "@mui/material/styles";
 import { FormDataType } from "../onboarding/Onboarding";
 
@@ -95,21 +94,6 @@ const Products: React.FC<ProductsProps> = ({
     setFormData({ ...formData, products: newProducts });
   };
 
-  const handleClear = (idx: number) => {
-    const newProducts = formData.products.map((p, i) =>
-      i === idx
-        ? {
-            url: "",
-            name: "",
-            language: "en",
-            priority: 5,
-            description: "",
-          }
-        : p
-    );
-    setFormData({ ...formData, products: newProducts });
-  };
-
   // The Add button should only be disabled when we have 5 visible products
   const isAddButtonDisabled = visibleProducts >= 5;
 
@@ -143,6 +127,7 @@ const Products: React.FC<ProductsProps> = ({
               backgroundColor: "transparent",
               minHeight: "220px",
               pt: 9,
+              zIndex: 1,
             }}
           >
             <Box
@@ -155,18 +140,6 @@ const Products: React.FC<ProductsProps> = ({
                 zIndex: 1,
               }}
             >
-              <IconButton
-                onClick={() => handleClear(idx)}
-                color="primary"
-                aria-label="clear"
-                sx={{
-                  "&:hover": {
-                    bgcolor: (theme) => theme.palette.primary.light + "20",
-                  },
-                }}
-              >
-                <ClearAllIcon />
-              </IconButton>
               <IconButton
                 onClick={() => handleDelete(idx)}
                 color="error"
@@ -278,32 +251,6 @@ const Products: React.FC<ProductsProps> = ({
           aria-label="add"
         >
           Add Product
-        </Button>
-      </Box>
-
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          mt: 4,
-          pt: 2,
-          borderTop: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Button
-          variant="contained"
-          sx={{ ...buttonStyles, px: 3 }}
-          onClick={onBack}
-        >
-          Back
-        </Button>
-        <Button
-          variant="contained"
-          sx={{ ...buttonStyles, px: 6 }}
-          onClick={handleNext}
-        >
-          Keep Moving →
         </Button>
       </Box>
     </Box>

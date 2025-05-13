@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import ClearAllIcon from "@mui/icons-material/ClearAll";
 import { useTheme } from "@mui/material/styles";
 import { FormDataType, Persona } from "../onboarding/Onboarding";
 
@@ -78,19 +77,6 @@ const Personas: React.FC<PersonasProps> = ({
     setFormData({ ...formData, personas: newPersonas });
   };
 
-  const handleClear = (idx: number) => {
-    const newPersonas = formData.personas.map((p, i) =>
-      i === idx
-        ? {
-            name: "",
-            description: "",
-            priority: 5,
-          }
-        : p
-    );
-    setFormData({ ...formData, personas: newPersonas });
-  };
-
   return (
     <Box
       sx={{
@@ -114,6 +100,7 @@ const Personas: React.FC<PersonasProps> = ({
               backgroundColor: "transparent",
               minHeight: "220px",
               pt: 9,
+              zIndex: 1,
             }}
           >
             <Box
@@ -126,18 +113,6 @@ const Personas: React.FC<PersonasProps> = ({
                 zIndex: 1,
               }}
             >
-              <IconButton
-                onClick={() => handleClear(idx)}
-                color="primary"
-                aria-label="clear"
-                sx={{
-                  "&:hover": {
-                    bgcolor: (theme) => theme.palette.primary.light + "20",
-                  },
-                }}
-              >
-                <ClearAllIcon />
-              </IconButton>
               <IconButton
                 onClick={() => handleDelete(idx)}
                 color="error"
@@ -234,32 +209,6 @@ const Personas: React.FC<PersonasProps> = ({
           aria-label="add"
         >
           Add Persona
-        </Button>
-      </Box>
-
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          mt: 4,
-          pt: 2,
-          borderTop: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Button
-          variant="contained"
-          sx={{ ...buttonStyles, px: 3 }}
-          onClick={onBack}
-        >
-          Back
-        </Button>
-        <Button
-          variant="contained"
-          sx={{ ...buttonStyles, px: 6 }}
-          onClick={onNext}
-        >
-          Keep Moving →
         </Button>
       </Box>
     </Box>
