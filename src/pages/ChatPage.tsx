@@ -1,19 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import {
-  Box,
-  IconButton,
-  Tooltip,
-  Typography,
-  Drawer,
-  Fab,
-} from "@mui/material";
+import { Box, IconButton, Tooltip, Typography, Drawer } from "@mui/material";
 import ChatComponent from "../components/ChatComponent";
 import DataPanel from "../components/DataPanel";
 import UserPanel from "../components/UserPanel";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import DescriptionIcon from "@mui/icons-material/Description";
-import TableChartIcon from "@mui/icons-material/TableChart";
 import TopAppBar from "../components/TopAppBar";
 import { API_BASE_URL } from "../utils/axios";
 import UserProfile from "../components/UserProfile";
@@ -578,12 +570,17 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
 
   // Handler to toggle the DataPanel
   const handleToggleCSVPanel = () => {
-    // Only allow opening the panel if there's data to show
-    if (!showDataPanel && datasets.length === 0) {
-      // Don't open the panel if there's no data
-      return;
+    if (isMobile) {
+      // For mobile, just toggle the panel visibility
+      setShowDataPanel(!showDataPanel);
+    } else {
+      // For desktop, handle the resize logic
+      if (!showDataPanel) {
+        setShowDataPanel(true);
+      } else {
+        setShowDataPanel(false);
+      }
     }
-    setShowDataPanel((open) => !open);
   };
 
   const handleDatasetSelect = (datasetId: string) => {
@@ -809,14 +806,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
       />
       <Box
         sx={{
-          height: "calc(100vh - 64px)", // Adjust for app bar height
+          height: `calc(100vh - ${isMobile ? "56px" : "64px"})`, // Adjust for app bar height
           width: "100%",
           bgcolor: "background.default",
           display: "flex",
           flexDirection: "row",
           overflow: "hidden", // Prevent scrolling
           position: "relative",
-          maxHeight: "calc(100vh - 64px)", // Ensure max height is set
+          maxHeight: `calc(100vh - ${isMobile ? "56px" : "64px"})`, // Ensure max height is set
         }}
       >
         {/* Desktop UserPanel - only show on non-mobile */}
@@ -953,8 +950,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
                 "& .MuiDrawer-paper": {
                   width: "90%",
                   maxWidth: "500px",
+                  overflowX: "hidden",
                 },
                 zIndex: 1200,
+              }}
+              PaperProps={{
+                elevation: 8,
               }}
             >
               <DataPanel
@@ -969,23 +970,6 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
             </Drawer>
           )}
         </Box>
-
-        {/* Mobile FAB for CSV toggle */}
-        {isMobile && datasets.length > 0 && (
-          <Fab
-            color="primary"
-            aria-label="Toggle CSV Data"
-            onClick={handleToggleCSVPanel}
-            sx={{
-              position: "fixed",
-              bottom: 16,
-              right: 16,
-              zIndex: 1100,
-            }}
-          >
-            <TableChartIcon />
-          </Fab>
-        )}
 
         {error && (
           <Box

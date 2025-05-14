@@ -72,7 +72,8 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
     >
       <Toolbar
         sx={{
-          maxHeight: "2vh",
+          maxHeight: isMobile ? "3vh" : "2vh",
+          minHeight: isMobile ? "56px" : "48px",
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-start",
@@ -98,7 +99,7 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
           sx={{
             display: "flex",
             alignItems: "center",
-            height: "4vh",
+            height: isMobile ? "5vh" : "4vh",
           }}
         >
           {logoSvg}

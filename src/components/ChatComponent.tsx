@@ -84,20 +84,20 @@ const MessageItem = styled(Paper, {
   ({ theme, isUser, isMobile }) => ({
     padding: theme.spacing(isMobile ? 1.5 : 2),
     maxWidth: isMobile ? "95%" : "90%",
-    alignSelf: isUser ? "flex-end" : "flex-start",
-    backgroundColor: isUser
-      ? theme.palette.primary.main
-      : theme.palette.background.paper,
-    color: isUser
-      ? theme.palette.primary.contrastText
-      : theme.palette.text.primary,
+  alignSelf: isUser ? "flex-end" : "flex-start",
+  backgroundColor: isUser
+    ? theme.palette.primary.main
+    : theme.palette.background.paper,
+  color: isUser
+    ? theme.palette.primary.contrastText
+    : theme.palette.text.primary,
     borderRadius: theme.spacing(2),
-    "&.form": {
-      maxWidth: "100%",
-      width: "100%",
-      backgroundColor: "transparent",
-      boxShadow: "none",
-    },
+  "&.form": {
+    maxWidth: "100%",
+    width: "100%",
+    backgroundColor: "transparent",
+    boxShadow: "none",
+  },
   })
 );
 
@@ -1206,7 +1206,14 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           </CenteredContainer>
         ) : (
           <>
-            <MessageList sx={{ pt: isMobile ? 3 : 7, px: isMobile ? 1 : 3 }}>
+            <MessageList
+              sx={{
+                pt: isMobile ? 10 : 7,
+                pb: isMobile ? 4 : 3,
+                px: isMobile ? 1 : 3,
+                gap: isMobile ? 2 : 1.5,
+              }}
+            >
               <Box
                 sx={{
                   maxWidth: isMobile ? "100%" : "800px",
@@ -1214,7 +1221,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                   mx: "auto",
                   display: "flex",
                   flexDirection: "column",
-                  gap: 1.5,
+                  gap: isMobile ? 2 : 1.5,
                 }}
               >
                 {isLoadingMessages ? (
@@ -1228,7 +1235,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                         sx={{
                           width: isMobile ? 28 : 34,
                           height: isMobile ? 28 : 34,
-                          mt: 1.3,
+                          mt: isMobile ? 0.8 : 1.3,
                         }}
                       />
                       <MessageItem isUser={false} isMobile={isMobile}>
@@ -1250,7 +1257,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                         sx={{
                           width: isMobile ? 28 : 34,
                           height: isMobile ? 28 : 34,
-                          mt: 1.3,
+                          mt: isMobile ? 0.8 : 1.3,
                         }}
                       />
                       <MessageItem isUser={false} isMobile={isMobile}>
@@ -1274,7 +1281,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                         sx={{
                           width: isMobile ? 28 : 34,
                           height: isMobile ? 28 : 34,
-                          mt: 1.3,
+                          mt: isMobile ? 0.8 : 1.3,
                         }}
                       />
                       <MessageItem isUser={false} isMobile={isMobile}>
@@ -1298,7 +1305,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                         sx={{
                           width: isMobile ? 28 : 34,
                           height: isMobile ? 28 : 34,
-                          mt: 1.3,
+                          mt: isMobile ? 0.8 : 1.3,
                         }}
                       />
                       <MessageItem isUser={false} isMobile={isMobile}>
@@ -1326,7 +1333,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                             sx={{
                               width: isMobile ? 28 : 34,
                               height: isMobile ? 28 : 34,
-                              mt: 1.3,
+                              mt: isMobile ? 0.8 : 1.3,
                             }}
                           />
                         )}
