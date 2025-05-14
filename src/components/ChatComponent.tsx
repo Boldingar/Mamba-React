@@ -38,48 +38,68 @@ const CenteredContainer = styled(Box)(({ theme }) => ({
   alignItems: "center",
   height: "100%",
   width: "100%",
-  gap: theme.spacing(3),
+  gap: theme.spacing(2),
+  padding: theme.spacing(2),
+  [theme.breakpoints.up("sm")]: {
+    gap: theme.spacing(3),
+    padding: theme.spacing(3),
+  },
 }));
 
 const MessageList = styled(Box)(({ theme }) => ({
   flex: 1,
   overflowY: "auto",
-  padding: theme.spacing(3),
-  paddingTop: theme.spacing(7),
+  padding: theme.spacing(2),
+  paddingTop: theme.spacing(5),
   display: "flex",
   flexDirection: "column",
-  gap: theme.spacing(1.5),
+  gap: theme.spacing(1),
   width: "100%",
+  [theme.breakpoints.up("sm")]: {
+    padding: theme.spacing(3),
+    paddingTop: theme.spacing(7),
+    gap: theme.spacing(1.5),
+  },
   // Custom minimal scrollbar
   "&::-webkit-scrollbar": {
-    width: "8px",
+    width: "6px",
     background: "transparent",
+    [theme.breakpoints.up("sm")]: {
+      width: "8px",
+    },
   },
   "&::-webkit-scrollbar-thumb": {
-    background: "#444", // or theme.palette.divider
+    background: theme.palette.mode === "dark" ? "#444" : "#ccc",
     borderRadius: "8px",
+    "&:hover": {
+      background: theme.palette.mode === "dark" ? "#555" : "#aaa",
+    },
   },
   "&::-webkit-scrollbar-track": {
     background: "transparent",
   },
   scrollbarWidth: "thin",
-  scrollbarColor: "#444 transparent", // For Firefox
+  scrollbarColor:
+    theme.palette.mode === "dark" ? "#444 transparent" : "#ccc transparent", // For Firefox
 }));
 
 const MessageWrapper = styled(Box, {
   shouldForwardProp: (prop) => prop !== "isUser",
 })<{ isUser: boolean }>(({ theme, isUser }) => ({
   display: "flex",
-  gap: theme.spacing(1.5),
+  gap: theme.spacing(1),
   justifyContent: isUser ? "flex-end" : "flex-start",
   alignItems: "flex-start",
+  [theme.breakpoints.up("sm")]: {
+    gap: theme.spacing(1.5),
+  },
 }));
 
 const MessageItem = styled(Paper, {
   shouldForwardProp: (prop) => prop !== "isUser" && prop !== "type",
 })<{ isUser: boolean; type?: string }>(({ theme, isUser }) => ({
-  padding: theme.spacing(2),
-  maxWidth: "90%",
+  padding: theme.spacing(1.5),
+  maxWidth: "95%",
   alignSelf: isUser ? "flex-end" : "flex-start",
   backgroundColor: isUser
     ? theme.palette.primary.main
@@ -87,7 +107,14 @@ const MessageItem = styled(Paper, {
   color: isUser
     ? theme.palette.primary.contrastText
     : theme.palette.text.primary,
-  borderRadius: theme.spacing(3),
+  borderRadius: theme.spacing(2),
+  fontSize: "0.875rem",
+  [theme.breakpoints.up("sm")]: {
+    padding: theme.spacing(2),
+    maxWidth: "90%",
+    borderRadius: theme.spacing(3),
+    fontSize: "1rem",
+  },
   "&.form": {
     maxWidth: "100%",
     width: "100%",

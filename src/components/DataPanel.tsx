@@ -9,6 +9,8 @@ import {
   MenuItem,
   SelectChangeEvent,
   Button,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -47,8 +49,18 @@ const DataPanel: React.FC<DataPanelProps> = ({
   onResize,
   initialWidth = 500,
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
+
+  const getResponsiveWidth = () => {
+    if (isMobile) return Math.min(initialWidth, 300);
+    if (isTablet) return Math.min(initialWidth, 400);
+    return initialWidth;
+  };
+
   const [filteredData, setFilteredData] = useState<Data[]>(data);
-  const [width, setWidth] = useState(initialWidth);
+  const [width, setWidth] = useState(getResponsiveWidth());
   const [isResizing, setIsResizing] = useState(false);
   const startX = useRef(0);
   const startWidth = useRef(0);
@@ -59,19 +71,24 @@ const DataPanel: React.FC<DataPanelProps> = ({
 
   useEffect(() => {
     if (!isResizing) {
-      setWidth(initialWidth);
+      setWidth(getResponsiveWidth());
     }
-  }, [initialWidth, isResizing]);
+  }, [initialWidth, isResizing, isMobile, isTablet]);
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!isResizing) return;
       const dx = startX.current - e.clientX;
-      const newWidth = Math.min(1000, Math.max(300, startWidth.current + dx));
+      const minWidth = isMobile ? 250 : isTablet ? 280 : 300;
+      const maxWidth = isMobile ? 300 : isTablet ? 500 : 1000;
+      const newWidth = Math.min(
+        maxWidth,
+        Math.max(minWidth, startWidth.current + dx)
+      );
       setWidth(newWidth);
       if (onResize) onResize(newWidth);
     },
-    [isResizing, onResize]
+    [isResizing, onResize, isMobile, isTablet]
   );
 
   const handleMouseUp = useCallback(() => {
@@ -202,7 +219,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
       </Box>
       <Box
         sx={{
-          p: 3,
+          p: { xs: 1.5, sm: 2, md: 3 },
           height: "100%",
           display: "flex",
           flexDirection: "column",
@@ -214,13 +231,34 @@ const DataPanel: React.FC<DataPanelProps> = ({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 3,
+            mb: { xs: 1.5, sm: 2, md: 3 },
             width: "100%",
           }}
         >
-          <Box sx={{ mt: 5, display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
-            <Typography variant="h6">CSV Data View</Typography>
-            <FormControl size="small" sx={{ minWidth: 200, flex: 1 }}>
+          <Box
+            sx={{
+              mt: { xs: 3, sm: 4, md: 5 },
+              display: "flex",
+              alignItems: "center",
+              gap: { xs: 1, sm: 1.5, md: 2 },
+              flex: 1,
+              flexDirection: { xs: "column", sm: "row" },
+              width: "100%",
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{ fontSize: { xs: "1rem", sm: "1.1rem", md: "1.25rem" } }}
+            >
+              CSV Data View
+            </Typography>
+            <FormControl
+              size={isMobile ? "small" : "small"}
+              sx={{
+                minWidth: { xs: "100%", sm: 150, md: 200 },
+                flex: 1,
+              }}
+            >
               <InputLabel>Select Dataset</InputLabel>
               <Select
                 value={selectedDatasetId || ""}
@@ -235,7 +273,7 @@ const DataPanel: React.FC<DataPanelProps> = ({
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      maxHeight: 300,
+                      maxHeight: { xs: 200, sm: 250, md: 300 },
                     },
                   },
                 }}
@@ -248,70 +286,22 @@ const DataPanel: React.FC<DataPanelProps> = ({
               </Select>
             </FormControl>
           </Box>
-          {/* <IconButton onClick={onClose} size="small">
-            <CloseIcon />
-          </IconButton> */}
-        </Box>
-        <Box
-          sx={{
-            flex: 1,
-            overflow: "auto",
-            mt: 2,
-          }}
-        >
-          {data.length > 0 ? (
-            <BusinessDataTable data={data} onDataFilter={setFilteredData} />
-          ) : (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                width: "100%",
-                p: 3,
-              }}
+
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <IconButton
+              onClick={handleDownload}
+              size={isMobile ? "small" : "medium"}
             >
-              <Typography variant="h6" sx={{ mb: 2, color: "text.secondary" }}>
-                No data available
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ color: "text.secondary", textAlign: "center" }}
-              >
-                There is currently no data to display. When keyword data is
-                generated, it will appear here.
-              </Typography>
-            </Box>
-          )}
+              <DownloadIcon />
+            </IconButton>
+            <IconButton onClick={onClose} size={isMobile ? "small" : "medium"}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </Box>
-        <Box
-          sx={{
-            mt: 2,
-            borderTop: 1,
-            borderColor: "divider",
-            pt: 2,
-            display: "flex",
-            justifyContent: "center",
-            width: "100%",
-          }}
-        >
-          <Button
-            variant="contained"
-            onClick={handleDownload}
-            disabled={filteredData.length === 0}
-            startIcon={<DownloadIcon />}
-            sx={{
-              height: 48,
-              width: 250,
-              "&.Mui-disabled": {
-                bgcolor: "action.disabledBackground",
-              },
-            }}
-          >
-            Download Data as CSV
-          </Button>
+
+        <Box sx={{ flex: 1, overflow: "auto" }}>
+          {filteredData.length > 0 && <BusinessDataTable data={filteredData} />}
         </Box>
       </Box>
     </Box>

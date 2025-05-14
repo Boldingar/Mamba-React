@@ -21,6 +21,8 @@ import {
   Typography,
   Button,
   Chip,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import AddIcon from "@mui/icons-material/Add";
@@ -52,6 +54,9 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
   data,
   onDataFilter,
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const [filteredData, setFilteredData] = React.useState<Data[]>(data);
   const [orderBy, setOrderBy] = React.useState<string>("");
   const [order, setOrder] = React.useState<Order>("asc");
@@ -227,83 +232,163 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
       <Box
         sx={{
           display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          mb: 3,
-          width: "100%",
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: { xs: "stretch", sm: "center" },
+          justifyContent: "space-between",
+          mb: { xs: 1, sm: 2 },
+          gap: { xs: 1, sm: 0 },
         }}
       >
-        <Box
-          sx={{ display: "flex", gap: 2, alignItems: "center", width: "100%" }}
-        >
-          <TextField
-            fullWidth
+        <TextField
+          label="Search"
+          variant="outlined"
+          size={isMobile ? "small" : "medium"}
+          value={searchTerm}
+          onChange={handleSearch}
+          sx={{
+            mb: { xs: 1, sm: 0 },
+            width: { xs: "100%", sm: "200px", md: "250px" },
+          }}
+        />
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Button
             variant="outlined"
-            size="small"
-            placeholder="Search across all columns..."
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-
-          <IconButton onClick={handleFilterClick}>
-            <FilterListIcon />
-          </IconButton>
-        </Box>
-
-        {filterConditions.length > 0 && (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <Box
+            size={isMobile ? "small" : "medium"}
+            startIcon={<FilterListIcon />}
+            onClick={handleFilterClick}
+            sx={{
+              height: { xs: "32px", sm: "auto" },
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+            }}
+          >
+            Filter
+          </Button>
+          {filterConditions.length > 0 && (
+            <Button
+              variant="outlined"
+              color="error"
+              size={isMobile ? "small" : "medium"}
+              onClick={handleClearAllFilters}
               sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                height: { xs: "32px", sm: "auto" },
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
               }}
             >
-              <Typography variant="body2" color="text.secondary">
-                Active Filters:
-              </Typography>
-              <Button
-                size="small"
-                onClick={handleClearAllFilters}
-                startIcon={<DeleteIcon />}
-                color="error"
-              >
-                Clear All Filters
-              </Button>
-            </Box>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-              {filterConditions.map((condition, index) => (
-                <Chip
-                  key={index}
-                  label={`${condition.column} ${
-                    condition.type === "include" ? "includes" : "excludes"
-                  } "${condition.value}"`}
-                  onDelete={() => handleRemoveCondition(index)}
-                  color={condition.type === "include" ? "success" : "error"}
-                  sx={{
-                    "& .MuiChip-label": {
-                      color:
-                        condition.type === "include"
-                          ? "success.main"
-                          : "error.main",
-                      fontSize: "1rem",
-                    },
-                    "& .MuiChip-deleteIcon": {
-                      fontSize: "1.2rem",
-                      marginRight: "4px",
-                    },
-                    height: "40px",
-                    borderRadius: "20px",
-                    padding: "0 8px",
-                  }}
-                  variant="outlined"
-                />
-              ))}
-            </Box>
-          </Box>
-        )}
+              Clear Filters
+            </Button>
+          )}
+        </Box>
       </Box>
 
+      {filterConditions.length > 0 && (
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 1,
+            mb: 2,
+            maxWidth: "100%",
+            overflow: "auto",
+          }}
+        >
+          {filterConditions.map((condition, index) => (
+            <Chip
+              key={index}
+              label={`${condition.column} ${
+                condition.type === "include" ? "includes" : "excludes"
+              } "${condition.value}"`}
+              onDelete={() => handleRemoveCondition(index)}
+              size={isMobile ? "small" : "medium"}
+              sx={{ fontSize: { xs: "0.7rem", sm: "0.75rem", md: "0.875rem" } }}
+            />
+          ))}
+        </Box>
+      )}
+
+      <TableContainer
+        component={Paper}
+        sx={{
+          maxHeight: { xs: 300, sm: 400, md: 500 },
+          "&::-webkit-scrollbar": {
+            width: "8px",
+            height: "8px",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "rgba(0, 0, 0, 0.2)",
+            borderRadius: "4px",
+          },
+          "&::-webkit-scrollbar-track": {
+            backgroundColor: "transparent",
+          },
+        }}
+      >
+        <Table stickyHeader size={isMobile ? "small" : "medium"}>
+          <TableHead>
+            <TableRow>
+              {headers.map((header) => (
+                <TableCell
+                  key={header.id}
+                  sortDirection={orderBy === header.id ? order : false}
+                  sx={{
+                    whiteSpace: "nowrap",
+                    fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                    padding: { xs: "8px 6px", sm: "16px" },
+                  }}
+                >
+                  <TableSortLabel
+                    active={orderBy === header.id}
+                    direction={orderBy === header.id ? order : "asc"}
+                    onClick={() => handleRequestSort(header.id)}
+                  >
+                    {header.label}
+                  </TableSortLabel>
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredData
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((row, rowIndex) => (
+                <TableRow key={rowIndex} hover>
+                  {headers.map((header) => (
+                    <TableCell
+                      key={`${rowIndex}-${header.id}`}
+                      sx={{
+                        fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                        padding: { xs: "8px 6px", sm: "16px" },
+                      }}
+                    >
+                      {row[header.id] !== undefined
+                        ? String(row[header.id])
+                        : ""}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={filteredData.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        sx={{
+          ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows":
+            {
+              fontSize: { xs: "0.75rem", sm: "0.875rem" },
+            },
+          ".MuiTablePagination-select": {
+            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+          },
+        }}
+      />
+
+      {/* Filter Popover */}
       <Popover
         open={Boolean(filterAnchorEl)}
         anchorEl={filterAnchorEl}
@@ -317,146 +402,83 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
           horizontal: "right",
         }}
         PaperProps={{
-          sx: { width: "700px" },
+          sx: {
+            p: { xs: 2, sm: 3 },
+            width: { xs: 280, sm: 350, md: 400 },
+          },
         }}
       >
-        <Box sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ mb: 3 }}>
-            Add Filter Condition
-          </Typography>
-
-          <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
-            <FormControl size="small" sx={{ minWidth: 160 }}>
-              <InputLabel>Column</InputLabel>
-              <Select
-                value={newCondition.column}
-                onChange={(e) =>
-                  setNewCondition({ ...newCondition, column: e.target.value })
-                }
-                label="Column"
-              >
-                {headers.map((header) => (
-                  <MenuItem key={header.id} value={header.id}>
-                    {header.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl size="small" sx={{ minWidth: 160 }}>
-              <InputLabel>Type</InputLabel>
-              <Select
-                value={newCondition.type}
-                onChange={(e) =>
-                  setNewCondition({
-                    ...newCondition,
-                    type: e.target.value as "include" | "exclude",
-                  })
-                }
-                label="Type"
-              >
-                <MenuItem value="include">Include</MenuItem>
-                <MenuItem value="exclude">Exclude</MenuItem>
-              </Select>
-            </FormControl>
-
-            <TextField
-              size="small"
-              placeholder="Value to filter"
-              value={newCondition.value}
+        <Typography
+          variant="h6"
+          sx={{ mb: 2, fontSize: { xs: "1rem", sm: "1.25rem" } }}
+        >
+          Add Filter
+        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
+          <FormControl fullWidth size={isMobile ? "small" : "medium"}>
+            <InputLabel>Column</InputLabel>
+            <Select
+              value={newCondition.column}
               onChange={(e) =>
-                setNewCondition({ ...newCondition, value: e.target.value })
+                setNewCondition({
+                  ...newCondition,
+                  column: e.target.value,
+                })
               }
-              sx={{
-                maxWidth: "160px",
-                "& .MuiInputBase-root": {
-                  height: "40px",
-                  fontSize: "1rem",
-                  padding: "0px",
-                },
-              }}
-              fullWidth
-            />
-
-            <Button
-              variant="contained"
-              onClick={handleAddCondition}
-              // startIcon={<AddIcon />}
-              disabled={!newCondition.column || !newCondition.value}
+              label="Column"
             >
-              Add Filter
-            </Button>
-          </Box>
+              {headers.map((header) => (
+                <MenuItem key={header.id} value={header.id}>
+                  {header.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth size={isMobile ? "small" : "medium"}>
+            <InputLabel>Condition</InputLabel>
+            <Select
+              value={newCondition.type}
+              onChange={(e) =>
+                setNewCondition({
+                  ...newCondition,
+                  type: e.target.value as "include" | "exclude",
+                })
+              }
+              label="Condition"
+            >
+              <MenuItem value="include">Includes</MenuItem>
+              <MenuItem value="exclude">Excludes</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            label="Value"
+            fullWidth
+            value={newCondition.value}
+            onChange={(e) =>
+              setNewCondition({
+                ...newCondition,
+                value: e.target.value,
+              })
+            }
+            size={isMobile ? "small" : "medium"}
+          />
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleAddCondition}
+            disabled={!newCondition.column || !newCondition.value}
+            sx={{ mt: 1 }}
+          >
+            Add Filter
+          </Button>
         </Box>
       </Popover>
-
-      <TableContainer
-        component={Paper}
-        sx={{
-          width: "100%",
-          overflowX: "auto",
-          pt: 1, // Add padding at the top
-        }}
-      >
-        <Table stickyHeader sx={{ width: "100%" }}>
-          <TableHead>
-            <TableRow>
-              {headers.map((header) => (
-                <TableCell
-                  key={header.id}
-                  align="center"
-                  sx={{
-                    "& .MuiTableSortLabel-root": {
-                      width: "100%",
-                      justifyContent: "center",
-                    },
-                    "& .MuiTableSortLabel-icon": {
-                      position: "absolute",
-                      right: 0,
-                    },
-                    position: "relative",
-                    textAlign: "center",
-                    fontWeight: "bold",
-                  }}
-                >
-                  <TableSortLabel
-                    active={orderBy === header.id}
-                    direction={orderBy === header.id ? order : "asc"}
-                    onClick={() => handleRequestSort(header.id)}
-                    sx={{
-                      display: "flex",
-                      justifyContent: "center",
-                      paddingRight: "16px", // Space for sort icon
-                    }}
-                  >
-                    {header.label}
-                  </TableSortLabel>
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {displayData.map((row, index) => (
-              <TableRow key={index}>
-                {headers.map((header) => (
-                  <TableCell key={header.id} align="center">
-                    {row[header.id]}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={filteredData.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </TableContainer>
     </Box>
   );
 };

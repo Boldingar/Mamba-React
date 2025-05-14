@@ -1,5 +1,12 @@
 import React, { useState, KeyboardEvent, FormEvent } from "react";
-import { Box, TextField, Paper, Button } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Paper,
+  Button,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
 import LanguageIcon from "@mui/icons-material/Language";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 
@@ -17,6 +24,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
   isNewChat = false,
 }) => {
   const [inputMessage, setInputMessage] = useState("");
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -40,12 +49,15 @@ const MessageInput: React.FC<MessageInputProps> = ({
       sx={{
         width: "100%",
         mx: "auto",
-        paddingRight: "16px",
-        paddingLeft: "16px",
-        maxWidth: "850px",
-        maxHeight: isLarge ? "180px" : "150px",
+        px: { xs: 1, sm: 2 },
+        maxWidth: { xs: "100%", sm: "700px", md: "850px" },
+        maxHeight: {
+          xs: "120px",
+          sm: isLarge ? "150px" : "130px",
+          md: isLarge ? "180px" : "150px",
+        },
         display: "flex",
-        borderRadius: "60px",
+        borderRadius: { xs: "30px", sm: "60px" },
         justifyContent: "center",
       }}
     >
@@ -54,8 +66,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
         component="form"
         onSubmit={handleSubmit}
         sx={{
-          p: isLarge ? 4 : 3,
-          borderRadius: "32px",
+          p: { xs: 2, sm: isLarge ? 3 : 2, md: isLarge ? 4 : 3 },
+          borderRadius: { xs: "16px", sm: "24px", md: "32px" },
           display: "flex",
           flexDirection: "column",
           alignItems: "stretch",
@@ -69,7 +81,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
       >
         <TextField
           fullWidth
-          size={isLarge ? "medium" : "small"}
+          size={isMobile ? "small" : isLarge ? "medium" : "small"}
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}
           onKeyDown={handleKeyPress}
@@ -81,13 +93,17 @@ const MessageInput: React.FC<MessageInputProps> = ({
           }
           variant="standard"
           multiline
-          maxRows={4}
+          maxRows={isMobile ? 3 : 4}
           InputProps={{
             disableUnderline: true,
             sx: {
               bgcolor: "transparent",
-              borderRadius: "24px",
-              fontSize: isLarge ? "18px" : "16px",
+              borderRadius: { xs: "16px", sm: "24px" },
+              fontSize: {
+                xs: "14px",
+                sm: isLarge ? "16px" : "15px",
+                md: isLarge ? "18px" : "16px",
+              },
               fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
               px: 0,
             },
@@ -99,14 +115,22 @@ const MessageInput: React.FC<MessageInputProps> = ({
               background: "none",
               border: "none",
               boxShadow: "none",
-              fontSize: isLarge ? "18px" : "16px",
+              fontSize: {
+                xs: "14px",
+                sm: isLarge ? "16px" : "15px",
+                md: isLarge ? "18px" : "16px",
+              },
               px: 0,
             },
             "& .MuiInputBase-input": {
               background: "none",
               border: "none",
               boxShadow: "none",
-              fontSize: isLarge ? "18px" : "16px",
+              fontSize: {
+                xs: "14px",
+                sm: isLarge ? "16px" : "15px",
+                md: isLarge ? "18px" : "16px",
+              },
               px: 0,
             },
           }}
@@ -114,26 +138,28 @@ const MessageInput: React.FC<MessageInputProps> = ({
         <Box
           sx={{
             display: "flex",
-            gap: 1,
+            gap: { xs: 0.5, sm: 1 },
             mt: 1,
             justifyContent: "flext-start",
+            flexWrap: { xs: "wrap", sm: "nowrap" },
           }}
         >
           <Button
             variant="outlined"
             startIcon={<LanguageIcon />}
-            size="small"
+            size={isMobile ? "small" : "small"}
             sx={{
-              borderRadius: "20px",
+              borderRadius: { xs: "16px", sm: "20px" },
               textTransform: "none",
-              px: 2,
-              fontSize: "13px",
+              px: { xs: 1, sm: 2 },
+              fontSize: { xs: "11px", sm: "12px", md: "13px" },
               color: "text.primary",
               borderColor: "grey.300",
               "&:hover": {
                 borderColor: "grey.400",
                 bgcolor: "rgba(0, 0, 0, 0.02)",
               },
+              mb: { xs: 1, sm: 0 },
             }}
           >
             Use my website
@@ -141,18 +167,19 @@ const MessageInput: React.FC<MessageInputProps> = ({
           <Button
             variant="outlined"
             startIcon={<FileUploadIcon />}
-            size="small"
+            size={isMobile ? "small" : "small"}
             sx={{
-              borderRadius: "20px",
+              borderRadius: { xs: "16px", sm: "20px" },
               textTransform: "none",
-              px: 2,
-              fontSize: "13px",
+              px: { xs: 1, sm: 2 },
+              fontSize: { xs: "11px", sm: "12px", md: "13px" },
               color: "text.primary",
               borderColor: "grey.300",
               "&:hover": {
                 borderColor: "grey.400",
                 bgcolor: "rgba(0, 0, 0, 0.02)",
               },
+              mb: { xs: 1, sm: 0 },
             }}
           >
             Upload keywords

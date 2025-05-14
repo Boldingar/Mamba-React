@@ -770,8 +770,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
               position: "fixed",
               top: 0,
               left: 0,
-              width: "100vw",
-              height: "100vh",
+              width: "100%",
+              height: "100%",
               bgcolor: "rgba(0,0,0,0.45)",
               zIndex: 1399,
             }}
@@ -786,14 +786,22 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
       />
       <Box
         sx={{
-          height: "calc(100vh - 64px)", // Adjust for app bar height
+          height: {
+            xs: "calc(100vh - 48px)",
+            sm: "calc(100vh - 56px)",
+            md: "calc(100vh - 64px)",
+          }, // Adjust for responsive app bar height
           width: "100%",
           bgcolor: "background.default",
           display: "flex",
           flexDirection: "row",
           overflow: "hidden", // Prevent scrolling
           position: "relative",
-          maxHeight: "calc(100vh - 64px)", // Ensure max height is set
+          maxHeight: {
+            xs: "calc(100vh - 48px)",
+            sm: "calc(100vh - 56px)",
+            md: "calc(100vh - 64px)",
+          }, // Ensure max height is set
         }}
       >
         <UserPanel
@@ -824,12 +832,16 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           <Box
             sx={{
               width: showDataPanel
-                ? `calc(100% - ${dataPanelWidth}px)`
+                ? {
+                    xs: `calc(100% - ${dataPanelWidth * 0.8}px)`,
+                    sm: `calc(100% - ${dataPanelWidth * 0.9}px)`,
+                    md: `calc(100% - ${dataPanelWidth}px)`,
+                  }
                 : "100%",
               height: "100%",
               display: "flex",
               alignItems: "center",
-              mt: "2vh",
+              mt: { xs: "1vh", sm: "1.5vh", md: "2vh" },
               justifyContent: "center",
               overflow: "hidden", // Prevent scrolling
             }}
@@ -873,14 +885,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
           <Box
             sx={{
               position: "fixed",
-              top: 80,
-              right: 20,
+              top: { xs: 60, sm: 70, md: 80 },
+              right: { xs: 10, sm: 15, md: 20 },
               zIndex: 1200,
               bgcolor: "error.main",
               color: "white",
-              p: 2,
+              p: { xs: 1.5, sm: 2 },
               borderRadius: 1,
-              maxWidth: "300px",
+              maxWidth: { xs: "250px", sm: "280px", md: "300px" },
               display: "flex",
               flexDirection: "column",
               gap: 1,
@@ -897,7 +909,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
               <Typography
                 variant="body2"
                 component="pre"
-                sx={{ whiteSpace: "pre-wrap", flex: 1 }}
+                sx={{
+                  whiteSpace: "pre-wrap",
+                  flex: 1,
+                  fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                }}
               >
                 {error}
               </Typography>
@@ -906,7 +922,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
                 onClick={() => setError(null)}
                 sx={{
                   color: "white",
-                  p: 0.5,
+                  p: { xs: 0.3, sm: 0.5 },
                   ml: 1,
                   "&:hover": {
                     bgcolor: "rgba(255, 255, 255, 0.1)",

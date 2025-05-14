@@ -77,8 +77,9 @@ function App() {
           <CssBaseline />
           <Box
             sx={{
-              width: "100vw",
-              height: "95vh",
+              width: "100%",
+              height: "100%",
+              minHeight: "100vh",
               padding: 0,
               overflow: "hidden",
               display: "flex",
