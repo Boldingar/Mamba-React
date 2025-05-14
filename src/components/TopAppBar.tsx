@@ -6,35 +6,35 @@ import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import DescriptionIcon from "@mui/icons-material/Description";
-import { useTheme as useMuiTheme } from "@mui/material/styles";
-import useMediaQuery from "@mui/material/useMediaQuery";
+import MenuIcon from "@mui/icons-material/Menu";
 import { useTheme } from "../context/ThemeContext";
 import { alpha } from "@mui/material/styles";
+import { useIsMobile } from "../utils/responsive";
 
 interface TopAppBarProps {
   csvPanelOpen: boolean;
   onToggleCSVPanel: () => void;
   hasDataToShow?: boolean;
+  onToggleUserPanel?: () => void;
 }
 
 const TopAppBar: React.FC<TopAppBarProps> = ({
   csvPanelOpen,
   onToggleCSVPanel,
   hasDataToShow = false,
+  onToggleUserPanel,
 }) => {
   const { mode } = useTheme();
-  const muiTheme = useMuiTheme();
-  const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
+  const isMobile = useIsMobile();
 
   // Define SVG code for the logo with color based on theme
   const logoSvg = (
     <svg
-      width="auto"
-      height={isMobile ? "20" : "24"}
+      width="111"
+      height="24"
       viewBox="0 0 111 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ maxWidth: "100%" }}
     >
       <path
         d="M38.9012 7.90112H42.2898V23.5918H38.9012V21.3317C37.6249 23.1087 35.7957 23.9999 33.4097 23.9999C31.2568 23.9999 29.4162 23.2003 27.888 21.5992C26.3628 19.997 25.5977 18.0472 25.5977 15.7475C25.5977 13.4478 26.3618 11.4698 27.888 9.87911C29.4162 8.28943 31.2568 7.49512 33.4097 7.49512C35.7947 7.49512 37.6249 8.37376 38.9012 10.1279V7.90217V7.90112ZM30.4 19.3401C31.3401 20.2906 32.5227 20.7653 33.9448 20.7653C35.3668 20.7653 36.5495 20.2906 37.4916 19.3401C38.4317 18.3855 38.9022 17.1883 38.9022 15.7475C38.9022 14.3067 38.4317 13.1064 37.4916 12.1548C36.5495 11.2044 35.3668 10.7276 33.9448 10.7276C32.5227 10.7276 31.3401 11.2044 30.4 12.1548C29.4589 13.1074 28.9863 14.3036 28.9863 15.7475C28.9863 17.1914 29.4579 18.3865 30.4 19.3401Z"
@@ -72,24 +72,33 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
     >
       <Toolbar
         sx={{
-          height: { xs: "48px", sm: "56px", md: "64px" },
-          minHeight: {
-            xs: "48px !important",
-            sm: "56px !important",
-            md: "64px !important",
-          },
+          maxHeight: "2vh",
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-start",
-          gap: { xs: 1, sm: 2 },
-          px: { xs: 1, sm: 2 },
+          gap: 2,
         }}
       >
+        {isMobile && onToggleUserPanel && (
+          <IconButton
+            onClick={onToggleUserPanel}
+            sx={{
+              mr: 1,
+              border: "none",
+              bgcolor: "transparent",
+              "&:hover": {
+                bgcolor: (theme) => alpha(theme.palette.action.hover, 0.04),
+              },
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            height: { xs: "32px", sm: "40px", md: "48px" },
+            height: "4vh",
           }}
         >
           {logoSvg}
@@ -100,9 +109,11 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
             color={csvPanelOpen ? "primary" : "default"}
             onClick={onToggleCSVPanel}
             sx={{
-              mr: { xs: 0.5, sm: 1 },
-              width: { xs: "32px", sm: "40px", md: "48px" },
-              height: { xs: "32px", sm: "40px", md: "48px" },
+              mr: 1,
+              width: isMobile ? "40px" : "4vw",
+              height: isMobile ? "40px" : "4vw",
+              minWidth: "40px",
+              minHeight: "40px",
               border: "none",
               bgcolor: "transparent",
               "&:hover": {
@@ -111,9 +122,7 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
             }}
           >
             <DescriptionIcon
-              sx={{
-                fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem" },
-              }}
+              sx={{ fontSize: isMobile ? "24px" : "2vw", minFontSize: "24px" }}
             />
           </IconButton>
         )}

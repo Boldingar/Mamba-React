@@ -49,12 +49,7 @@ import { alpha } from "@mui/material/styles";
 //   { id: 3, title: "Support Bot" },
 // ];
 
-// Use responsive panel width
-const panelWidth = {
-  xs: 240,
-  sm: 260,
-  md: 285,
-};
+const panelWidth = 285;
 
 // Add a scrollbar style similar to ChatComponent
 const getScrollbarStyle = (theme) => ({
