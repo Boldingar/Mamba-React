@@ -563,7 +563,6 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
       sx={{
         width: "80%", // Reduce width to center the component
         maxWidth: "1000px", // Set a maximum width
-        height: "80vh",
         height: "90vh",
         display: "flex",
         flexDirection: "column",
