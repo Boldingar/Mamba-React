@@ -89,66 +89,87 @@ const Competitors: React.FC<CompetitorsProps> = ({
     >
       <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
         {formData.competitors.map((competitor, idx) => (
-          <Stack
+          <Box
             key={idx}
-            direction="row"
-            spacing={2}
-            alignItems="center"
-            sx={{ mb: 2 }}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              py: 3,
+              px: 2,
+              minHeight: 80,
+              mb: 3,
+              bgcolor: "background.paper",
+            }}
           >
-            <TextField
-              fullWidth
-              variant="outlined"
-              value={competitor.name}
-              onChange={(e) => handleChange(idx, "name", e.target.value)}
-              placeholder="Competitor Name"
-              sx={{
-                ...textFieldSx,
-                width: "35%",
-              }}
-            />
-            <TextField
-              fullWidth
-              variant="outlined"
-              value={competitor.description}
-              onChange={(e) => handleChange(idx, "description", e.target.value)}
-              placeholder="Description"
-              sx={{
-                ...textFieldSx,
-                width: "65%",
-              }}
-            />
-            <IconButton
-              onClick={() => handleClear(idx)}
-              color="primary"
-              aria-label="clear"
-              sx={{
-                "&:hover": {
-                  bgcolor: (theme) => theme.palette.primary.light + "20",
-                },
-              }}
+            {/* Name Row */}
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              sx={{ mb: 2 }}
             >
-              <img
-                src={
-                  theme.palette.mode === "dark" ? "/clearW.png" : "/clear.png"
-                }
-                alt="Clear"
-                style={{ width: 20, height: 20 }}
+              <TextField
+                label="Competitor Name"
+                fullWidth
+                variant="outlined"
+                value={competitor.name}
+                onChange={(e) => handleChange(idx, "name", e.target.value)}
+                placeholder="Competitor Name"
+                sx={{
+                  ...textFieldSx,
+                  width: "70%",
+                }}
               />
-            </IconButton>
-            <IconButton
-              onClick={() => handleDelete(idx)}
-              color="error"
-              aria-label="delete"
-              sx={{
-                "&:hover": {
-                  bgcolor: (theme) => theme.palette.error.light + "20",
-                },
-              }}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Stack>
+              <Box sx={{ flexGrow: 1 }} />
+              <IconButton
+                onClick={() => handleClear(idx)}
+                color="primary"
+                aria-label="clear"
+                sx={{
+                  "&:hover": {
+                    bgcolor: (theme) => theme.palette.primary.light + "20",
+                  },
+                }}
+              >
+                <img
+                  src={
+                    theme.palette.mode === "dark" ? "/clearW.png" : "/clear.png"
+                  }
+                  alt="Clear"
+                  style={{ width: 20, height: 20 }}
+                />
+              </IconButton>
+              <IconButton
+                onClick={() => handleDelete(idx)}
+                color="error"
+                aria-label="delete"
+                sx={{
+                  "&:hover": {
+                    bgcolor: (theme) => theme.palette.error.light + "20",
+                  },
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Stack>
+            {/* Description Row */}
+            <Stack direction="row" spacing={2} alignItems="center">
+              <TextField
+                label="Description"
+                fullWidth
+                multiline
+                minRows={4}
+                variant="outlined"
+                value={competitor.description}
+                onChange={(e) =>
+                  handleChange(idx, "description", e.target.value)
+                }
+                placeholder="Description"
+                sx={{ ...textFieldSx }}
+              />
+            </Stack>
+          </Box>
         ))}
       </Box>
 

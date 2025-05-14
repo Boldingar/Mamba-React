@@ -121,81 +121,119 @@ const Products: React.FC<ProductsProps> = ({
     >
       <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
         {formData.products.slice(0, visibleProducts).map((product, idx) => (
-          <Stack
+          <Box
             key={idx}
-            direction="row"
-            spacing={2}
-            alignItems="center"
-            sx={{ mb: 2 }}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              py: 3,
+              px: 2,
+              minHeight: 120,
+              mb: 3,
+              bgcolor: "background.paper",
+            }}
           >
-            <TextField
-              fullWidth
-              variant="outlined"
-              value={product.name}
-              onChange={(e) => handleChange(idx, "name", e.target.value)}
-              placeholder="Product Name"
-              sx={{
-                ...textFieldSx,
-                width: "30%",
-              }}
-            />
-            <TextField
-              fullWidth
-              variant="outlined"
-              value={product.description}
-              onChange={(e) => handleChange(idx, "description", e.target.value)}
-              placeholder="Description"
-              sx={{
-                ...textFieldSx,
-                width: "55%",
-              }}
-            />
-            <TextField
-              fullWidth
-              type="number"
-              variant="outlined"
-              value={product.priority}
-              onChange={(e) =>
-                handleChange(idx, "priority", Number(e.target.value))
-              }
-              placeholder="Priority"
-              sx={{
-                ...textFieldSx,
-                width: "15%",
-              }}
-              inputProps={{ min: 1, max: 10 }}
-            />
-            <IconButton
-              onClick={() => handleClear(idx)}
-              color="primary"
-              aria-label="clear"
-              sx={{
-                "&:hover": {
-                  bgcolor: (theme) => theme.palette.primary.light + "20",
-                },
-              }}
+            {/* URL Row */}
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              sx={{ mb: 2 }}
             >
-              <img
-                src={
-                  theme.palette.mode === "dark" ? "/clearW.png" : "/clear.png"
-                }
-                alt="Clear"
-                style={{ width: 30, height: 30 }}
+              <TextField
+                label="Product URL"
+                variant="outlined"
+                value={product.url}
+                onChange={(e) => handleChange(idx, "url", e.target.value)}
+                placeholder="Product URL"
+                sx={{ ...textFieldSx, width: "80%" }}
               />
-            </IconButton>
-            <IconButton
-              onClick={() => handleDelete(idx)}
-              color="error"
-              aria-label="delete"
-              sx={{
-                "&:hover": {
-                  bgcolor: (theme) => theme.palette.error.light + "20",
-                },
-              }}
+              <Box sx={{ flexGrow: 1 }} />
+              <IconButton
+                onClick={() => handleClear(idx)}
+                color="primary"
+                aria-label="clear"
+                sx={{
+                  "&:hover": {
+                    bgcolor: (theme) => theme.palette.primary.light + "20",
+                  },
+                }}
+              >
+                <img
+                  src={
+                    theme.palette.mode === "dark" ? "/clearW.png" : "/clear.png"
+                  }
+                  alt="Clear"
+                  style={{ width: 30, height: 30 }}
+                />
+              </IconButton>
+              <IconButton
+                onClick={() => handleDelete(idx)}
+                color="error"
+                aria-label="delete"
+                sx={{
+                  "&:hover": {
+                    bgcolor: (theme) => theme.palette.error.light + "20",
+                  },
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Stack>
+            {/* Name and Priority Row */}
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              sx={{ mb: 2 }}
             >
-              <DeleteIcon />
-            </IconButton>
-          </Stack>
+              <TextField
+                label="Product Name"
+                fullWidth
+                variant="outlined"
+                value={product.name}
+                onChange={(e) => handleChange(idx, "name", e.target.value)}
+                placeholder="Product Name"
+                sx={{
+                  ...textFieldSx,
+                  width: "70%",
+                }}
+              />
+              <TextField
+                label="Priority"
+                fullWidth
+                type="number"
+                variant="outlined"
+                value={product.priority}
+                onChange={(e) =>
+                  handleChange(idx, "priority", Number(e.target.value))
+                }
+                placeholder="Priority"
+                sx={{
+                  ...textFieldSx,
+                  width: "30%",
+                }}
+                inputProps={{ min: 1, max: 10 }}
+              />
+            </Stack>
+            {/* Description Row */}
+            <Stack direction="row" spacing={2} alignItems="center">
+              <TextField
+                label="Description"
+                fullWidth
+                multiline
+                minRows={4}
+                variant="outlined"
+                value={product.description}
+                onChange={(e) =>
+                  handleChange(idx, "description", e.target.value)
+                }
+                placeholder="Description"
+                sx={{ ...textFieldSx }}
+              />
+            </Stack>
+          </Box>
         ))}
       </Box>
 

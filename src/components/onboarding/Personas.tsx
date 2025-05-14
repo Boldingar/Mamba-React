@@ -91,81 +91,102 @@ const Personas: React.FC<PersonasProps> = ({
     >
       <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
         {formData.personas.map((persona, idx) => (
-          <Stack
+          <Box
             key={idx}
-            direction="row"
-            spacing={2}
-            alignItems="center"
-            sx={{ mb: 2 }}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              py: 3,
+              px: 2,
+              minHeight: 100,
+              mb: 3,
+              bgcolor: "background.paper",
+            }}
           >
-            <TextField
-              fullWidth
-              variant="outlined"
-              value={persona.name}
-              onChange={(e) => handleChange(idx, "name", e.target.value)}
-              placeholder="Persona Name"
-              sx={{
-                ...textFieldSx,
-                width: "30%",
-              }}
-            />
-            <TextField
-              fullWidth
-              variant="outlined"
-              value={persona.description}
-              onChange={(e) => handleChange(idx, "description", e.target.value)}
-              placeholder="Description"
-              sx={{
-                ...textFieldSx,
-                width: "55%",
-              }}
-            />
-            <TextField
-              fullWidth
-              type="number"
-              variant="outlined"
-              value={persona.priority}
-              onChange={(e) =>
-                handleChange(idx, "priority", Number(e.target.value))
-              }
-              placeholder="Priority"
-              sx={{
-                ...textFieldSx,
-                width: "15%",
-              }}
-              inputProps={{ min: 1, max: 10 }}
-            />
-            <IconButton
-              onClick={() => handleClear(idx)}
-              color="primary"
-              aria-label="clear"
-              sx={{
-                "&:hover": {
-                  bgcolor: (theme) => theme.palette.primary.light + "20",
-                },
-              }}
+            {/* Name and Priority Row */}
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              sx={{ mb: 2 }}
             >
-              <img
-                src={
-                  theme.palette.mode === "dark" ? "/clearW.png" : "/clear.png"
-                }
-                alt="Clear"
-                style={{ width: 20, height: 20 }}
+              <TextField
+                label="Persona Name"
+                fullWidth
+                variant="outlined"
+                value={persona.name}
+                onChange={(e) => handleChange(idx, "name", e.target.value)}
+                placeholder="Persona Name"
+                sx={{
+                  ...textFieldSx,
+                  width: "70%",
+                }}
               />
-            </IconButton>
-            <IconButton
-              onClick={() => handleDelete(idx)}
-              color="error"
-              aria-label="delete"
-              sx={{
-                "&:hover": {
-                  bgcolor: (theme) => theme.palette.error.light + "20",
-                },
-              }}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Stack>
+              <TextField
+                label="Priority"
+                fullWidth
+                type="number"
+                variant="outlined"
+                value={persona.priority}
+                onChange={(e) =>
+                  handleChange(idx, "priority", Number(e.target.value))
+                }
+                placeholder="Priority"
+                sx={{
+                  ...textFieldSx,
+                  width: "30%",
+                }}
+                inputProps={{ min: 1, max: 10 }}
+              />
+              <IconButton
+                onClick={() => handleClear(idx)}
+                color="primary"
+                aria-label="clear"
+                sx={{
+                  "&:hover": {
+                    bgcolor: (theme) => theme.palette.primary.light + "20",
+                  },
+                }}
+              >
+                <img
+                  src={
+                    theme.palette.mode === "dark" ? "/clearW.png" : "/clear.png"
+                  }
+                  alt="Clear"
+                  style={{ width: 20, height: 20 }}
+                />
+              </IconButton>
+              <IconButton
+                onClick={() => handleDelete(idx)}
+                color="error"
+                aria-label="delete"
+                sx={{
+                  "&:hover": {
+                    bgcolor: (theme) => theme.palette.error.light + "20",
+                  },
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Stack>
+            {/* Description Row */}
+            <Stack direction="row" spacing={2} alignItems="center">
+              <TextField
+                label="Description"
+                fullWidth
+                multiline
+                minRows={4}
+                variant="outlined"
+                value={persona.description}
+                onChange={(e) =>
+                  handleChange(idx, "description", e.target.value)
+                }
+                placeholder="Description"
+                sx={{ ...textFieldSx }}
+              />
+            </Stack>
+          </Box>
         ))}
       </Box>
 
