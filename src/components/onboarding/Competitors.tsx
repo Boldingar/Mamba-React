@@ -1,5 +1,12 @@
 import React from "react";
-import { Box, Stack, TextField, IconButton, Button } from "@mui/material";
+import {
+  Box,
+  Stack,
+  TextField,
+  IconButton,
+  Button,
+  Typography,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material/styles";
@@ -78,6 +85,28 @@ const Competitors: React.FC<CompetitorsProps> = ({
     setFormData({ ...formData, competitors: newCompetitors });
   };
 
+  const handleNext = () => {
+    // Reset scroll position of all relevant containers
+    const containers = document.querySelectorAll(
+      '.MuiBox-root, [id$="-scrollable-container"]'
+    );
+    containers.forEach((container) => {
+      (container as HTMLElement).scrollTo({ top: 0, behavior: "smooth" });
+    });
+    onNext();
+  };
+
+  const handleBack = () => {
+    // Reset scroll position of all relevant containers
+    const containers = document.querySelectorAll(
+      '.MuiBox-root, [id$="-scrollable-container"]'
+    );
+    containers.forEach((container) => {
+      (container as HTMLElement).scrollTo({ top: 0, behavior: "smooth" });
+    });
+    onBack();
+  };
+
   return (
     <Box
       sx={{
@@ -88,6 +117,28 @@ const Competitors: React.FC<CompetitorsProps> = ({
       }}
     >
       <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
+        {formData.competitors.length === 0 && (
+          <Box
+            sx={{
+              textAlign: "center",
+              py: 4,
+              px: 2,
+              bgcolor: "background.paper",
+              borderRadius: 2,
+              border: "1px solid",
+              borderColor: "divider",
+              mb: 3,
+            }}
+          >
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              No Competitors Found
+            </Typography>
+            <Typography color="text.secondary">
+              We couldn't identify your competitors. You can add them manually
+              using the button below.
+            </Typography>
+          </Box>
+        )}
         {formData.competitors.map((competitor, idx) => (
           <Box
             key={idx}
@@ -201,14 +252,14 @@ const Competitors: React.FC<CompetitorsProps> = ({
         <Button
           variant="contained"
           sx={{ ...buttonStyles, px: 3 }}
-          onClick={onBack}
+          onClick={handleBack}
         >
           Back
         </Button>
         <Button
           variant="contained"
           sx={{ ...buttonStyles, px: 6 }}
-          onClick={onNext}
+          onClick={handleNext}
         >
           Keep Moving →
         </Button>

@@ -1,5 +1,12 @@
 import React from "react";
-import { Box, Stack, TextField, IconButton, Button } from "@mui/material";
+import {
+  Box,
+  Stack,
+  TextField,
+  IconButton,
+  Button,
+  Typography,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material/styles";
@@ -80,6 +87,28 @@ const Personas: React.FC<PersonasProps> = ({
     setFormData({ ...formData, personas: newPersonas });
   };
 
+  const handleNext = () => {
+    // Reset scroll position of all relevant containers
+    const containers = document.querySelectorAll(
+      '.MuiBox-root, [id$="-scrollable-container"]'
+    );
+    containers.forEach((container) => {
+      (container as HTMLElement).scrollTo({ top: 0, behavior: "smooth" });
+    });
+    onNext();
+  };
+
+  const handleBack = () => {
+    // Reset scroll position of all relevant containers
+    const containers = document.querySelectorAll(
+      '.MuiBox-root, [id$="-scrollable-container"]'
+    );
+    containers.forEach((container) => {
+      (container as HTMLElement).scrollTo({ top: 0, behavior: "smooth" });
+    });
+    onBack();
+  };
+
   return (
     <Box
       sx={{
@@ -90,6 +119,28 @@ const Personas: React.FC<PersonasProps> = ({
       }}
     >
       <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
+        {formData.personas.length === 0 && (
+          <Box
+            sx={{
+              textAlign: "center",
+              py: 4,
+              px: 2,
+              bgcolor: "background.paper",
+              borderRadius: 2,
+              border: "1px solid",
+              borderColor: "divider",
+              mb: 3,
+            }}
+          >
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              No Target Personas Found
+            </Typography>
+            <Typography color="text.secondary">
+              We couldn't identify your target personas. You can define them
+              manually using the button below.
+            </Typography>
+          </Box>
+        )}
         {formData.personas.map((persona, idx) => (
           <Box
             key={idx}
@@ -218,14 +269,14 @@ const Personas: React.FC<PersonasProps> = ({
         <Button
           variant="contained"
           sx={{ ...buttonStyles, px: 3 }}
-          onClick={onBack}
+          onClick={handleBack}
         >
           Back
         </Button>
         <Button
           variant="contained"
           sx={{ ...buttonStyles, px: 6 }}
-          onClick={onNext}
+          onClick={handleNext}
         >
           Keep Moving →
         </Button>
