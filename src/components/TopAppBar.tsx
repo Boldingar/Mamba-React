@@ -63,11 +63,11 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
       position="fixed"
       color="default"
       elevation={0}
-      sx={{ bgcolor: "transparent", zIndex: 1302 }}
+      sx={{ bgcolor: "background.default", zIndex: 1302 }}
     >
       <Toolbar
         sx={{
-          minHeight: 100,
+          maxHeight: "2vh",
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-start",
@@ -78,7 +78,7 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
           sx={{
             display: "flex",
             alignItems: "center",
-            height: 60,
+            height: "4vh",
           }}
         >
           {logoSvg}
@@ -90,8 +90,10 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
             onClick={onToggleCSVPanel}
             sx={{
               mr: 1,
-              width: 56,
-              height: 56,
+              width: "4vw",
+              height: "4vw",
+              minWidth: "40px",
+              minHeight: "40px",
               border: "none",
               bgcolor: "transparent",
               "&:hover": {
@@ -99,7 +101,7 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
               },
             }}
           >
-            <DescriptionIcon sx={{ fontSize: 34 }} />
+            <DescriptionIcon sx={{ fontSize: "2vw", minFontSize: "24px" }} />
           </IconButton>
         )}
       </Toolbar>

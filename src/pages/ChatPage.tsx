@@ -829,6 +829,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
               height: "100%",
               display: "flex",
               alignItems: "center",
+              mt: "2vh",
               justifyContent: "center",
               overflow: "hidden", // Prevent scrolling
             }}
