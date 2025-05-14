@@ -23,6 +23,7 @@ import EditPersonas from "./EditPersonas";
 import EditCompetitors from "./EditCompetitors";
 import axios from "../../utils/axios";
 import { FormDataType as BaseFormDataType } from "../onboarding/Onboarding";
+import { useIsMobile } from "../../utils/responsive";
 
 // Extended interface for edit project
 interface FormDataType extends BaseFormDataType {
@@ -39,6 +40,7 @@ interface EditProjectProps {
 
 const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [activeStep, setActiveStep] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -557,6 +559,99 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
     );
   }
 
+  // For the mobile view, add a header showing the current step name
+  if (isMobile) {
+    return (
+      <Box
+        id="edit-project-main-container"
+        sx={{
+          width: "100%",
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          p: 2,
+          pt: "56px", // Add top padding to account for the TopAppBar height
+          backgroundColor: "transparent",
+          overflow: "hidden",
+          borderColor: "divider",
+          position: "relative",
+        }}
+      >
+        {/* Mobile step indicator */}
+        <Box
+          sx={{
+            width: "100%",
+            mt: 1,
+            mb: 3,
+            p: 2,
+            backgroundColor: "background.paper",
+            borderRadius: 1,
+            boxShadow: "0px 2px 4px rgba(0,0,0,0.05)",
+            textAlign: "center",
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 500 }}>
+            {steps[activeStep]}
+          </Typography>
+        </Box>
+
+        <Box sx={{ flex: 1, width: "100%", overflow: "auto", pb: 10 }}>
+          {getStepContent(activeStep)}
+        </Box>
+
+        {/* Fixed Save/Next Button for mobile view */}
+        <Box
+          sx={{
+            position: "fixed", // Change to fixed instead of absolute
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: 2,
+            paddingBottom: 3, // Add extra padding at the bottom
+            backgroundColor: "background.default",
+            borderTop: "1px solid",
+            borderColor: "divider",
+            display: "flex",
+            justifyContent: "space-between",
+            zIndex: 10,
+          }}
+        >
+          {activeStep > 0 && (
+            <Button
+              variant="contained"
+              onClick={handleBack}
+              sx={{
+                px: 3,
+                boxShadow: "none",
+                borderRadius: 1,
+                textTransform: "none",
+              }}
+            >
+              Back
+            </Button>
+          )}
+          <Box sx={{ flex: 1 }} />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={
+              activeStep === steps.length - 1 ? handleSubmit : handleNext
+            }
+            sx={{
+              px: 6,
+              boxShadow: "none",
+              borderRadius: 1,
+              textTransform: "none",
+            }}
+          >
+            {activeStep === steps.length - 1 ? "Save" : "Next"}
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
+
+  // Desktop view remains the same
   return (
     <Box
       id="edit-project-main-container"
@@ -573,6 +668,7 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
         borderRadius: 1, // Fixed border radius of 1
         borderColor: "divider",
         position: "relative", // Add position relative for absolute positioning
+        mt: "64px", // Add top margin in desktop view to prevent being cut off by TopAppBar
       }}
     >
       <Stepper
@@ -597,25 +693,27 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
         ))}
       </Stepper>
 
-      <Box sx={{ flex: 1, width: "100%", overflow: "hidden" }}>
+      <Box sx={{ flex: 1, width: "100%", overflow: "auto", pb: 10 }}>
         {getStepContent(activeStep)}
       </Box>
 
       {/* Fixed Save/Next Button - visible on all steps */}
       <Box
         sx={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
+          position: "fixed", // Change to fixed instead of absolute
+          bottom: 20,
+          left: "56.5%", // Center the button container
+          transform: "translateX(-50%)", // Center the button container
+          width: "80%", // Match the width of the parent container
+          maxWidth: "1000px", // Match the max-width of the parent container
           padding: 2,
+          paddingBottom: 3, // Add extra padding at the bottom
           backgroundColor: "background.default",
           borderTop: "1px solid",
           borderColor: "divider",
           display: "flex",
           justifyContent: "space-between",
           zIndex: 10, // Add a higher z-index to ensure it's above other elements
-          // boxShadow: "0px -2px 4px rgba(0,0,0,0.05)", // Add subtle shadow for visual separation
         }}
       >
         {activeStep > 0 && (
