@@ -146,7 +146,9 @@ const Personas: React.FC<PersonasProps> = ({
               }}
             >
               <img
-                src="/clear.png"
+                src={
+                  theme.palette.mode === "dark" ? "/clearW.png" : "/clear.png"
+                }
                 alt="Clear"
                 style={{ width: 20, height: 20 }}
               />

@@ -78,8 +78,7 @@ function App() {
           <Box
             sx={{
               width: "100vw",
-              height: "90vh",
-              marginTop: "0vh",
+              height: "95vh",
               padding: 0,
               overflow: "hidden",
               display: "flex",

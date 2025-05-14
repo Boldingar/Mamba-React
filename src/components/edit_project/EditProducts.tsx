@@ -122,7 +122,7 @@ const Products: React.FC<ProductsProps> = ({
               mb: 4,
               borderRadius,
               position: "relative",
-              border: "1px solid",
+              border: "2px solid",
               borderColor: "divider",
               backgroundColor: "transparent",
               minHeight: "220px",

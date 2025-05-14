@@ -564,6 +564,7 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
         width: "80%", // Reduce width to center the component
         maxWidth: "1000px", // Set a maximum width
         height: "80vh",
+        height: "90vh",
         display: "flex",
         flexDirection: "column",
         p: 2,
@@ -581,6 +582,7 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
           mb: 4,
           "& .MuiStepLabel-label": {
             color: "text.primary",
+            cursor: "pointer",
           },
           "& .MuiStepLabel-root": {
             cursor: "pointer",
@@ -614,7 +616,7 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
           display: "flex",
           justifyContent: "space-between",
           zIndex: 10, // Add a higher z-index to ensure it's above other elements
-          boxShadow: "0px -2px 4px rgba(0,0,0,0.05)", // Add subtle shadow for visual separation
+          // boxShadow: "0px -2px 4px rgba(0,0,0,0.05)", // Add subtle shadow for visual separation
         }}
       >
         {activeStep > 0 && (

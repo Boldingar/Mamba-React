@@ -63,7 +63,7 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
       position="fixed"
       color="default"
       elevation={0}
-      sx={{ bgcolor: "background.default", zIndex: 1302 }}
+      sx={{ bgcolor: "transparent", zIndex: 1302 }}
     >
       <Toolbar
         sx={{
@@ -83,20 +83,6 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
         >
           {logoSvg}
         </Box>
-        {/* <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 600,
-            fontSize: { xs: 16, sm: 20 },
-            color: "text.primary",
-            opacity: 0.9,
-            fontFamily: "inherit",
-            lineHeight: 1.2,
-            whiteSpace: "nowrap",
-          }}
-        >
-          Lily - Senior SEO Engineer
-        </Typography> */}
         <Box sx={{ flex: 1 }} />
         {hasDataToShow && (
           <IconButton
