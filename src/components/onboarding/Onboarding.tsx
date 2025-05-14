@@ -73,6 +73,18 @@ const Onboarding: React.FC<OnboardingProps> = ({
   const navigate = useNavigate();
 
   const handleNext = () => {
+    // Reset scroll position
+    const mainContainer = document.querySelector(".MuiBox-root");
+    const scrollableContainers = document.querySelectorAll(
+      '[id$="-scrollable-container"]'
+    );
+    if (mainContainer) {
+      mainContainer.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    scrollableContainers.forEach((container) => {
+      (container as HTMLElement).scrollTo({ top: 0, behavior: "smooth" });
+    });
+
     if (activeStep === steps.length - 1) {
       handleSubmit();
     } else {
@@ -81,6 +93,18 @@ const Onboarding: React.FC<OnboardingProps> = ({
   };
 
   const handleBack = () => {
+    // Reset scroll position
+    const mainContainer = document.querySelector(".MuiBox-root");
+    const scrollableContainers = document.querySelectorAll(
+      '[id$="-scrollable-container"]'
+    );
+    if (mainContainer) {
+      mainContainer.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    scrollableContainers.forEach((container) => {
+      (container as HTMLElement).scrollTo({ top: 0, behavior: "smooth" });
+    });
+
     setActiveStep(activeStep - 1);
   };
 
@@ -160,6 +184,7 @@ const Onboarding: React.FC<OnboardingProps> = ({
               }
               setActiveStep(3);
             }}
+            showBackButton={hasWebsite === true}
           />
         );
       case 3:
@@ -194,6 +219,8 @@ const Onboarding: React.FC<OnboardingProps> = ({
         height: "100%",
         display: "flex",
         flexDirection: "column",
+        overflow: "auto",
+        scrollBehavior: "smooth",
       }}
     >
       <Stepper

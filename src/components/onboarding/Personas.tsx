@@ -1,5 +1,12 @@
 import React from "react";
-import { Box, Stack, TextField, IconButton, Button } from "@mui/material";
+import {
+  Box,
+  Stack,
+  TextField,
+  IconButton,
+  Button,
+  Typography,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material/styles";
@@ -80,6 +87,28 @@ const Personas: React.FC<PersonasProps> = ({
     setFormData({ ...formData, personas: newPersonas });
   };
 
+  const handleNext = () => {
+    // Reset scroll position of all relevant containers
+    const containers = document.querySelectorAll(
+      '.MuiBox-root, [id$="-scrollable-container"]'
+    );
+    containers.forEach((container) => {
+      (container as HTMLElement).scrollTo({ top: 0, behavior: "smooth" });
+    });
+    onNext();
+  };
+
+  const handleBack = () => {
+    // Reset scroll position of all relevant containers
+    const containers = document.querySelectorAll(
+      '.MuiBox-root, [id$="-scrollable-container"]'
+    );
+    containers.forEach((container) => {
+      (container as HTMLElement).scrollTo({ top: 0, behavior: "smooth" });
+    });
+    onBack();
+  };
+
   return (
     <Box
       sx={{
@@ -90,82 +119,125 @@ const Personas: React.FC<PersonasProps> = ({
       }}
     >
       <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
-        {formData.personas.map((persona, idx) => (
-          <Stack
-            key={idx}
-            direction="row"
-            spacing={2}
-            alignItems="center"
-            sx={{ mb: 2 }}
+        {formData.personas.length === 0 && (
+          <Box
+            sx={{
+              textAlign: "center",
+              py: 4,
+              px: 2,
+              bgcolor: "background.paper",
+              borderRadius: 2,
+              border: "1px solid",
+              borderColor: "divider",
+              mb: 3,
+            }}
           >
-            <TextField
-              fullWidth
-              variant="outlined"
-              value={persona.name}
-              onChange={(e) => handleChange(idx, "name", e.target.value)}
-              placeholder="Persona Name"
-              sx={{
-                ...textFieldSx,
-                width: "30%",
-              }}
-            />
-            <TextField
-              fullWidth
-              variant="outlined"
-              value={persona.description}
-              onChange={(e) => handleChange(idx, "description", e.target.value)}
-              placeholder="Description"
-              sx={{
-                ...textFieldSx,
-                width: "55%",
-              }}
-            />
-            <TextField
-              fullWidth
-              type="number"
-              variant="outlined"
-              value={persona.priority}
-              onChange={(e) =>
-                handleChange(idx, "priority", Number(e.target.value))
-              }
-              placeholder="Priority"
-              sx={{
-                ...textFieldSx,
-                width: "15%",
-              }}
-              inputProps={{ min: 1, max: 10 }}
-            />
-            <IconButton
-              onClick={() => handleClear(idx)}
-              color="primary"
-              aria-label="clear"
-              sx={{
-                "&:hover": {
-                  bgcolor: (theme) => theme.palette.primary.light + "20",
-                },
-              }}
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              No Target Personas Found
+            </Typography>
+            <Typography color="text.secondary">
+              We couldn't identify your target personas. You can define them
+              manually using the button below.
+            </Typography>
+          </Box>
+        )}
+        {formData.personas.map((persona, idx) => (
+          <Box
+            key={idx}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              py: 3,
+              px: 2,
+              minHeight: 100,
+              mb: 3,
+              bgcolor: "background.paper",
+            }}
+          >
+            {/* Name and Priority Row */}
+            <Stack
+              direction="row"
+              spacing={2}
+              alignItems="center"
+              sx={{ mb: 2 }}
             >
-              <img
-                src={
-                  theme.palette.mode === "dark" ? "/clearW.png" : "/clear.png"
-                }
-                alt="Clear"
-                style={{ width: 20, height: 20 }}
+              <TextField
+                label="Persona Name"
+                fullWidth
+                variant="outlined"
+                value={persona.name}
+                onChange={(e) => handleChange(idx, "name", e.target.value)}
+                placeholder="Persona Name"
+                sx={{
+                  ...textFieldSx,
+                  width: "70%",
+                }}
               />
-            </IconButton>
-            <IconButton
-              onClick={() => handleDelete(idx)}
-              color="error"
-              aria-label="delete"
-              sx={{
-                "&:hover": {
-                  bgcolor: (theme) => theme.palette.error.light + "20",
-                },
-              }}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Stack>
+              <TextField
+                label="Priority"
+                fullWidth
+                type="number"
+                variant="outlined"
+                value={persona.priority}
+                onChange={(e) =>
+                  handleChange(idx, "priority", Number(e.target.value))
+                }
+                placeholder="Priority"
+                sx={{
+                  ...textFieldSx,
+                  width: "30%",
+                }}
+                inputProps={{ min: 1, max: 10 }}
+              />
+              <IconButton
+                onClick={() => handleClear(idx)}
+                color="primary"
+                aria-label="clear"
+                sx={{
+                  "&:hover": {
+                    bgcolor: (theme) => theme.palette.primary.light + "20",
+                  },
+                }}
+              >
+                <img
+                  src={
+                    theme.palette.mode === "dark" ? "/clearW.png" : "/clear.png"
+                  }
+                  alt="Clear"
+                  style={{ width: 20, height: 20 }}
+                />
+              </IconButton>
+              <IconButton
+                onClick={() => handleDelete(idx)}
+                color="error"
+                aria-label="delete"
+                sx={{
+                  "&:hover": {
+                    bgcolor: (theme) => theme.palette.error.light + "20",
+                  },
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Stack>
+            {/* Description Row */}
+            <Stack direction="row" spacing={2} alignItems="center">
+              <TextField
+                label="Description"
+                fullWidth
+                multiline
+                minRows={4}
+                variant="outlined"
+                value={persona.description}
+                onChange={(e) =>
+                  handleChange(idx, "description", e.target.value)
+                }
+                placeholder="Description"
+                sx={{ ...textFieldSx }}
+              />
+            </Stack>
+          </Box>
         ))}
       </Box>
 
@@ -197,14 +269,14 @@ const Personas: React.FC<PersonasProps> = ({
         <Button
           variant="contained"
           sx={{ ...buttonStyles, px: 3 }}
-          onClick={onBack}
+          onClick={handleBack}
         >
           Back
         </Button>
         <Button
           variant="contained"
           sx={{ ...buttonStyles, px: 6 }}
-          onClick={onNext}
+          onClick={handleNext}
         >
           Keep Moving →
         </Button>
