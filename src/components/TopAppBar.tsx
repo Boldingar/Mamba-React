@@ -67,7 +67,7 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
     >
       <Toolbar
         sx={{
-          minHeight: 100,
+          maxHeight: "2vh",
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-start",
@@ -78,25 +78,11 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
           sx={{
             display: "flex",
             alignItems: "center",
-            height: 60,
+            height: "4vh",
           }}
         >
           {logoSvg}
         </Box>
-        {/* <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 600,
-            fontSize: { xs: 16, sm: 20 },
-            color: "text.primary",
-            opacity: 0.9,
-            fontFamily: "inherit",
-            lineHeight: 1.2,
-            whiteSpace: "nowrap",
-          }}
-        >
-          Lily - Senior SEO Engineer
-        </Typography> */}
         <Box sx={{ flex: 1 }} />
         {hasDataToShow && (
           <IconButton
@@ -104,8 +90,10 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
             onClick={onToggleCSVPanel}
             sx={{
               mr: 1,
-              width: 56,
-              height: 56,
+              width: "4vw",
+              height: "4vw",
+              minWidth: "40px",
+              minHeight: "40px",
               border: "none",
               bgcolor: "transparent",
               "&:hover": {
@@ -113,7 +101,7 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
               },
             }}
           >
-            <DescriptionIcon sx={{ fontSize: 34 }} />
+            <DescriptionIcon sx={{ fontSize: "2vw", minFontSize: "24px" }} />
           </IconButton>
         )}
       </Toolbar>

@@ -176,9 +176,11 @@ const Products: React.FC<ProductsProps> = ({
               }}
             >
               <img
-                src="/clear.png"
+                src={
+                  theme.palette.mode === "dark" ? "/clearW.png" : "/clear.png"
+                }
                 alt="Clear"
-                style={{ width: 20, height: 20 }}
+                style={{ width: 30, height: 30 }}
               />
             </IconButton>
             <IconButton
