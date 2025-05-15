@@ -1,7 +1,6 @@
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
-import { SitemarkIcon } from "./CustomIcons";
 
 export default function Content() {
   return (

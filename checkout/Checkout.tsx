@@ -17,7 +17,6 @@ import Info from './components/Info';
 import InfoMobile from './components/InfoMobile';
 import PaymentForm from './components/PaymentForm';
 import Review from './components/Review';
-import SitemarkIcon from './components/SitemarkIcon';
 import AppTheme from '../shared-theme/AppTheme';
 import ColorModeIconDropdown from '../shared-theme/ColorModeIconDropdown';
 
@@ -76,7 +75,6 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
             gap: 4,
           }}
         >
-          <SitemarkIcon />
           <Box
             sx={{
               display: 'flex',
