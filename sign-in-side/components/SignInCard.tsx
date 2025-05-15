@@ -17,6 +17,7 @@ import axiosInstance from "../../src/utils/axios";
 import { useNavigate } from "react-router-dom";
 import GoogleLogin from "../../src/components/GoogleLogin";
 import { saveIntegrationStatus } from "../../src/utils/authRedirect";
+import { clearProjectsCache } from "../../src/utils/projectUtils";
 
 interface SignInCardProps {
   setIsAuthenticated?: (auth: boolean) => void;
@@ -104,6 +105,9 @@ export default function SignInCard({ setIsAuthenticated }: SignInCardProps) {
     if (connected_to_ga4 !== undefined) {
       saveIntegrationStatus("ga4", connected_to_ga4);
     }
+
+    // Clear projects cache to ensure fresh data after login
+    clearProjectsCache();
 
     // Redirect based on whether user has projects
     if (!projects || projects.length === 0) {

@@ -5,7 +5,7 @@ import GoogleIntegrations from "./GoogleIntegrations";
 
 const Integrations: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   // Add debugging for integration component mount/unmount
   useEffect(() => {
@@ -86,7 +86,7 @@ const Integrations: React.FC = () => {
         bgcolor: theme.palette.background.default,
         display: "flex",
         overflow: "hidden",
-        position: "relative", 
+        position: "relative",
         zIndex: 1,
       }}
     >

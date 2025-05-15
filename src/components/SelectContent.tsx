@@ -26,6 +26,7 @@ import {
   Box,
   Tooltip,
 } from "@mui/material";
+import { getProjects, clearProjectsCache } from "../utils/projectUtils";
 
 interface Project {
   id: string;
@@ -139,6 +140,9 @@ export default function SelectContent({
     try {
       await axiosInstance.delete(`/projects/${activeProject.id}`);
 
+      // Clear the projects cache to force a refresh next time
+      clearProjectsCache();
+
       // Remove the project from the list
       setProjects(projects.filter((p) => p.id !== activeProject.id));
 
@@ -191,8 +195,8 @@ export default function SelectContent({
   // Add a function to fetch projects that can be called independently
   const fetchProjects = async () => {
     try {
-      const response = await axiosInstance.get("/projects");
-      setProjects(response.data);
+      const projects = await getProjects();
+      setProjects(projects);
 
       // Get current project from storage
       const currentProject =
@@ -202,17 +206,17 @@ export default function SelectContent({
       if (currentProject) {
         const project = JSON.parse(currentProject);
         // Check if the stored project still exists in the fetched projects
-        if (response.data.some((p: Project) => p.id === project.id)) {
+        if (projects.some((p: Project) => p.id === project.id)) {
           setSelectedProject(project.id);
-        } else if (response.data.length > 0) {
+        } else if (projects.length > 0) {
           // If stored project doesn't exist, select first project
-          const firstProject = response.data[0];
+          const firstProject = projects[0];
           setSelectedProject(firstProject.id);
           localStorage.setItem("currentProject", JSON.stringify(firstProject));
         }
-      } else if (response.data.length > 0) {
+      } else if (projects.length > 0) {
         // No project in storage, select first project
-        const firstProject = response.data[0];
+        const firstProject = projects[0];
         setSelectedProject(firstProject.id);
         localStorage.setItem("currentProject", JSON.stringify(firstProject));
       }

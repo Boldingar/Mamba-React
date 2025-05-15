@@ -13,7 +13,7 @@ import axiosInstance from "../utils/axios";
 import Integrations from "../components/integrations/Integrations";
 import EditProject from "../components/edit_project/EditProject";
 import { useNavigate } from "react-router-dom";
-import { redirectIfNoProjects } from "../utils/projectUtils";
+import { redirectIfNoProjects, getProjects } from "../utils/projectUtils";
 import { useIsMobile } from "../utils/responsive";
 
 interface Data {
@@ -148,7 +148,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
 
   // Check if user has projects when component mounts
   useEffect(() => {
-    redirectIfNoProjects(navigate);
+    // Initialize projects cache with a call to get projects
+    // This will ensure the cache is populated early
+    getProjects().then(() => {
+      redirectIfNoProjects(navigate);
+    });
 
     // Listen for popstate events (browser back/forward buttons)
     const handlePopState = () => {
