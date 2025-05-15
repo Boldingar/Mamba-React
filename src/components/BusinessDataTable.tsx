@@ -559,35 +559,34 @@ const BusinessDataTable: React.FC<BusinessDataTableProps> = ({
             onRowsPerPageChange={handleChangeRowsPerPage}
             sx={{
               ".MuiTablePagination-toolbar": {
-                flexWrap: "wrap",
+                flexWrap: "nowrap",
                 justifyContent: "center",
                 padding: "16px 8px",
-                gap: 2,
+                gap: 1,
                 borderTop: "1px solid",
                 borderColor: "divider",
+                alignItems: "center",
               },
               ".MuiTablePagination-displayedRows": {
-                margin: "12px 0",
+                margin: 0,
                 fontSize: "0.875rem",
-                width: "100%",
                 textAlign: "center",
                 fontWeight: "500",
               },
               ".MuiTablePagination-selectLabel": {
-                margin: "12px 0 0 0",
-                fontSize: "0.875rem",
+                display: "none",
               },
               ".MuiTablePagination-select": {
-                marginRight: "8px",
-                fontSize: "0.875rem",
+                display: "none",
+              },
+              ".MuiTablePagination-selectIcon": {
+                display: "none",
               },
               ".MuiTablePagination-actions": {
                 marginLeft: 0,
                 marginRight: 0,
                 flexGrow: 0,
                 justifyContent: "center",
-                width: "100%",
-                marginTop: 2,
                 "& .MuiIconButton-root": {
                   padding: "8px",
                 },

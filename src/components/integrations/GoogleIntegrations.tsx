@@ -204,20 +204,7 @@ const GoogleIntegrations: React.FC = () => {
             Google Search Console
           </Button>
           {searchConsoleConnected && (
-            <Typography
-              variant="body2"
-              align="center"
-              sx={{
-                mt: 1,
-                fontSize: isMobile ? "0.8rem" : "0.85rem",
-                color: "text.secondary",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 0.5,
-              }}
-            >
-              If you don't want to share your data, you can{" "}
+            <Box sx={{ textAlign: "right", mt: 1 }}>
               <Link
                 component="button"
                 variant="inherit"
@@ -228,7 +215,7 @@ const GoogleIntegrations: React.FC = () => {
                   cursor: "pointer",
                   textDecoration: "none",
                   color: theme.palette.primary.main,
-                  fontSize: "inherit",
+                  fontSize: isMobile ? "0.8rem" : "0.85rem",
                   "&:hover": {
                     textDecoration: "none",
                   },
@@ -236,7 +223,7 @@ const GoogleIntegrations: React.FC = () => {
               >
                 Disconnect
               </Link>
-            </Typography>
+            </Box>
           )}
         </Box>
 
@@ -278,20 +265,7 @@ const GoogleIntegrations: React.FC = () => {
             Google Analytics (GA4)
           </Button>
           {analyticsConnected && (
-            <Typography
-              variant="body2"
-              align="center"
-              sx={{
-                mt: 1,
-                fontSize: isMobile ? "0.8rem" : "0.85rem",
-                color: "text.secondary",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 0.5,
-              }}
-            >
-              If you don't want to share your data, you can{" "}
+            <Box sx={{ textAlign: "right", mt: 1 }}>
               <Link
                 component="button"
                 variant="inherit"
@@ -302,7 +276,7 @@ const GoogleIntegrations: React.FC = () => {
                   cursor: "pointer",
                   textDecoration: "none",
                   color: theme.palette.primary.main,
-                  fontSize: "inherit",
+                  fontSize: isMobile ? "0.8rem" : "0.85rem",
                   "&:hover": {
                     textDecoration: "none",
                   },
@@ -310,7 +284,7 @@ const GoogleIntegrations: React.FC = () => {
               >
                 Disconnect
               </Link>
-            </Typography>
+            </Box>
           )}
         </Box>
       </Stack>
