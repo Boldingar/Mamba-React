@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, Stack, Typography, Snackbar, Alert } from "@mui/material";
+import {
+  Box,
+  Button,
+  Stack,
+  Typography,
+  Snackbar,
+  Alert,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import axiosInstance from "../../utils/axios";
 import {
@@ -9,6 +18,8 @@ import {
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 const GoogleIntegrations: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [searchConsoleConnected, setSearchConsoleConnected] = useState(false);
@@ -110,7 +121,7 @@ const GoogleIntegrations: React.FC = () => {
 
   return (
     <Box sx={{ maxWidth: 480, width: "100%" }}>
-      <Stack spacing={4}>
+      <Stack spacing={isMobile ? 2 : 4}>
         <Button
           variant="contained"
           fullWidth
@@ -118,11 +129,11 @@ const GoogleIntegrations: React.FC = () => {
           sx={{
             bgcolor: searchConsoleConnected ? "#4CAF50" : "#6366F1", // Green if connected, purple if not
             color: "white",
-            p: 3,
+            p: isMobile ? 2 : 3,
             borderRadius: 2,
-            minHeight: 70,
+            minHeight: isMobile ? 60 : 70,
             textTransform: "none",
-            fontSize: "1rem",
+            fontSize: isMobile ? "0.9rem" : "1rem",
             fontWeight: 600,
             "&:hover": {
               bgcolor: searchConsoleConnected
@@ -133,7 +144,7 @@ const GoogleIntegrations: React.FC = () => {
         >
           <Typography
             variant="body1"
-            sx={{ fontWeight: 400, fontSize: "1rem" }}
+            sx={{ fontWeight: 400, fontSize: isMobile ? "0.9rem" : "1rem" }}
           >
             {searchConsoleConnected ? (
               <>
@@ -155,11 +166,11 @@ const GoogleIntegrations: React.FC = () => {
           sx={{
             bgcolor: analyticsConnected ? "#4CAF50" : "#6366F1", // Green if connected, purple if not
             color: "white",
-            p: 3,
+            p: isMobile ? 2 : 3,
             borderRadius: 2,
             textTransform: "none",
-            fontSize: "1rem",
-            minHeight: 70,
+            fontSize: isMobile ? "0.9rem" : "1rem",
+            minHeight: isMobile ? 60 : 70,
             fontWeight: 600,
             "&:hover": {
               bgcolor: analyticsConnected
@@ -170,7 +181,7 @@ const GoogleIntegrations: React.FC = () => {
         >
           <Typography
             variant="body1"
-            sx={{ fontWeight: 400, fontSize: "1rem" }}
+            sx={{ fontWeight: 400, fontSize: isMobile ? "0.9rem" : "1rem" }}
           >
             {analyticsConnected ? (
               <>

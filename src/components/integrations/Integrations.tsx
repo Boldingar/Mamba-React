@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
-import { Box, useTheme } from "@mui/material";
+import { Box, useTheme, useMediaQuery } from "@mui/material";
 import GoogleContext from "./GoogleContext";
 import GoogleIntegrations from "./GoogleIntegrations";
 
 const Integrations: React.FC = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Add debugging for integration component mount/unmount
   useEffect(() => {
@@ -29,6 +30,54 @@ const Integrations: React.FC = () => {
     };
   }, []);
 
+  // Mobile view - vertical stacking
+  if (isMobile) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          width: "100%",
+          bgcolor: theme.palette.background.default,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "auto",
+          position: "relative",
+          mt: "80px",
+          zIndex: 1,
+          py: 4,
+        }}
+      >
+        {/* Context Section */}
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            p: 2,
+            mb: 2,
+          }}
+        >
+          <GoogleContext />
+        </Box>
+
+        {/* Integration Buttons Section */}
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            p: 2,
+          }}
+        >
+          <GoogleIntegrations />
+        </Box>
+      </Box>
+    );
+  }
+
+  // Desktop view - horizontal layout (unchanged)
   return (
     <Box
       sx={{
@@ -37,8 +86,8 @@ const Integrations: React.FC = () => {
         bgcolor: theme.palette.background.default,
         display: "flex",
         overflow: "hidden",
-        position: "relative", // Ensure proper stacking context
-        zIndex: 1, // Lower than any potential modals
+        position: "relative", 
+        zIndex: 1,
       }}
     >
       {/* Left Side - Context */}
