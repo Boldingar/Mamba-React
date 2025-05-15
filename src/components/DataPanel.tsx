@@ -378,80 +378,82 @@ const DataPanel: React.FC<DataPanelProps> = ({
       <Box
         sx={{
           p: 3,
-          height: "100%",
+          height: "calc(100% - 120px)",
           display: "flex",
           flexDirection: "column",
           width: "100%",
           overflow: "hidden",
+          pb: "80px", // Add space for the fixed button
         }}
       >
         <Box
           sx={{
-            flex: 1,
             display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 1,
+            mt: 2,
+            mb: 2,
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 1,
-              mt: 2,
-              mb: 2,
-            }}
-          >
-            <FormControl fullWidth sx={{ minWidth: "250px" }}>
-              <InputLabel id="dataset-select-label">Select Dataset</InputLabel>
-              <Select
-                labelId="dataset-select-label"
-                id="dataset-select"
-                value={selectedDatasetId || ""}
-                label="Select Dataset"
-                onChange={handleDatasetChange}
-              >
-                {sortedDatasets.map((dataset) => (
-                  <MenuItem key={dataset.id} value={dataset.id}>
-                    {dataset.displayName || dataset.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-          <Box
-            sx={{
-              flex: 1,
-              overflow: "hidden",
-            }}
-          >
-            <BusinessDataTable data={data} onDataFilter={setFilteredData} />
-          </Box>
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              mt: 3,
-              pb: 1,
-            }}
-          >
-            <Button
-              variant="contained"
-              startIcon={<DownloadIcon />}
-              onClick={handleDownload}
-              disabled={filteredData.length === 0}
-              sx={{
-                borderRadius: "4px",
-                textTransform: "none",
-                px: 3,
-              }}
+          <FormControl fullWidth sx={{ minWidth: "250px" }}>
+            <InputLabel id="dataset-select-label">Select Dataset</InputLabel>
+            <Select
+              labelId="dataset-select-label"
+              id="dataset-select"
+              value={selectedDatasetId || ""}
+              label="Select Dataset"
+              onChange={handleDatasetChange}
             >
-              Download Data as CSV
-            </Button>
-          </Box>
+              {sortedDatasets.map((dataset) => (
+                <MenuItem key={dataset.id} value={dataset.id}>
+                  {dataset.displayName || dataset.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
+        <Box
+          sx={{
+            flex: 1,
+            overflow: "auto",
+            maxHeight: "calc(100vh - 250px)",
+          }}
+        >
+          <BusinessDataTable data={data} onDataFilter={setFilteredData} />
+        </Box>
+      </Box>
+
+      {/* Fixed action bar - similar to mobile */}
+      <Box
+        sx={{
+          position: "fixed",
+          bottom: 0,
+          right: 0,
+          width: width,
+          display: "flex",
+          justifyContent: "center",
+          padding: "16px",
+          backgroundColor: theme.palette.background.paper,
+          borderTop: "1px solid",
+          borderColor: "divider",
+          zIndex: 20,
+          boxShadow: "0px -2px 8px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Button
+          variant="contained"
+          startIcon={<DownloadIcon />}
+          onClick={handleDownload}
+          disabled={filteredData.length === 0}
+          sx={{
+            borderRadius: "4px",
+            textTransform: "none",
+            px: 3,
+          }}
+        >
+          Download Data as CSV
+        </Button>
       </Box>
     </Box>
   );
