@@ -1,9 +1,13 @@
 import React, { useEffect } from "react";
-import { Box, useTheme, useMediaQuery } from "@mui/material";
+import { Box, useTheme, useMediaQuery, Typography } from "@mui/material";
 import GoogleContext from "./GoogleContext";
 import GoogleIntegrations from "./GoogleIntegrations";
 
-const Integrations: React.FC = () => {
+interface IntegrationsProps {
+  isEmbedded?: boolean; // True when used in onboarding, false in standalone view
+}
+
+const Integrations: React.FC<IntegrationsProps> = ({ isEmbedded = false }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -29,6 +33,44 @@ const Integrations: React.FC = () => {
       window.removeEventListener("exitIntegrationsView", handleEvents);
     };
   }, []);
+
+  // If embedded in onboarding flow, use a more compact layout
+  if (isEmbedded) {
+    return (
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          gap: 4,
+          py: 2,
+          maxWidth: "1000px",
+          mx: "auto",
+        }}
+      >
+        {/* Left Side - Context */}
+        <Box
+          sx={{
+            flex: 1,
+            width: isMobile ? "100%" : "40%",
+          }}
+        >
+          <GoogleContext />
+        </Box>
+
+        {/* Right Side - Integration Buttons */}
+        <Box
+          sx={{
+            flex: 1,
+            width: isMobile ? "100%" : "60%",
+            mt: isMobile ? 4 : 0,
+          }}
+        >
+          <GoogleIntegrations />
+        </Box>
+      </Box>
+    );
+  }
 
   // Mobile view - vertical stacking
   if (isMobile) {

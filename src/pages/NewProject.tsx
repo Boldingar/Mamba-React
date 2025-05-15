@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Stack } from "@mui/material";
 import Onboarding from "../components/onboarding/Onboarding";
 import WelcomeSection from "../components/onboarding/WelcomeSection";
@@ -6,6 +6,7 @@ import { ThemeProvider } from "../context/ThemeContext";
 import AppTheme from "../../shared-theme/AppTheme";
 import { FormDataType } from "../components/onboarding/Onboarding";
 import { useIsMobile } from "../utils/responsive";
+import { hasProjects } from "../utils/projectUtils";
 
 const steps = [
   "Website",
@@ -13,6 +14,7 @@ const steps = [
   "Products",
   "Personas",
   "Competitors",
+  "Integrations",
   "Success",
 ];
 
@@ -46,14 +48,20 @@ const stepWelcomeContent = [
     bigTitle: false,
   },
   {
+    title: "Boost your strategy with integrations",
+    subtitle:
+      "Connect your Google accounts to get advanced insights and optimization recommendations based on your actual data.",
+    bigTitle: false,
+  },
+  {
     title: "You are all set 😁",
     bigTitle: true,
   },
 ];
 
 const NewProject: React.FC = () => {
-  const [activeStep, setActiveStep] = React.useState(0);
-  const [formData, setFormData] = React.useState<FormDataType>({
+  const [activeStep, setActiveStep] = useState(0);
+  const [formData, setFormData] = useState<FormDataType>({
     name: "",
     website_url: "",
     target_market: "United States",
@@ -62,10 +70,20 @@ const NewProject: React.FC = () => {
     competitors: [],
     company_summary: "",
   });
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [hasWebsite, setHasWebsite] = React.useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasWebsite, setHasWebsite] = useState<boolean | null>(null);
+  const [isFirstProject, setIsFirstProject] = useState(true);
   const isBusinessInfoStep = activeStep === 1;
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    const checkFirstProject = async () => {
+      const userHasProjects = await hasProjects();
+      setIsFirstProject(!userHasProjects);
+    };
+
+    checkFirstProject();
+  }, []);
 
   return (
     <AppTheme>
@@ -80,8 +98,8 @@ const NewProject: React.FC = () => {
             overflow: "hidden",
             margin: "0 auto",
             marginTop: isMobile ? "10px" : "20px",
-            width: isMobile ? "100%" : "70%",
-            maxWidth: isMobile ? "100%" : "70%",
+            width: isMobile ? "100%" : "90%",
+            maxWidth: isMobile ? "100%" : "90%",
             px: isMobile ? 2 : 0,
           }}
         >
@@ -96,7 +114,7 @@ const NewProject: React.FC = () => {
             >
               <Box
                 sx={{
-                  width: { xs: "100%", md: "40%" },
+                  width: { xs: "100%", md: "30%" },
                   height: "100%",
                   display: { xs: "none", md: "block" },
                 }}
@@ -108,8 +126,8 @@ const NewProject: React.FC = () => {
               </Box>
               <Box
                 sx={{
-                  width: { xs: "100%", md: "60%" },
-                  height: isMobile ? "85vh" : "80vh",
+                  width: { xs: "100%", md: "70%" },
+                  height: isMobile ? "85vh" : "90vh",
                   overflowY: "auto",
                   overflowX: "hidden",
                   padding: isMobile ? "0 5px" : "0 20px",
@@ -124,6 +142,7 @@ const NewProject: React.FC = () => {
                   setIsLoading={setIsLoading}
                   hasWebsite={hasWebsite}
                   setHasWebsite={setHasWebsite}
+                  isFirstProject={isFirstProject}
                 />
               </Box>
             </Stack>
@@ -162,6 +181,7 @@ const NewProject: React.FC = () => {
                   setIsLoading={setIsLoading}
                   hasWebsite={hasWebsite}
                   setHasWebsite={setHasWebsite}
+                  isFirstProject={isFirstProject}
                 />
               </Box>
             </>

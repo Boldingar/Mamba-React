@@ -108,6 +108,8 @@ const NoWebsite: React.FC<NoWebsiteProps> = ({
         width: "100%",
         height: "100%",
         mt: isMobile ? 3 : 0,
+        maxWidth: isMobile ? "100%" : "800px",
+        mx: "auto",
       }}
     >
       <Stack spacing={isMobile ? 3 : 4} sx={{ width: "100%" }}>

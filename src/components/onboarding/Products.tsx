@@ -6,12 +6,21 @@ import {
   IconButton,
   Button,
   Typography,
+  FormControl,
+  FormLabel,
+  Paper,
+  Grid,
+  MenuItem,
+  Select,
+  Tooltip,
+  Divider,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import ClearAllIcon from "@mui/icons-material/ClearAll";
 import { useTheme } from "@mui/material/styles";
-import { FormDataType } from "./Onboarding";
+import { FormDataType, Product } from "./Onboarding";
+import { useIsMobile } from "../../utils/responsive";
 
 interface ProductsProps {
   formData: FormDataType;
@@ -29,6 +38,7 @@ const Products: React.FC<ProductsProps> = ({
   showBackButton = false,
 }) => {
   const theme = useTheme();
+  const isMobile = useIsMobile();
   const [visibleProducts, setVisibleProducts] = useState(
     Math.min(2, formData.products.length) // Initially show 2 products or all if less than 2
   );
@@ -144,6 +154,8 @@ const Products: React.FC<ProductsProps> = ({
         display: "flex",
         flexDirection: "column",
         height: "100%",
+        maxWidth: isMobile ? "100%" : "800px",
+        mx: "auto",
       }}
     >
       <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>

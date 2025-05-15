@@ -119,7 +119,14 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
   };
 
   return (
-    <Box sx={{ width: "100%", height: "100%" }}>
+    <Box
+      sx={{
+        width: "100%",
+        height: "100%",
+        maxWidth: isMobile ? "100%" : "800px",
+        mx: "auto",
+      }}
+    >
       <Stack spacing={isMobile ? 3 : 4} sx={{ width: "100%" }}>
         <Box>
           <TextField
