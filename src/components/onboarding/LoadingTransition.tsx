@@ -6,6 +6,7 @@ import {
   LinearProgress,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { useIsMobile } from "../../utils/responsive";
 
 interface LoadingTransitionProps {
   onComplete: () => void;
@@ -19,6 +20,7 @@ const LoadingTransition: React.FC<LoadingTransitionProps> = ({
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("Analyzing website...");
   const theme = useTheme();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!isLoading) {
@@ -92,17 +94,31 @@ const LoadingTransition: React.FC<LoadingTransitionProps> = ({
         bgcolor: "background.default",
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", mb: 5 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          mb: 5,
+          flexDirection: isMobile ? "column" : "row",
+          gap: isMobile ? 2 : 0,
+        }}
+      >
         <CircularProgress
-          size={56}
-          sx={{ color: theme.palette.primary.main, mr: 4 }}
+          size={isMobile ? 48 : 56}
+          sx={{
+            color: theme.palette.primary.main,
+            mr: isMobile ? 0 : 4,
+          }}
           thickness={4.5}
         />
         <Typography
-          variant="h4"
+          variant={isMobile ? "h5" : "h4"}
           fontWeight={700}
           color="text.primary"
-          sx={{ fontSize: { xs: 28, md: 38 } }}
+          sx={{
+            fontSize: isMobile ? 20 : { xs: 28, md: 38 },
+            textAlign: isMobile ? "center" : "left",
+          }}
         >
           {message}
         </Typography>

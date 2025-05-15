@@ -16,6 +16,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import axios from "../../utils/axios";
 import { FormDataType } from "./Onboarding";
+import { useIsMobile } from "../../utils/responsive";
 
 interface WebsiteFormProps {
   formData: FormDataType;
@@ -33,6 +34,7 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
   onNoWebsite,
 }) => {
   const theme = useTheme();
+  const isMobile = useIsMobile();
   const [errors, setErrors] = useState({
     website_url: "",
     name: "",
@@ -118,7 +120,7 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
 
   return (
     <Box sx={{ width: "100%", height: "100%" }}>
-      <Stack spacing={4} sx={{ width: "100%" }}>
+      <Stack spacing={isMobile ? 3 : 4} sx={{ width: "100%" }}>
         <Box>
           <TextField
             required
@@ -128,7 +130,7 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             error={!!errors.name}
             helperText={errors.name}
-            sx={{ mb: 3 }}
+            sx={{ mb: isMobile ? 2 : 3 }}
           />
           <TextField
             required
@@ -150,7 +152,13 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
             helperText={errors.website_url}
           />
 
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: isMobile ? "center" : "flex-end",
+              mt: 1,
+            }}
+          >
             <Link
               href="#"
               onClick={(e) => {
@@ -168,7 +176,7 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
               sx={{
                 textDecoration: "none",
                 color: "text.secondary",
-                fontSize: "0.875rem",
+                fontSize: isMobile ? "0.8rem" : "0.875rem",
                 "&:hover": {
                   textDecoration: "underline",
                 },
@@ -287,19 +295,20 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
             <MenuItem value="Egypt">Egypt</MenuItem>
             <MenuItem value="United Kingdom">United Kingdom</MenuItem>
             <MenuItem value="United States">United States</MenuItem>
-            <MenuItem value="Burkina Faso">Burkina Faso</MenuItem>
             <MenuItem value="Uruguay">Uruguay</MenuItem>
             <MenuItem value="Venezuela">Venezuela</MenuItem>
+            <MenuItem value="Qatar">Qatar</MenuItem>
+            <MenuItem value="Georgia">Georgia</MenuItem>
+            <MenuItem value="Puerto Rico">Puerto Rico</MenuItem>
           </Select>
         </FormControl>
+
         <Box
           sx={{
             display: "flex",
-            justifyContent: "flex-end",
+            justifyContent: isMobile ? "center" : "flex-end",
             mt: 3,
-            pt: 3,
-            borderTop: "1px solid",
-            borderColor: "divider",
+            pt: 2,
           }}
         >
           <Button
@@ -307,12 +316,13 @@ const WebsiteForm: React.FC<WebsiteFormProps> = ({
             onClick={handleSubmit}
             sx={{
               ...buttonStyles,
-              px: 4,
-              py: 1.5,
-              fontSize: "1rem",
+              px: isMobile ? 3 : 4,
+              py: isMobile ? 1 : 1.5,
+              fontSize: isMobile ? "0.875rem" : "1rem",
+              width: isMobile ? "100%" : "auto",
             }}
           >
-            Get Started
+            Analyze Website →
           </Button>
         </Box>
       </Stack>

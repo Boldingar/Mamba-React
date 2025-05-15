@@ -14,6 +14,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { FormDataType } from "./Onboarding";
 import axios from "../../utils/axios";
+import { useIsMobile } from "../../utils/responsive";
 
 interface NoWebsiteProps {
   formData: FormDataType;
@@ -33,6 +34,7 @@ const NoWebsite: React.FC<NoWebsiteProps> = ({
   setIsLoading,
 }) => {
   const theme = useTheme();
+  const isMobile = useIsMobile();
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const buttonStyles = {
@@ -101,8 +103,14 @@ const NoWebsite: React.FC<NoWebsiteProps> = ({
   };
 
   return (
-    <Box sx={{ width: "100%", height: "100%" }}>
-      <Stack spacing={4} sx={{ width: "100%" }}>
+    <Box
+      sx={{
+        width: "100%",
+        height: "100%",
+        mt: isMobile ? 3 : 0,
+      }}
+    >
+      <Stack spacing={isMobile ? 3 : 4} sx={{ width: "100%" }}>
         <FormControl fullWidth variant="outlined">
           <InputLabel id="target-market-label">Target Market</InputLabel>
           <Select
@@ -117,7 +125,7 @@ const NoWebsite: React.FC<NoWebsiteProps> = ({
             label="Target Market"
             sx={{
               borderRadius: 2,
-              mb: 3,
+              mb: isMobile ? 2 : -1,
             }}
           >
             <MenuItem value="Algeria">Algeria</MenuItem>
@@ -213,68 +221,87 @@ const NoWebsite: React.FC<NoWebsiteProps> = ({
             <MenuItem value="Egypt">Egypt</MenuItem>
             <MenuItem value="United Kingdom">United Kingdom</MenuItem>
             <MenuItem value="United States">United States</MenuItem>
-            <MenuItem value="Burkina Faso">Burkina Faso</MenuItem>
             <MenuItem value="Uruguay">Uruguay</MenuItem>
             <MenuItem value="Venezuela">Venezuela</MenuItem>
+            <MenuItem value="Qatar">Qatar</MenuItem>
+            <MenuItem value="Georgia">Georgia</MenuItem>
+            <MenuItem value="Puerto Rico">Puerto Rico</MenuItem>
           </Select>
         </FormControl>
 
         <TextField
-          multiline
-          rows={4}
-          fullWidth
-          label="What products or offerings does your business have?"
+          required
+          id="company-description"
+          name="company_summary"
+          label="What does your business sell?"
           value={formData.company_summary || ""}
           onChange={(e) =>
             setFormData({ ...formData, company_summary: e.target.value })
           }
+          multiline
+          rows={isMobile ? 3 : 4}
+          fullWidth
           error={!!errors.company_summary}
-          helperText={errors.company_summary}
-          sx={{ mb: 3 }}
+          helperText={
+            errors.company_summary ||
+            "Please describe your products or services in detail"
+          }
         />
 
         <TextField
-          multiline
-          rows={4}
-          fullWidth
-          label="What types of people buy your products?"
+          required
+          id="target-personas"
+          name="personas"
+          label="Who are your target customers?"
           value={formData.personas[0]?.description || ""}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              personas: [
-                {
-                  name: "Primary Persona",
-                  description: e.target.value,
-                  priority: 5,
-                },
-              ],
-            })
-          }
+          onChange={(e) => {
+            const personasCopy = [...(formData.personas || [])];
+            if (personasCopy.length === 0) {
+              personasCopy.push({
+                name: "Primary Persona",
+                description: e.target.value,
+                priority: 1,
+              });
+            } else {
+              personasCopy[0].description = e.target.value;
+            }
+            setFormData({ ...formData, personas: personasCopy });
+          }}
+          multiline
+          rows={isMobile ? 3 : 4}
+          fullWidth
           error={!!errors.personas}
-          helperText={errors.personas}
-          sx={{ mb: 3 }}
+          helperText={
+            errors.personas || "Describe your ideal customers and their needs"
+          }
         />
 
         <TextField
-          multiline
-          rows={4}
-          fullWidth
-          label="Any close competitors we could take a look at?"
+          required
+          id="competitors"
+          name="competitors"
+          label="Who are your competitors?"
           value={formData.competitors[0]?.description || ""}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              competitors: [
-                {
-                  name: "Primary Competitor",
-                  description: e.target.value,
-                },
-              ],
-            })
-          }
+          onChange={(e) => {
+            const competitorsCopy = [...(formData.competitors || [])];
+            if (competitorsCopy.length === 0) {
+              competitorsCopy.push({
+                name: "Competitors",
+                description: e.target.value,
+              });
+            } else {
+              competitorsCopy[0].description = e.target.value;
+            }
+            setFormData({ ...formData, competitors: competitorsCopy });
+          }}
+          multiline
+          rows={isMobile ? 3 : 4}
+          fullWidth
           error={!!errors.competitors}
-          helperText={errors.competitors}
+          helperText={
+            errors.competitors ||
+            "List your main competitors or similar businesses in your field"
+          }
         />
 
         {errors.api && (
@@ -287,10 +314,12 @@ const NoWebsite: React.FC<NoWebsiteProps> = ({
           sx={{
             display: "flex",
             justifyContent: "space-between",
-            mt: 3,
-            pt: 3,
+            mt: isMobile ? 2 : 3,
+            pt: isMobile ? 2 : 3,
             borderTop: "1px solid",
             borderColor: "divider",
+            flexDirection: isMobile ? "column" : "row",
+            gap: isMobile ? 2 : 0,
           }}
         >
           <Button
@@ -300,6 +329,7 @@ const NoWebsite: React.FC<NoWebsiteProps> = ({
               "&:hover": {
                 color: "text.primary",
               },
+              width: isMobile ? "100%" : "auto",
             }}
           >
             Back
@@ -309,9 +339,10 @@ const NoWebsite: React.FC<NoWebsiteProps> = ({
             onClick={handleSubmit}
             sx={{
               ...buttonStyles,
-              px: 4,
-              py: 1.5,
-              fontSize: "1rem",
+              px: isMobile ? 3 : 4,
+              py: isMobile ? 1 : 1.5,
+              fontSize: isMobile ? "0.875rem" : "1rem",
+              width: isMobile ? "100%" : "auto",
             }}
           >
             Keep Moving →

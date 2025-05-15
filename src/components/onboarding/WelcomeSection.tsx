@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
+import { useIsMobile } from "../../utils/responsive";
 
 const WelcomeSection: React.FC<{
   title?: string;
@@ -7,6 +8,8 @@ const WelcomeSection: React.FC<{
   bigTitle?: boolean;
   step?: string;
 }> = ({ title, subtitle, bigTitle, step }) => {
+  const isMobile = useIsMobile();
+
   const getDefaultTitle = () => {
     switch (step) {
       case "Business Info":
@@ -30,12 +33,12 @@ const WelcomeSection: React.FC<{
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: 3,
-        p: 6,
+        gap: isMobile ? 2 : 3,
+        p: isMobile ? 3 : 6,
         height: "100%",
         maxWidth: "600px",
         margin: 0,
-        pl: 0,
+        pl: isMobile ? 1 : 0,
       }}
     >
       <Typography
@@ -44,8 +47,8 @@ const WelcomeSection: React.FC<{
         sx={{
           fontWeight: 700,
           fontSize: bigTitle
-            ? { xs: "2.5rem", md: "3rem" }
-            : { xs: "2rem", md: "2.5rem" },
+            ? { xs: "2rem", md: "3rem" }
+            : { xs: "1.5rem", md: "2.5rem" },
           lineHeight: 1.2,
         }}
       >
@@ -54,7 +57,7 @@ const WelcomeSection: React.FC<{
 
       <Typography
         sx={{
-          fontSize: "1.1rem",
+          fontSize: isMobile ? "1rem" : "1.1rem",
           color: "text.primary",
           lineHeight: 1.5,
         }}
@@ -65,7 +68,7 @@ const WelcomeSection: React.FC<{
       {!title && step !== "Business Info" && (
         <Typography
           sx={{
-            fontSize: "1.1rem",
+            fontSize: isMobile ? "1rem" : "1.1rem",
             color: "text.primary",
             lineHeight: 1.5,
           }}

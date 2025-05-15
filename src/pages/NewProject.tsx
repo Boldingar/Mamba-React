@@ -5,6 +5,7 @@ import WelcomeSection from "../components/onboarding/WelcomeSection";
 import { ThemeProvider } from "../context/ThemeContext";
 import AppTheme from "../../shared-theme/AppTheme";
 import { FormDataType } from "../components/onboarding/Onboarding";
+import { useIsMobile } from "../utils/responsive";
 
 const steps = [
   "Website",
@@ -64,6 +65,7 @@ const NewProject: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [hasWebsite, setHasWebsite] = React.useState<boolean | null>(null);
   const isBusinessInfoStep = activeStep === 1;
+  const isMobile = useIsMobile();
 
   return (
     <AppTheme>
@@ -77,9 +79,10 @@ const NewProject: React.FC = () => {
             alignItems: "center",
             overflow: "hidden",
             margin: "0 auto",
-            marginTop: "20px",
-            width: "70%",
-            maxWidth: "70%",
+            marginTop: isMobile ? "10px" : "20px",
+            width: isMobile ? "100%" : "70%",
+            maxWidth: isMobile ? "100%" : "70%",
+            px: isMobile ? 2 : 0,
           }}
         >
           {isBusinessInfoStep ? (
@@ -106,10 +109,10 @@ const NewProject: React.FC = () => {
               <Box
                 sx={{
                   width: { xs: "100%", md: "60%" },
-                  height: "80vh",
+                  height: isMobile ? "85vh" : "80vh",
                   overflowY: "auto",
                   overflowX: "hidden",
-                  padding: "0 20px",
+                  padding: isMobile ? "0 5px" : "0 20px",
                 }}
               >
                 <Onboarding
@@ -130,7 +133,7 @@ const NewProject: React.FC = () => {
                 <Box
                   sx={{
                     width: "100%",
-                    padding: "0 20px",
+                    padding: isMobile ? "0 5px" : "0 20px",
                     mb: 0,
                     paddingRight: "0",
                   }}
@@ -144,9 +147,10 @@ const NewProject: React.FC = () => {
               <Box
                 sx={{
                   width: "100%",
-                  padding: "0 20px",
+                  padding: isMobile ? "0 5px" : "0 20px",
                   overflowY: "auto",
                   overflowX: "hidden",
+                  height: isMobile ? "80vh" : "auto",
                 }}
               >
                 <Onboarding

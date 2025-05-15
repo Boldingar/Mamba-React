@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Stepper, Step, StepLabel, Box } from "@mui/material";
+import { Stepper, Step, StepLabel, Box, StepIcon } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import WebsiteForm from "./WebsiteForm";
 import NoWebsite from "./NoWebsite";
@@ -9,6 +9,7 @@ import Competitors from "./Competitors";
 import Success from "./Success";
 import LoadingTransition from "./LoadingTransition";
 import axios from "../../utils/axios";
+import { useIsMobile } from "../../utils/responsive";
 
 export interface Product {
   url: string;
@@ -71,6 +72,7 @@ const Onboarding: React.FC<OnboardingProps> = ({
   setHasWebsite,
 }) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const handleNext = () => {
     // Reset scroll position
@@ -226,9 +228,18 @@ const Onboarding: React.FC<OnboardingProps> = ({
       <Stepper
         activeStep={activeStep}
         sx={{
-          mb: 4,
+          mb: isMobile ? 2 : 4,
+          mt: isMobile ? 3 : 0,
           "& .MuiStepLabel-label": {
             color: "text.primary",
+            fontSize: isMobile ? "0.7rem" : "0.875rem",
+            display: isMobile ? { xs: "none", sm: "block" } : "block",
+          },
+          "& .MuiStepIcon-root": {
+            fontSize: isMobile ? "1.2rem" : "1.5rem",
+          },
+          "& .MuiStepper-root": {
+            padding: isMobile ? 0 : "24px",
           },
         }}
       >
