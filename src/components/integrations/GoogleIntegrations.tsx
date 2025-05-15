@@ -8,6 +8,7 @@ import {
   Alert,
   useTheme,
   useMediaQuery,
+  Link,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import axiosInstance from "../../utils/axios";
@@ -24,6 +25,7 @@ const GoogleIntegrations: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [searchConsoleConnected, setSearchConsoleConnected] = useState(false);
   const [analyticsConnected, setAnalyticsConnected] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
 
   // Check integration status on component mount
   useEffect(() => {
@@ -111,6 +113,48 @@ const GoogleIntegrations: React.FC = () => {
     }
   };
 
+  const handleDisconnect = async (product: "search_console" | "ga4") => {
+    setIsDisconnecting(true);
+    try {
+      // Call the revoke endpoint
+      const response = await axiosInstance.post("/api/google/oauth/revoke", {
+        product: product,
+      });
+
+      if (response.status === 200) {
+        // Update local state
+        if (product === "search_console") {
+          setSearchConsoleConnected(false);
+          saveIntegrationStatus("search_console", false);
+          setSuccess("Successfully disconnected from Google Search Console");
+        } else {
+          setAnalyticsConnected(false);
+          saveIntegrationStatus("ga4", false);
+          setSuccess("Successfully disconnected from Google Analytics (GA4)");
+        }
+      } else {
+        setError(
+          `Failed to disconnect from ${
+            product === "search_console"
+              ? "Google Search Console"
+              : "Google Analytics (GA4)"
+          }`
+        );
+      }
+    } catch (error) {
+      console.error(`Error disconnecting from ${product}:`, error);
+      setError(
+        `Failed to disconnect from ${
+          product === "search_console"
+            ? "Google Search Console"
+            : "Google Analytics (GA4)"
+        }`
+      );
+    } finally {
+      setIsDisconnecting(false);
+    }
+  };
+
   const handleCloseError = () => {
     setError(null);
   };
@@ -122,79 +166,153 @@ const GoogleIntegrations: React.FC = () => {
   return (
     <Box sx={{ maxWidth: 480, width: "100%" }}>
       <Stack spacing={isMobile ? 2 : 4}>
-        <Button
-          variant="contained"
-          fullWidth
-          onClick={handleSearchConsole}
-          sx={{
-            bgcolor: searchConsoleConnected ? "#4CAF50" : "#6366F1", // Green if connected, purple if not
-            color: "white",
-            p: isMobile ? 2 : 3,
-            borderRadius: 2,
-            minHeight: isMobile ? 60 : 70,
-            textTransform: "none",
-            fontSize: isMobile ? "0.9rem" : "1rem",
-            fontWeight: 600,
-            "&:hover": {
-              bgcolor: searchConsoleConnected
-                ? alpha("#4CAF50", 0.9)
-                : alpha("#6366F1", 0.9),
-            },
-          }}
-        >
-          <Typography
-            variant="body1"
-            sx={{ fontWeight: 400, fontSize: isMobile ? "0.9rem" : "1rem" }}
+        <Box>
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={handleSearchConsole}
+            sx={{
+              bgcolor: searchConsoleConnected ? "#4CAF50" : "#6366F1", // Green if connected, purple if not
+              color: "white",
+              p: isMobile ? 2 : 3,
+              borderRadius: 2,
+              minHeight: isMobile ? 60 : 70,
+              textTransform: "none",
+              fontSize: isMobile ? "0.9rem" : "1rem",
+              fontWeight: 600,
+              "&:hover": {
+                bgcolor: searchConsoleConnected
+                  ? alpha("#4CAF50", 0.9)
+                  : alpha("#6366F1", 0.9),
+              },
+            }}
           >
-            {searchConsoleConnected ? (
-              <>
-                {/* <CheckCircleIcon sx={{ mr: 1, fontSize: "1.2rem" }} /> */}
-                Connected
-              </>
-            ) : (
-              "Quick Start"
-            )}
-          </Typography>
-          <Box component="span" sx={{ flexGrow: 1 }} />
-          Google Search Console
-        </Button>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: 400, fontSize: isMobile ? "0.9rem" : "1rem" }}
+            >
+              {searchConsoleConnected ? (
+                <>
+                  {/* <CheckCircleIcon sx={{ mr: 1, fontSize: "1.2rem" }} /> */}
+                  Connected
+                </>
+              ) : (
+                "Quick Start"
+              )}
+            </Typography>
+            <Box component="span" sx={{ flexGrow: 1 }} />
+            Google Search Console
+          </Button>
+          {searchConsoleConnected && (
+            <Typography
+              variant="body2"
+              align="center"
+              sx={{
+                mt: 1,
+                fontSize: isMobile ? "0.8rem" : "0.85rem",
+                color: "text.secondary",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 0.5,
+              }}
+            >
+              If you don't want to share your data, you can{" "}
+              <Link
+                component="button"
+                variant="inherit"
+                onClick={() => handleDisconnect("search_console")}
+                disabled={isDisconnecting}
+                sx={{
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  textDecoration: "none",
+                  color: theme.palette.primary.main,
+                  fontSize: "inherit",
+                  "&:hover": {
+                    textDecoration: "none",
+                  },
+                }}
+              >
+                Disconnect
+              </Link>
+            </Typography>
+          )}
+        </Box>
 
-        <Button
-          variant="contained"
-          fullWidth
-          onClick={handleGoogleAnalytics}
-          sx={{
-            bgcolor: analyticsConnected ? "#4CAF50" : "#6366F1", // Green if connected, purple if not
-            color: "white",
-            p: isMobile ? 2 : 3,
-            borderRadius: 2,
-            textTransform: "none",
-            fontSize: isMobile ? "0.9rem" : "1rem",
-            minHeight: isMobile ? 60 : 70,
-            fontWeight: 600,
-            "&:hover": {
-              bgcolor: analyticsConnected
-                ? alpha("#4CAF50", 0.9)
-                : alpha("#6366F1", 0.9),
-            },
-          }}
-        >
-          <Typography
-            variant="body1"
-            sx={{ fontWeight: 400, fontSize: isMobile ? "0.9rem" : "1rem" }}
+        <Box>
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={handleGoogleAnalytics}
+            sx={{
+              bgcolor: analyticsConnected ? "#4CAF50" : "#6366F1", // Green if connected, purple if not
+              color: "white",
+              p: isMobile ? 2 : 3,
+              borderRadius: 2,
+              textTransform: "none",
+              fontSize: isMobile ? "0.9rem" : "1rem",
+              minHeight: isMobile ? 60 : 70,
+              fontWeight: 600,
+              "&:hover": {
+                bgcolor: analyticsConnected
+                  ? alpha("#4CAF50", 0.9)
+                  : alpha("#6366F1", 0.9),
+              },
+            }}
           >
-            {analyticsConnected ? (
-              <>
-                {/* <CheckCircleIcon sx={{ mr: 1, fontSize: "1.2rem" }} /> */}
-                Connected
-              </>
-            ) : (
-              "Quick Start"
-            )}
-          </Typography>
-          <Box component="span" sx={{ flexGrow: 1 }} />
-          Google Analytics (GA4)
-        </Button>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: 400, fontSize: isMobile ? "0.9rem" : "1rem" }}
+            >
+              {analyticsConnected ? (
+                <>
+                  {/* <CheckCircleIcon sx={{ mr: 1, fontSize: "1.2rem" }} /> */}
+                  Connected
+                </>
+              ) : (
+                "Quick Start"
+              )}
+            </Typography>
+            <Box component="span" sx={{ flexGrow: 1 }} />
+            Google Analytics (GA4)
+          </Button>
+          {analyticsConnected && (
+            <Typography
+              variant="body2"
+              align="center"
+              sx={{
+                mt: 1,
+                fontSize: isMobile ? "0.8rem" : "0.85rem",
+                color: "text.secondary",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 0.5,
+              }}
+            >
+              If you don't want to share your data, you can{" "}
+              <Link
+                component="button"
+                variant="inherit"
+                onClick={() => handleDisconnect("ga4")}
+                disabled={isDisconnecting}
+                sx={{
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  textDecoration: "none",
+                  color: theme.palette.primary.main,
+                  fontSize: "inherit",
+                  "&:hover": {
+                    textDecoration: "none",
+                  },
+                }}
+              >
+                Disconnect
+              </Link>
+            </Typography>
+          )}
+        </Box>
       </Stack>
 
       {/* Error notification */}

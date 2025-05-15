@@ -709,8 +709,8 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
           padding: 2,
           paddingBottom: 0, // Add extra padding at the bottom
           backgroundColor: "background.default",
-          borderTop: "1px solid",
-          borderColor: "divider",
+          borderTop: "0px solid",
+          borderColor: "transparent",
           display: "flex",
           justifyContent: "space-between",
           zIndex: 10, // Add a higher z-index to ensure it's above other elements
