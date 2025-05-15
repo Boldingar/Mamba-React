@@ -845,7 +845,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
             sx={{
               "& .MuiDrawer-paper": {
                 width: "85%",
-                maxWidth: "300px",
+                maxWidth: "285px",
               },
               zIndex: 1200,
             }}
