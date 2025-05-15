@@ -83,6 +83,7 @@ interface UserPanelProps {
   onIntegrationsClick?: () => void;
   onChatClick?: () => void;
   showIntegrations?: boolean;
+  showEditProject?: boolean;
 }
 
 interface PinnedChat {
@@ -117,6 +118,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
   onIntegrationsClick,
   onChatClick,
   showIntegrations = false,
+  showEditProject = false,
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -796,7 +798,9 @@ const UserPanel: React.FC<UserPanelProps> = ({
                   onClick={handleNewChatClick}
                   disabled={
                     isAwaitingResponse ||
-                    (selectedConversationId === "" && !showIntegrations)
+                    (selectedConversationId === "" &&
+                      !showIntegrations &&
+                      !showEditProject)
                   }
                 >
                   <ListItemIcon>
