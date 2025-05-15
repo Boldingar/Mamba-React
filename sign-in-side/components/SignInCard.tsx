@@ -12,7 +12,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
 import ForgotPassword from "./ForgotPassword";
-import { GoogleIcon, FacebookIcon, SitemarkIcon } from "./CustomIcons";
+import { GoogleIcon } from "./CustomIcons";
 import axiosInstance from "../../src/utils/axios";
 import { useNavigate } from "react-router-dom";
 import GoogleLogin from "../../src/components/GoogleLogin";
@@ -282,7 +282,15 @@ export default function SignInCard({ setIsAuthenticated }: SignInCardProps) {
         </Typography>
       </Box>
       <Divider>or</Divider>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          width: "100%",
+          alignItems: "center",
+        }}
+      >
         <GoogleLogin
           clientId="890844016593-ec67bfb6poh7q86cr26icctq68v1vmh5.apps.googleusercontent.com"
           onSuccess={handleGoogleSuccess}

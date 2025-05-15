@@ -1,5 +1,13 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { Box, Button, Avatar, Typography, Paper } from "@mui/material";
+import {
+  Box,
+  Button,
+  Avatar,
+  Typography,
+  Paper,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
 
 interface GoogleLoginProps {
   clientId: string;
@@ -19,6 +27,8 @@ export default function GoogleLogin({
   onSuccess,
   onError,
 }: GoogleLoginProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [user, setUser] = useState<GoogleUser | null>(null);
   const buttonIdRef = useRef(
@@ -39,7 +49,7 @@ export default function GoogleLogin({
         window.google.accounts.id.renderButton(buttonElement, {
           theme: "outline",
           size: "large",
-          width: 380,
+          width: isMobile ? 300 : 380,
           text: "signin_with",
           shape: "rectangular",
         });
@@ -47,7 +57,7 @@ export default function GoogleLogin({
     } catch (error) {
       if (onError) onError(error as Error);
     }
-  }, [clientId, isScriptLoaded, onError]);
+  }, [clientId, isScriptLoaded, onError, isMobile]);
 
   useEffect(() => {
     let script: HTMLScriptElement | null = null;
@@ -77,7 +87,7 @@ export default function GoogleLogin({
     if (isScriptLoaded) {
       initializeGoogleSignIn();
     }
-  }, [isScriptLoaded, clientId]);
+  }, [isScriptLoaded, initializeGoogleSignIn]);
 
   const handleCredentialResponse = async (response: any) => {
     try {
@@ -119,12 +129,18 @@ export default function GoogleLogin({
         flexDirection: "column",
         alignItems: "center",
         gap: 2,
+        width: "100%",
       }}
     >
       {!user ? (
         <Box
           id={buttonIdRef.current}
-          sx={{ width: "100%", display: "flex", justifyContent: "center" }}
+          sx={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            maxWidth: isMobile ? "280px" : "400px",
+          }}
         />
       ) : (
         <Paper elevation={1} sx={{ p: 2, width: "100%" }}>
