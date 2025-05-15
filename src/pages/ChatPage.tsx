@@ -833,6 +833,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
             onIntegrationsClick={handleIntegrationsClick}
             onChatClick={handleChatClick}
             showIntegrations={showIntegrations}
+            showEditProject={showEditProject}
           />
         )}
 
@@ -876,6 +877,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
                 setMobileUserPanelOpen(false);
               }}
               showIntegrations={showIntegrations}
+              showEditProject={showEditProject}
             />
           </Drawer>
         )}
