@@ -1,12 +1,19 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
 
 const GoogleContext: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   return (
     <Box sx={{ maxWidth: 480, width: "100%" }}>
       <Typography
         variant="body1"
-        sx={{ color: "text.secondary", mb: 2, fontSize: 20 }}
+        sx={{
+          color: "text.secondary",
+          mb: 2,
+          fontSize: isMobile ? 16 : 20,
+        }}
       >
         Optional, but recommended.
       </Typography>
@@ -16,7 +23,11 @@ const GoogleContext: React.FC = () => {
         component="h1"
         gutterBottom
         color="#6366F1"
-        sx={{ fontWeight: 400, mb: 4, fontSize: "2rem" }}
+        sx={{
+          fontWeight: 400,
+          mb: isMobile ? 2 : 4,
+          fontSize: isMobile ? "1.5rem" : "2rem",
+        }}
       >
         Connect Google Search Console & Analytics
       </Typography>
@@ -25,9 +36,9 @@ const GoogleContext: React.FC = () => {
         variant="body1"
         sx={{
           color: "text.secondary",
-          mb: 4,
+          mb: isMobile ? 2 : 4,
           fontWeight: 500,
-          fontSize: "20px",
+          fontSize: isMobile ? "16px" : "20px",
         }}
       >
         In order for us to build the most comprehensive SEO Strategy possible,

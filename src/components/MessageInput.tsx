@@ -2,6 +2,7 @@ import React, { useState, KeyboardEvent, FormEvent } from "react";
 import { Box, TextField, Paper, Button } from "@mui/material";
 import LanguageIcon from "@mui/icons-material/Language";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
+import { useIsMobile } from "../utils/responsive";
 
 interface MessageInputProps {
   onSendMessage: (message: string) => void;
@@ -17,6 +18,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   isNewChat = false,
 }) => {
   const [inputMessage, setInputMessage] = useState("");
+  const isMobile = useIsMobile();
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -40,9 +42,11 @@ const MessageInput: React.FC<MessageInputProps> = ({
       sx={{
         width: "100%",
         mx: "auto",
-        paddingRight: "16px",
-        paddingLeft: "16px",
-        maxWidth: "850px",
+        paddingRight: isMobile ? "4px" : "16px",
+        paddingLeft: isMobile ? "4px" : "16px",
+        paddingBottom: isMobile ? "12px" : "16px",
+        paddingTop: isMobile ? "4px" : 0,
+        maxWidth: isMobile ? "98%" : "850px",
         maxHeight: isLarge ? "180px" : "150px",
         display: "flex",
         borderRadius: "60px",
@@ -54,8 +58,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
         component="form"
         onSubmit={handleSubmit}
         sx={{
-          p: isLarge ? 4 : 3,
-          borderRadius: "32px",
+          p: isMobile ? (isLarge ? 2 : 1.5) : isLarge ? 4 : 3,
+          borderRadius: isMobile ? "24px" : "32px",
           display: "flex",
           flexDirection: "column",
           alignItems: "stretch",
@@ -76,18 +80,26 @@ const MessageInput: React.FC<MessageInputProps> = ({
           disabled={disabled}
           placeholder={
             isNewChat
-              ? "Start with a topic, a keyword, your site, really anything."
+              ? isMobile
+                ? "Enter a topic or keyword..."
+                : "Start with a topic, a keyword, your site, really anything."
               : "Ask anything..."
           }
           variant="standard"
           multiline
-          maxRows={4}
+          maxRows={isMobile ? 3 : 4}
           InputProps={{
             disableUnderline: true,
             sx: {
               bgcolor: "transparent",
               borderRadius: "24px",
-              fontSize: isLarge ? "18px" : "16px",
+              fontSize: isMobile
+                ? isLarge
+                  ? "16px"
+                  : "14px"
+                : isLarge
+                ? "18px"
+                : "16px",
               fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
               px: 0,
             },
@@ -99,14 +111,26 @@ const MessageInput: React.FC<MessageInputProps> = ({
               background: "none",
               border: "none",
               boxShadow: "none",
-              fontSize: isLarge ? "18px" : "16px",
+              fontSize: isMobile
+                ? isLarge
+                  ? "16px"
+                  : "14px"
+                : isLarge
+                ? "18px"
+                : "16px",
               px: 0,
             },
             "& .MuiInputBase-input": {
               background: "none",
               border: "none",
               boxShadow: "none",
-              fontSize: isLarge ? "18px" : "16px",
+              fontSize: isMobile
+                ? isLarge
+                  ? "16px"
+                  : "14px"
+                : isLarge
+                ? "18px"
+                : "16px",
               px: 0,
             },
           }}
@@ -117,6 +141,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
             gap: 1,
             mt: 1,
             justifyContent: "flext-start",
+            flexWrap: isMobile ? "wrap" : "nowrap",
           }}
         >
           <Button
@@ -126,8 +151,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
             sx={{
               borderRadius: "20px",
               textTransform: "none",
-              px: 2,
-              fontSize: "13px",
+              px: isMobile ? 1 : 2,
+              fontSize: isMobile ? "12px" : "13px",
               color: "text.primary",
               borderColor: "grey.300",
               "&:hover": {
@@ -145,8 +170,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
             sx={{
               borderRadius: "20px",
               textTransform: "none",
-              px: 2,
-              fontSize: "13px",
+              px: isMobile ? 1 : 2,
+              fontSize: isMobile ? "12px" : "13px",
               color: "text.primary",
               borderColor: "grey.300",
               "&:hover": {

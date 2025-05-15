@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Box, IconButton, Tooltip, Typography } from "@mui/material";
+import { Box, IconButton, Tooltip, Typography, Drawer } from "@mui/material";
 import ChatComponent from "../components/ChatComponent";
 import DataPanel from "../components/DataPanel";
 import UserPanel from "../components/UserPanel";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import DescriptionIcon from "@mui/icons-material/Description";
-import TableChartIcon from "@mui/icons-material/TableChart";
 import TopAppBar from "../components/TopAppBar";
 import { API_BASE_URL } from "../utils/axios";
 import UserProfile from "../components/UserProfile";
@@ -14,7 +13,8 @@ import axiosInstance from "../utils/axios";
 import Integrations from "../components/integrations/Integrations";
 import EditProject from "../components/edit_project/EditProject";
 import { useNavigate } from "react-router-dom";
-import { redirectIfNoProjects } from "../utils/projectUtils";
+import { redirectIfNoProjects, getProjects } from "../utils/projectUtils";
+import { useIsMobile } from "../utils/responsive";
 
 interface Data {
   [key: string]: string | number;
@@ -123,6 +123,7 @@ const ScrollbarStyle = {
 
 const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [messages, setMessages] = useState<Message[]>([]);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedDatasetId, setSelectedDatasetId] = useState<string | null>(
@@ -143,10 +144,15 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
   const [showIntegrations, setShowIntegrations] = useState(false);
   const [showEditProject, setShowEditProject] = useState(false);
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
+  const [mobileUserPanelOpen, setMobileUserPanelOpen] = useState(false);
 
   // Check if user has projects when component mounts
   useEffect(() => {
-    redirectIfNoProjects(navigate);
+    // Initialize projects cache with a call to get projects
+    // This will ensure the cache is populated early
+    getProjects().then(() => {
+      redirectIfNoProjects(navigate);
+    });
 
     // Listen for popstate events (browser back/forward buttons)
     const handlePopState = () => {
@@ -568,12 +574,17 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
 
   // Handler to toggle the DataPanel
   const handleToggleCSVPanel = () => {
-    // Only allow opening the panel if there's data to show
-    if (!showDataPanel && datasets.length === 0) {
-      // Don't open the panel if there's no data
-      return;
+    if (isMobile) {
+      // For mobile, just toggle the panel visibility
+      setShowDataPanel(!showDataPanel);
+    } else {
+      // For desktop, handle the resize logic
+      if (!showDataPanel) {
+        setShowDataPanel(true);
+      } else {
+        setShowDataPanel(false);
+      }
     }
-    setShowDataPanel((open) => !open);
   };
 
   const handleDatasetSelect = (datasetId: string) => {
@@ -761,6 +772,18 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
     };
   }, []);
 
+  // Toggle mobile user panel
+  const toggleMobileUserPanel = () => {
+    setMobileUserPanelOpen(!mobileUserPanelOpen);
+  };
+
+  // Close mobile panels when switching to desktop
+  useEffect(() => {
+    if (!isMobile) {
+      setMobileUserPanelOpen(false);
+    }
+  }, [isMobile]);
+
   return (
     <>
       {showProfile && (
@@ -783,31 +806,80 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
         csvPanelOpen={showDataPanel}
         onToggleCSVPanel={handleToggleCSVPanel}
         hasDataToShow={datasets.length > 0}
+        onToggleUserPanel={isMobile ? toggleMobileUserPanel : undefined}
       />
       <Box
         sx={{
-          height: "calc(100vh - 64px)", // Adjust for app bar height
+          height: `calc(100vh - ${isMobile ? "56px" : "64px"})`, // Adjust for app bar height
           width: "100%",
           bgcolor: "background.default",
           display: "flex",
           flexDirection: "row",
           overflow: "hidden", // Prevent scrolling
           position: "relative",
-          maxHeight: "calc(100vh - 64px)", // Ensure max height is set
+          maxHeight: `calc(100vh - ${isMobile ? "56px" : "64px"})`, // Ensure max height is set
         }}
       >
-        <UserPanel
-          setIsAuthenticated={setIsAuthenticated}
-          onProfileClick={() => setShowProfile(true)}
-          onNewChat={handleNewChat}
-          recentChats={recentChats}
-          onSelectChat={handleSelectChat}
-          isAwaitingResponse={isAwaitingResponse}
-          selectedConversationId={conversationId}
-          onIntegrationsClick={handleIntegrationsClick}
-          onChatClick={handleChatClick}
-          showIntegrations={showIntegrations}
-        />
+        {/* Desktop UserPanel - only show on non-mobile */}
+        {!isMobile && (
+          <UserPanel
+            setIsAuthenticated={setIsAuthenticated}
+            onProfileClick={() => setShowProfile(true)}
+            onNewChat={handleNewChat}
+            recentChats={recentChats}
+            onSelectChat={handleSelectChat}
+            isAwaitingResponse={isAwaitingResponse}
+            selectedConversationId={conversationId}
+            onIntegrationsClick={handleIntegrationsClick}
+            onChatClick={handleChatClick}
+            showIntegrations={showIntegrations}
+          />
+        )}
+
+        {/* Mobile UserPanel Drawer */}
+        {isMobile && (
+          <Drawer
+            anchor="left"
+            open={mobileUserPanelOpen}
+            onClose={() => setMobileUserPanelOpen(false)}
+            sx={{
+              "& .MuiDrawer-paper": {
+                width: "85%",
+                maxWidth: "285px",
+              },
+              zIndex: 1200,
+            }}
+          >
+            <UserPanel
+              setIsAuthenticated={setIsAuthenticated}
+              onProfileClick={() => {
+                setShowProfile(true);
+                setMobileUserPanelOpen(false);
+              }}
+              onNewChat={() => {
+                handleNewChat();
+                setMobileUserPanelOpen(false);
+              }}
+              recentChats={recentChats}
+              onSelectChat={(id) => {
+                handleSelectChat(id);
+                setMobileUserPanelOpen(false);
+              }}
+              isAwaitingResponse={isAwaitingResponse}
+              selectedConversationId={conversationId}
+              onIntegrationsClick={() => {
+                handleIntegrationsClick();
+                setMobileUserPanelOpen(false);
+              }}
+              onChatClick={() => {
+                handleChatClick();
+                setMobileUserPanelOpen(false);
+              }}
+              showIntegrations={showIntegrations}
+            />
+          </Drawer>
+        )}
+
         <Box
           sx={{
             flex: 1,
@@ -823,9 +895,10 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
         >
           <Box
             sx={{
-              width: showDataPanel
-                ? `calc(100% - ${dataPanelWidth}px)`
-                : "100%",
+              width:
+                !isMobile && showDataPanel
+                  ? `calc(100% - ${dataPanelWidth}px)`
+                  : "100%",
               height: "100%",
               display: "flex",
               alignItems: "center",
@@ -856,7 +929,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
               />
             )}
           </Box>
-          {showDataPanel && (
+
+          {/* Desktop DataPanel - show inline */}
+          {!isMobile && showDataPanel && (
             <DataPanel
               open={showDataPanel}
               onClose={() => setShowDataPanel(false)}
@@ -868,7 +943,38 @@ const ChatPage: React.FC<ChatPageProps> = ({ setIsAuthenticated }) => {
               initialWidth={dataPanelWidth}
             />
           )}
+
+          {/* Mobile DataPanel - show as overlay */}
+          {isMobile && (
+            <Drawer
+              anchor="right"
+              open={showDataPanel}
+              onClose={() => setShowDataPanel(false)}
+              sx={{
+                "& .MuiDrawer-paper": {
+                  width: "90%",
+                  maxWidth: "500px",
+                  overflowX: "hidden",
+                },
+                zIndex: 1200,
+              }}
+              PaperProps={{
+                elevation: 8,
+              }}
+            >
+              <DataPanel
+                open={true}
+                onClose={() => setShowDataPanel(false)}
+                datasets={datasets}
+                selectedDatasetId={selectedDatasetId}
+                onDatasetSelect={handleDatasetSelect}
+                data={selectedDataset?.data || []}
+                initialWidth="100%"
+              />
+            </Drawer>
+          )}
         </Box>
+
         {error && (
           <Box
             sx={{

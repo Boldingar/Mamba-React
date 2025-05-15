@@ -9,10 +9,14 @@ import {
   MenuItem,
   SelectChangeEvent,
   Button,
+  useMediaQuery,
+  useTheme,
+  Tooltip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
 import BusinessDataTable from "./BusinessDataTable";
+import { useIsMobile } from "../utils/responsive";
 
 interface Data {
   [key: string]: string | number;
@@ -34,7 +38,7 @@ interface DataPanelProps {
   onDatasetSelect: (datasetId: string) => void;
   data: Data[];
   onResize?: (width: number) => void;
-  initialWidth?: number;
+  initialWidth?: number | string;
 }
 
 const DataPanel: React.FC<DataPanelProps> = ({
@@ -47,8 +51,10 @@ const DataPanel: React.FC<DataPanelProps> = ({
   onResize,
   initialWidth = 500,
 }) => {
+  const isMobile = useIsMobile();
+  const theme = useTheme();
   const [filteredData, setFilteredData] = useState<Data[]>(data);
-  const [width, setWidth] = useState(initialWidth);
+  const [width, setWidth] = useState<number | string>(initialWidth);
   const [isResizing, setIsResizing] = useState(false);
   const startX = useRef(0);
   const startWidth = useRef(0);
@@ -83,6 +89,8 @@ const DataPanel: React.FC<DataPanelProps> = ({
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
+      if (typeof width !== "number") return;
+
       e.preventDefault();
       e.stopPropagation();
       startX.current = e.clientX;
@@ -157,10 +165,156 @@ const DataPanel: React.FC<DataPanelProps> = ({
 
   if (!open) return null;
 
+  // Different layout for mobile and desktop
+  if (isMobile) {
+    return (
+      <Box
+        sx={{
+          width: "100%",
+          height: "100%",
+          bgcolor: "background.paper",
+          boxShadow: "-4px 0px 10px rgba(0, 0, 0, 0.1)",
+          display: "flex",
+          flexDirection: "column",
+          flexShrink: 0,
+          borderLeft: "1px solid",
+          borderColor: "divider",
+          transition: "width 0.25s ease-out",
+          position: "fixed",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1300,
+          pt: "56px",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            p: "16px 12px",
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            backgroundColor: theme.palette.background.paper,
+            position: "sticky",
+            top: "56px",
+            zIndex: 3,
+          }}
+        >
+          <Typography variant="h6" component="h2" sx={{ flex: 1 }}>
+            Data Explorer
+          </Typography>
+        </Box>
+
+        <Box
+          sx={{
+            p: 0.5,
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            overflow: "hidden",
+          }}
+        >
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              p: 0.5,
+              pt: 0.5,
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "stretch",
+                gap: 1,
+                mt: 1,
+                mb: 1,
+              }}
+            >
+              <FormControl fullWidth size="small" sx={{ minWidth: "100%" }}>
+                <InputLabel id="dataset-select-label">
+                  Select Dataset
+                </InputLabel>
+                <Select
+                  labelId="dataset-select-label"
+                  id="dataset-select"
+                  value={selectedDatasetId || ""}
+                  label="Select Dataset"
+                  onChange={handleDatasetChange}
+                >
+                  {sortedDatasets.map((dataset) => (
+                    <MenuItem key={dataset.id} value={dataset.id}>
+                      {dataset.displayName || dataset.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <Box
+              sx={{
+                flex: 1,
+                overflow: "hidden",
+                height: "calc(100vh - 250px)",
+              }}
+            >
+              <BusinessDataTable data={data} onDataFilter={setFilteredData} />
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Mobile fixed action bar */}
+        <Box
+          sx={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            display: "flex",
+            justifyContent: "center",
+            padding: "16px",
+            paddingBottom: "24px",
+            backgroundColor: theme.palette.background.paper,
+            borderTop: "1px solid",
+            borderColor: "divider",
+            zIndex: 20,
+            boxShadow: "0px -2px 8px rgba(0, 0, 0, 0.1)",
+            height: "90px",
+          }}
+        >
+          <Button
+            variant="contained"
+            startIcon={<DownloadIcon />}
+            onClick={handleDownload}
+            disabled={filteredData.length === 0}
+            color="primary"
+            sx={{
+              width: "90%",
+              py: 1.5,
+              borderRadius: "8px",
+              fontWeight: 600,
+              fontSize: "1rem",
+              boxShadow: 2,
+              textTransform: "none",
+            }}
+          >
+            Download CSV
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
+
+  // Original desktop layout
   return (
     <Box
       sx={{
-        width: `${width}px`,
+        width: width,
         height: "100%",
         bgcolor: "background.paper",
         boxShadow: "-4px 0px 10px rgba(0, 0, 0, 0.1)",
@@ -171,35 +325,56 @@ const DataPanel: React.FC<DataPanelProps> = ({
         borderColor: "divider",
         transition: isResizing ? "none" : "width 0.25s ease-out",
         position: "relative",
+        mt: "47px",
       }}
     >
-      {/* Resize handle on the left edge */}
+      {typeof width === "number" && (
+        <Box
+          sx={{
+            position: "absolute",
+            left: -10,
+            top: 0,
+            width: 24,
+            height: "100%",
+            cursor: "col-resize",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "transparent",
+          }}
+          onMouseDown={handleMouseDown}
+        >
+          <Box
+            sx={{
+              width: 4,
+              height: 30,
+              backgroundColor: "divider",
+              borderRadius: 4,
+            }}
+          />
+        </Box>
+      )}
+
       <Box
         sx={{
-          position: "absolute",
-          left: -10,
-          top: 0,
-          width: 24,
-          height: "100%",
-          cursor: "col-resize",
-          zIndex: 1000,
           display: "flex",
+          justifyContent: "space-between",
           alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "transparent",
+          p: 2,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          backgroundColor: theme.palette.background.paper,
+          position: "sticky",
+          top: 0,
+          zIndex: 3,
         }}
-        onMouseDown={handleMouseDown}
       >
-        <Box
-          className="resizeIndicator"
-          sx={{
-            width: 4,
-            height: "100%",
-            backgroundColor: "divider",
-            transition: "background-color 0.2s",
-          }}
-        />
+        <Typography variant="h5" component="h2" sx={{ flex: 1 }}>
+          CSV Data View
+        </Typography>
       </Box>
+
       <Box
         sx={{
           p: 3,
@@ -207,111 +382,75 @@ const DataPanel: React.FC<DataPanelProps> = ({
           display: "flex",
           flexDirection: "column",
           width: "100%",
+          overflow: "hidden",
         }}
       >
         <Box
           sx={{
+            flex: 1,
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-            width: "100%",
+            flexDirection: "column",
+            overflow: "hidden",
           }}
         >
-          <Box sx={{ mt: 5, display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
-            <Typography variant="h6">CSV Data View</Typography>
-            <FormControl size="small" sx={{ minWidth: 200, flex: 1 }}>
-              <InputLabel>Select Dataset</InputLabel>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 1,
+              mt: 2,
+              mb: 2,
+            }}
+          >
+            <FormControl fullWidth sx={{ minWidth: "250px" }}>
+              <InputLabel id="dataset-select-label">Select Dataset</InputLabel>
               <Select
+                labelId="dataset-select-label"
+                id="dataset-select"
                 value={selectedDatasetId || ""}
-                onChange={handleDatasetChange}
                 label="Select Dataset"
-                renderValue={(selected) => {
-                  const dataset = sortedDatasets.find(
-                    (ds) => ds.id === selected
-                  );
-                  return dataset ? dataset.displayName : "";
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      maxHeight: 300,
-                    },
-                  },
-                }}
+                onChange={handleDatasetChange}
               >
                 {sortedDatasets.map((dataset) => (
                   <MenuItem key={dataset.id} value={dataset.id}>
-                    {dataset.displayName}
+                    {dataset.displayName || dataset.name}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Box>
-          {/* <IconButton onClick={onClose} size="small">
-            <CloseIcon />
-          </IconButton> */}
-        </Box>
-        <Box
-          sx={{
-            flex: 1,
-            overflow: "auto",
-            mt: 2,
-          }}
-        >
-          {data.length > 0 ? (
-            <BusinessDataTable data={data} onDataFilter={setFilteredData} />
-          ) : (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                width: "100%",
-                p: 3,
-              }}
-            >
-              <Typography variant="h6" sx={{ mb: 2, color: "text.secondary" }}>
-                No data available
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ color: "text.secondary", textAlign: "center" }}
-              >
-                There is currently no data to display. When keyword data is
-                generated, it will appear here.
-              </Typography>
-            </Box>
-          )}
-        </Box>
-        <Box
-          sx={{
-            mt: 2,
-            borderTop: 1,
-            borderColor: "divider",
-            pt: 2,
-            display: "flex",
-            justifyContent: "center",
-            width: "100%",
-          }}
-        >
-          <Button
-            variant="contained"
-            onClick={handleDownload}
-            disabled={filteredData.length === 0}
-            startIcon={<DownloadIcon />}
+          <Box
             sx={{
-              height: 48,
-              width: 250,
-              "&.Mui-disabled": {
-                bgcolor: "action.disabledBackground",
-              },
+              flex: 1,
+              overflow: "hidden",
             }}
           >
-            Download Data as CSV
-          </Button>
+            <BusinessDataTable data={data} onDataFilter={setFilteredData} />
+          </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mt: 3,
+              pb: 1,
+            }}
+          >
+            <Button
+              variant="contained"
+              startIcon={<DownloadIcon />}
+              onClick={handleDownload}
+              disabled={filteredData.length === 0}
+              sx={{
+                borderRadius: "4px",
+                textTransform: "none",
+                px: 3,
+              }}
+            >
+              Download Data as CSV
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Box>

@@ -19,6 +19,7 @@ import SendIcon from "@mui/icons-material/Send";
 import { API_BASE_URL } from "../utils/axios";
 import MessageLoading from "./TypingIndicator";
 import MessageInput from "./MessageInput";
+import { useIsMobile } from "../utils/responsive";
 
 const ChatContainer = styled(Paper)(({ theme }) => ({
   display: "flex",
@@ -67,34 +68,38 @@ const MessageList = styled(Box)(({ theme }) => ({
 }));
 
 const MessageWrapper = styled(Box, {
-  shouldForwardProp: (prop) => prop !== "isUser",
-})<{ isUser: boolean }>(({ theme, isUser }) => ({
+  shouldForwardProp: (prop) => prop !== "isUser" && prop !== "isMobile",
+})<{ isUser: boolean; isMobile?: boolean }>(({ theme, isUser, isMobile }) => ({
   display: "flex",
-  gap: theme.spacing(1.5),
+  gap: theme.spacing(isMobile ? 1 : 1.5),
   justifyContent: isUser ? "flex-end" : "flex-start",
   alignItems: "flex-start",
+  width: "100%",
 }));
 
 const MessageItem = styled(Paper, {
-  shouldForwardProp: (prop) => prop !== "isUser" && prop !== "type",
-})<{ isUser: boolean; type?: string }>(({ theme, isUser }) => ({
-  padding: theme.spacing(2),
-  maxWidth: "90%",
-  alignSelf: isUser ? "flex-end" : "flex-start",
-  backgroundColor: isUser
-    ? theme.palette.primary.main
-    : theme.palette.background.paper,
-  color: isUser
-    ? theme.palette.primary.contrastText
-    : theme.palette.text.primary,
-  borderRadius: theme.spacing(3),
-  "&.form": {
-    maxWidth: "100%",
-    width: "100%",
-    backgroundColor: "transparent",
-    boxShadow: "none",
-  },
-}));
+  shouldForwardProp: (prop) =>
+    prop !== "isUser" && prop !== "type" && prop !== "isMobile",
+})<{ isUser: boolean; type?: string; isMobile?: boolean }>(
+  ({ theme, isUser, isMobile }) => ({
+    padding: theme.spacing(isMobile ? 1.5 : 2),
+    maxWidth: isMobile ? "95%" : "90%",
+    alignSelf: isUser ? "flex-end" : "flex-start",
+    backgroundColor: isUser
+      ? theme.palette.primary.main
+      : theme.palette.background.paper,
+    color: isUser
+      ? theme.palette.primary.contrastText
+      : theme.palette.text.primary,
+    borderRadius: theme.spacing(2),
+    "&.form": {
+      maxWidth: "100%",
+      width: "100%",
+      backgroundColor: "transparent",
+      boxShadow: "none",
+    },
+  })
+);
 
 interface CSVData {
   headers: string[];
@@ -165,6 +170,8 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   isLoadingMessages = false,
   updateMessages,
 }) => {
+  const isMobile = useIsMobile();
+
   const getFirstName = () => {
     try {
       const stored =
@@ -1173,7 +1180,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
               variant="h4"
               sx={{
                 fontWeight: 600,
-                fontSize: "2.5rem",
+                fontSize: isMobile ? "1.8rem" : "2.5rem",
                 color: "text.primary",
                 textAlign: "center",
                 maxWidth: "850px",
@@ -1182,7 +1189,13 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             >
               Let's build your keyword strategy.
             </Typography>
-            <Box sx={{ width: "100%", maxWidth: "850px", px: 3 }}>
+            <Box
+              sx={{
+                width: "100%",
+                maxWidth: isMobile ? "98%" : "850px",
+                px: isMobile ? 1 : 3,
+              }}
+            >
               <MessageInput
                 onSendMessage={handleSubmitMessage}
                 disabled={isLoading || isFormVisible}
@@ -1193,15 +1206,22 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           </CenteredContainer>
         ) : (
           <>
-            <MessageList>
+            <MessageList
+              sx={{
+                pt: isMobile ? 10 : 7,
+                pb: isMobile ? 4 : 3,
+                px: isMobile ? 1 : 3,
+                gap: isMobile ? 2 : 1.5,
+              }}
+            >
               <Box
                 sx={{
-                  maxWidth: "800px",
+                  maxWidth: isMobile ? "100%" : "800px",
                   width: "100%",
                   mx: "auto",
                   display: "flex",
                   flexDirection: "column",
-                  gap: 1.5,
+                  gap: isMobile ? 2 : 1.5,
                 }}
               >
                 {isLoadingMessages ? (
@@ -1209,62 +1229,62 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                   // The parent component (ChatPage) now controls when to skip loading
                   <>
                     {/* First message - Agent */}
-                    <MessageWrapper isUser={false}>
+                    <MessageWrapper isUser={false} isMobile={isMobile}>
                       <Avatar
                         src="/agent.png"
                         sx={{
-                          width: 34,
-                          height: 34,
-                          mt: 1.3,
+                          width: isMobile ? 28 : 34,
+                          height: isMobile ? 28 : 34,
+                          mt: isMobile ? 0.8 : 1.3,
                         }}
                       />
-                      <MessageItem isUser={false}>
+                      <MessageItem isUser={false} isMobile={isMobile}>
                         <Skeleton variant="text" width={250} height={20} />
                       </MessageItem>
                     </MessageWrapper>
 
                     {/* Second message - User */}
-                    <MessageWrapper isUser={true}>
-                      <MessageItem isUser={true}>
+                    <MessageWrapper isUser={true} isMobile={isMobile}>
+                      <MessageItem isUser={true} isMobile={isMobile}>
                         <Skeleton variant="text" width={200} height={20} />
                       </MessageItem>
                     </MessageWrapper>
 
                     {/* Third message - Agent */}
-                    <MessageWrapper isUser={false}>
+                    <MessageWrapper isUser={false} isMobile={isMobile}>
                       <Avatar
                         src="/agent.png"
                         sx={{
-                          width: 34,
-                          height: 34,
-                          mt: 1.3,
+                          width: isMobile ? 28 : 34,
+                          height: isMobile ? 28 : 34,
+                          mt: isMobile ? 0.8 : 1.3,
                         }}
                       />
-                      <MessageItem isUser={false}>
+                      <MessageItem isUser={false} isMobile={isMobile}>
                         <Skeleton variant="text" width={300} height={20} />
                         <Skeleton variant="text" width={270} height={20} />
                       </MessageItem>
                     </MessageWrapper>
 
                     {/* Fourth message - User */}
-                    <MessageWrapper isUser={true}>
-                      <MessageItem isUser={true}>
+                    <MessageWrapper isUser={true} isMobile={isMobile}>
+                      <MessageItem isUser={true} isMobile={isMobile}>
                         <Skeleton variant="text" width={180} height={20} />
                         <Skeleton variant="text" width={150} height={20} />
                       </MessageItem>
                     </MessageWrapper>
 
                     {/* Fifth message - Agent */}
-                    <MessageWrapper isUser={false}>
+                    <MessageWrapper isUser={false} isMobile={isMobile}>
                       <Avatar
                         src="/agent.png"
                         sx={{
-                          width: 34,
-                          height: 34,
-                          mt: 1.3,
+                          width: isMobile ? 28 : 34,
+                          height: isMobile ? 28 : 34,
+                          mt: isMobile ? 0.8 : 1.3,
                         }}
                       />
-                      <MessageItem isUser={false}>
+                      <MessageItem isUser={false} isMobile={isMobile}>
                         <Skeleton variant="text" width={280} height={20} />
                         <Skeleton variant="text" width={260} height={20} />
                         <Skeleton variant="text" width={220} height={20} />
@@ -1272,23 +1292,23 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                     </MessageWrapper>
 
                     {/* Sixth message - User */}
-                    <MessageWrapper isUser={true}>
-                      <MessageItem isUser={true}>
+                    <MessageWrapper isUser={true} isMobile={isMobile}>
+                      <MessageItem isUser={true} isMobile={isMobile}>
                         <Skeleton variant="text" width={170} height={20} />
                       </MessageItem>
                     </MessageWrapper>
 
                     {/* Seventh message - Agent (additional) */}
-                    <MessageWrapper isUser={false}>
+                    <MessageWrapper isUser={false} isMobile={isMobile}>
                       <Avatar
                         src="/agent.png"
                         sx={{
-                          width: 34,
-                          height: 34,
-                          mt: 1.3,
+                          width: isMobile ? 28 : 34,
+                          height: isMobile ? 28 : 34,
+                          mt: isMobile ? 0.8 : 1.3,
                         }}
                       />
-                      <MessageItem isUser={false}>
+                      <MessageItem isUser={false} isMobile={isMobile}>
                         <Skeleton variant="text" width={240} height={20} />
                         <Skeleton variant="text" width={320} height={20} />
                         <Skeleton variant="text" width={200} height={20} />
@@ -1305,20 +1325,22 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                       <MessageWrapper
                         key={message.id}
                         isUser={message.sender === "user"}
+                        isMobile={isMobile}
                       >
                         {message.sender !== "user" && (
                           <Avatar
                             src="/agent.png"
                             sx={{
-                              width: 34,
-                              height: 34,
-                              mt: 1.3,
+                              width: isMobile ? 28 : 34,
+                              height: isMobile ? 28 : 34,
+                              mt: isMobile ? 0.8 : 1.3,
                             }}
                           />
                         )}
                         <MessageItem
                           isUser={message.sender === "user"}
                           className={message.type === "form" ? "form" : ""}
+                          isMobile={isMobile}
                         >
                           {message.type === "form" && isFormVisible ? (
                             <BusinessInfoForm
@@ -1328,7 +1350,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                               onCancel={handleFormCancel}
                             />
                           ) : (
-                            <Typography sx={{ fontSize: "17px" }}>
+                            <Typography
+                              sx={{ fontSize: isMobile ? "15px" : "17px" }}
+                            >
                               {message.text}
                             </Typography>
                           )}

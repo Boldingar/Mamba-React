@@ -6,21 +6,26 @@ import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import DescriptionIcon from "@mui/icons-material/Description";
+import MenuIcon from "@mui/icons-material/Menu";
 import { useTheme } from "../context/ThemeContext";
 import { alpha } from "@mui/material/styles";
+import { useIsMobile } from "../utils/responsive";
 
 interface TopAppBarProps {
   csvPanelOpen: boolean;
   onToggleCSVPanel: () => void;
   hasDataToShow?: boolean;
+  onToggleUserPanel?: () => void;
 }
 
 const TopAppBar: React.FC<TopAppBarProps> = ({
   csvPanelOpen,
   onToggleCSVPanel,
   hasDataToShow = false,
+  onToggleUserPanel,
 }) => {
   const { mode } = useTheme();
+  const isMobile = useIsMobile();
 
   // Define SVG code for the logo with color based on theme
   const logoSvg = (
@@ -67,18 +72,34 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
     >
       <Toolbar
         sx={{
-          maxHeight: "2vh",
+          maxHeight: isMobile ? "3vh" : "2vh",
+          minHeight: isMobile ? "56px" : "48px",
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-start",
           gap: 2,
         }}
       >
+        {isMobile && onToggleUserPanel && (
+          <IconButton
+            onClick={onToggleUserPanel}
+            sx={{
+              mr: 1,
+              border: "none",
+              bgcolor: "transparent",
+              "&:hover": {
+                bgcolor: (theme) => alpha(theme.palette.action.hover, 0.04),
+              },
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            height: "4vh",
+            height: isMobile ? "5vh" : "4vh",
           }}
         >
           {logoSvg}
@@ -90,8 +111,8 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
             onClick={onToggleCSVPanel}
             sx={{
               mr: 1,
-              width: "4vw",
-              height: "4vw",
+              width: isMobile ? "40px" : "4vw",
+              height: isMobile ? "40px" : "4vw",
               minWidth: "40px",
               minHeight: "40px",
               border: "none",
@@ -101,7 +122,9 @@ const TopAppBar: React.FC<TopAppBarProps> = ({
               },
             }}
           >
-            <DescriptionIcon sx={{ fontSize: "2vw", minFontSize: "24px" }} />
+            <DescriptionIcon
+              sx={{ fontSize: isMobile ? "24px" : "2vw", minFontSize: "24px" }}
+            />
           </IconButton>
         )}
       </Toolbar>

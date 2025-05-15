@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearProjectsCache } from "./projectUtils";
 
 export const API_BASE_URL = "https://mamba.genta.agency";
 
@@ -36,6 +37,9 @@ axiosInstance.interceptors.response.use(
       localStorage.removeItem("userData");
       sessionStorage.removeItem("authToken");
       sessionStorage.removeItem("userData");
+
+      // Clear projects cache
+      clearProjectsCache();
 
       // Redirect to login page
       window.location.href = "/login";
