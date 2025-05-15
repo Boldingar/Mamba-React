@@ -164,7 +164,7 @@ const GoogleIntegrations: React.FC = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 480, width: "100%" }}>
+    <Box sx={{ maxWidth: "100%", width: "100%" }}>
       <Stack spacing={isMobile ? 2 : 4}>
         <Box>
           <Button

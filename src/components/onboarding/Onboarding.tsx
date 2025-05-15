@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Stepper, Step, StepLabel, Box, StepIcon } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import WebsiteForm from "./WebsiteForm";
@@ -7,9 +7,11 @@ import Products from "./Products";
 import Personas from "./Personas";
 import Competitors from "./Competitors";
 import Success from "./Success";
+import IntegrationsStep from "./IntegrationsStep";
 import LoadingTransition from "./LoadingTransition";
 import axios from "../../utils/axios";
 import { useIsMobile } from "../../utils/responsive";
+import { hasProjects } from "../../utils/projectUtils";
 
 export interface Product {
   url: string;
@@ -41,15 +43,6 @@ export interface FormDataType {
   target_personas?: Persona[];
 }
 
-const steps = [
-  "Website",
-  "Business Info",
-  "Products",
-  "Personas",
-  "Competitors",
-  "Success",
-];
-
 interface OnboardingProps {
   activeStep: number;
   setActiveStep: (step: number) => void;
@@ -59,6 +52,7 @@ interface OnboardingProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   hasWebsite: boolean | null;
   setHasWebsite: React.Dispatch<React.SetStateAction<boolean | null>>;
+  isFirstProject?: boolean;
 }
 
 const Onboarding: React.FC<OnboardingProps> = ({
@@ -70,9 +64,21 @@ const Onboarding: React.FC<OnboardingProps> = ({
   setIsLoading,
   hasWebsite,
   setHasWebsite,
+  isFirstProject = true, // Default to true to be safe
 }) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  // Create steps array based on whether this is the first project
+  const steps = [
+    "Website",
+    "Business Info",
+    "Products",
+    "Personas",
+    "Competitors",
+    ...(isFirstProject ? ["Integrations"] : []),
+    "Success",
+  ];
 
   const handleNext = () => {
     // Reset scroll position
@@ -208,6 +214,14 @@ const Onboarding: React.FC<OnboardingProps> = ({
           />
         );
       case 5:
+        // If isFirstProject is true, show IntegrationsStep at step 5, otherwise show Success
+        return isFirstProject ? (
+          <IntegrationsStep onBack={handleBack} onNext={handleNext} />
+        ) : (
+          <Success onBack={handleBack} onNext={handleSubmit} />
+        );
+      case 6:
+        // Only reached if isFirstProject is true
         return <Success onBack={handleBack} onNext={handleSubmit} />;
       default:
         throw new Error("Unknown step");

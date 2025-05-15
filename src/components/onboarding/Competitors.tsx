@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Stack,
@@ -6,11 +6,13 @@ import {
   IconButton,
   Button,
   Typography,
+  Paper,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "@mui/material/styles";
 import { FormDataType, Competitor } from "./Onboarding";
+import { useIsMobile } from "../../utils/responsive";
 
 interface CompetitorsProps {
   formData: FormDataType;
@@ -26,6 +28,7 @@ const Competitors: React.FC<CompetitorsProps> = ({
   onNext,
 }) => {
   const theme = useTheme();
+  const isMobile = useIsMobile();
   const borderRadius = 3;
   const buttonStyles = {
     bgcolor: theme.palette.primary.main,
@@ -114,6 +117,8 @@ const Competitors: React.FC<CompetitorsProps> = ({
         display: "flex",
         flexDirection: "column",
         height: "100%",
+        maxWidth: isMobile ? "100%" : "800px",
+        mx: "auto",
       }}
     >
       <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
