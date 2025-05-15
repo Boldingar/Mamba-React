@@ -84,20 +84,20 @@ const MessageItem = styled(Paper, {
   ({ theme, isUser, isMobile }) => ({
     padding: theme.spacing(isMobile ? 1.5 : 2),
     maxWidth: isMobile ? "95%" : "90%",
-  alignSelf: isUser ? "flex-end" : "flex-start",
-  backgroundColor: isUser
-    ? theme.palette.primary.main
-    : theme.palette.background.paper,
-  color: isUser
-    ? theme.palette.primary.contrastText
-    : theme.palette.text.primary,
+    alignSelf: isUser ? "flex-end" : "flex-start",
+    backgroundColor: isUser
+      ? theme.palette.primary.main
+      : theme.palette.background.paper,
+    color: isUser
+      ? theme.palette.primary.contrastText
+      : theme.palette.text.primary,
     borderRadius: theme.spacing(2),
-  "&.form": {
-    maxWidth: "100%",
-    width: "100%",
-    backgroundColor: "transparent",
-    boxShadow: "none",
-  },
+    "&.form": {
+      maxWidth: "100%",
+      width: "100%",
+      backgroundColor: "transparent",
+      boxShadow: "none",
+    },
   })
 );
 
@@ -1192,8 +1192,8 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             <Box
               sx={{
                 width: "100%",
-                maxWidth: isMobile ? "95%" : "850px",
-                px: 3,
+                maxWidth: isMobile ? "98%" : "850px",
+                px: isMobile ? 1 : 3,
               }}
             >
               <MessageInput
