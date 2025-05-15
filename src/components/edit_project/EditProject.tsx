@@ -693,7 +693,7 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
         ))}
       </Stepper>
 
-      <Box sx={{ flex: 1, width: "100%", overflow: "auto", pb: 10 }}>
+      <Box sx={{ flex: 1, width: "100%", overflow: "auto" }}>
         {getStepContent(activeStep)}
       </Box>
 
@@ -707,7 +707,7 @@ const EditProject: React.FC<EditProjectProps> = ({ projectId, onClose }) => {
           width: "80%", // Match the width of the parent container
           maxWidth: "1000px", // Match the max-width of the parent container
           padding: 2,
-          paddingBottom: 3, // Add extra padding at the bottom
+          paddingBottom: 0, // Add extra padding at the bottom
           backgroundColor: "background.default",
           borderTop: "1px solid",
           borderColor: "divider",
