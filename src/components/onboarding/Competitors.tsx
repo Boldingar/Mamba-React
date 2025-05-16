@@ -117,8 +117,6 @@ const Competitors: React.FC<CompetitorsProps> = ({
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        maxWidth: isMobile ? "100%" : "800px",
-        mx: "auto",
       }}
     >
       <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
@@ -153,7 +151,7 @@ const Competitors: React.FC<CompetitorsProps> = ({
               borderRadius: 2,
               py: 3,
               px: 2,
-              minHeight: 80,
+              minHeight: 100,
               mb: 3,
               bgcolor: "background.paper",
             }}
