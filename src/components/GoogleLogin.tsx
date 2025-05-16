@@ -31,7 +31,7 @@ export default function GoogleLogin({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [user, setUser] = useState<GoogleUser | null>(null);
-  const buttonIdRef = useRef(
+  const buttonIdRef = useRef<string>(
     `google-signin-button-${Math.random().toString(36).substr(2, 9)}`
   );
 
