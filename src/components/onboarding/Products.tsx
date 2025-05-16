@@ -154,8 +154,6 @@ const Products: React.FC<ProductsProps> = ({
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        maxWidth: isMobile ? "100%" : "800px",
-        mx: "auto",
       }}
     >
       <Box sx={{ flex: 1, overflow: "auto", mb: 2 }}>
@@ -190,7 +188,7 @@ const Products: React.FC<ProductsProps> = ({
               borderRadius: 2,
               py: 3,
               px: 2,
-              minHeight: 120,
+              minHeight: 100,
               mb: 3,
               bgcolor: "background.paper",
             }}
@@ -264,7 +262,7 @@ const Products: React.FC<ProductsProps> = ({
                     theme.palette.mode === "dark" ? "/clearW.png" : "/clear.png"
                   }
                   alt="Clear"
-                  style={{ width: 30, height: 30 }}
+                  style={{ width: 20, height: 20 }}
                 />
               </IconButton>
               <IconButton
