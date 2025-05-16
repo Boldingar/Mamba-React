@@ -31,29 +31,27 @@ export default function GoogleLogin({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [user, setUser] = useState<GoogleUser | null>(null);
-  const buttonIdRef = useRef<string>(
-    `google-signin-button-${Math.random().toString(36).substr(2, 9)}`
-  );
+  const buttonContainerRef = useRef<HTMLDivElement | null>(null);
+  const buttonRenderedRef = useRef(false);
 
   const initializeGoogleSignIn = useCallback(() => {
-    if (!window.google || !isScriptLoaded) {
+    if (!window.google || !isScriptLoaded || !buttonContainerRef.current) {
       return;
     }
+    if (buttonRenderedRef.current) return;
     try {
       window.google.accounts.id.initialize({
         client_id: clientId,
         callback: handleCredentialResponse,
       });
-      const buttonElement = document.getElementById(buttonIdRef.current);
-      if (buttonElement) {
-        window.google.accounts.id.renderButton(buttonElement, {
-          theme: "outline",
-          size: "large",
-          width: isMobile ? 300 : 380,
-          text: "signin_with",
-          shape: "rectangular",
-        });
-      }
+      window.google.accounts.id.renderButton(buttonContainerRef.current, {
+        theme: "outline",
+        size: "large",
+        width: isMobile ? 300 : 380,
+        text: "signin_with",
+        shape: "rectangular",
+      });
+      buttonRenderedRef.current = true;
     } catch (error) {
       if (onError) onError(error as Error);
     }
@@ -84,27 +82,32 @@ export default function GoogleLogin({
   }, [onError]);
 
   useEffect(() => {
-    if (isScriptLoaded) {
+    if (
+      isScriptLoaded &&
+      buttonContainerRef.current &&
+      !buttonRenderedRef.current
+    ) {
       initializeGoogleSignIn();
     }
   }, [isScriptLoaded, initializeGoogleSignIn]);
 
+  useEffect(() => {
+    if (!user) {
+      buttonRenderedRef.current = false;
+    }
+  }, [user]);
+
   const handleCredentialResponse = async (response: any) => {
     try {
       console.log("Received Google Sign-In response:", response);
-      // The response contains a JWT token in response.credential
       const token = response.credential;
-
-      // Decode the JWT token to get user information
       const decodedToken = JSON.parse(atob(token.split(".")[1]));
-
       const googleUser: GoogleUser = {
         email: decodedToken.email,
         name: decodedToken.name,
         imageUrl: decodedToken.picture,
         token: token,
       };
-
       setUser(googleUser);
       onSuccess(googleUser);
     } catch (error) {
@@ -134,7 +137,7 @@ export default function GoogleLogin({
     >
       {!user ? (
         <Box
-          id={buttonIdRef.current}
+          ref={buttonContainerRef}
           sx={{
             width: "100%",
             display: "flex",
