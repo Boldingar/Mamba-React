@@ -217,7 +217,7 @@ const Products: React.FC<ProductsProps> = ({
               direction="row"
               spacing={2}
               alignItems="center"
-              sx={{ mb: product.url ? 0 : 2 }}
+              sx={{ mb: 2 }}
             >
               <TextField
                 label="Product Name"
@@ -279,7 +279,7 @@ const Products: React.FC<ProductsProps> = ({
               </IconButton>
             </Stack>
             {/* Description Row */}
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 2 }}>
               <TextField
                 label="Description"
                 fullWidth
